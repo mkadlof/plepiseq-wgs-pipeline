@@ -413,7 +413,8 @@ RUN apt update && \
                                            libboost-program-options1.74.0 \
                                            libboost-iostreams1.74.0 \
                                            libboost-filesystem1.74.0 \
-                                           libprotobuf32
+                                           libprotobuf32 \
+                                           procps
 
 COPY --from=builder-base /opt /opt
 COPY --from=builder-samtools /opt/samtools /opt/samtools

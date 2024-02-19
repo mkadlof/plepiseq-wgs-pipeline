@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# This script runs the nextflow pipeline with the given parameters
+nextflow run nf_pipeline.nf \
+    --reference_genome 'path/to/reference/genome.fasta' \
+    --reads 'path/to/reads/sample_id_{1,2}.fastq.gz' \
+    --threads 3 \
+    --primers 'path/to/primers.bed'
+    -config nextflow.config \
+    -with-report report.html \
+    -with-dag flowchart.png \
+    -resume
+
+# If you run in docker, then add:
+# -with-docker nf_illumina_sars-3.0:latest \
