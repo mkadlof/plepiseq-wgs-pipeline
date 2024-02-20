@@ -6,15 +6,15 @@ process trimmomatic {
     path adapters
 
     output:
-    tuple val(sampleId), path('forward_paired.fq.gz'), path('forward_unpaired.fq.gz'), path('reverse_paired.fq.gz'), path('reverse_unpaired.fq.gz')
+    tuple val(sampleId), path('forward_paired.fastq.gz'), path('forward_unpaired.fastq.gz'), path('reverse_paired.fastq.gz'), path('reverse_unpaired.fastq.gz')
 
     script:
     """
     java -jar /opt/trimmomatic/trimmomatic.jar PE ${reads[0]} ${reads[1]} \
-                                            forward_paired.fq.gz \
-                                            forward_unpaired.fq.gz \
-                                            reverse_paired.fq.gz \
-                                            reverse_unpaired.fq.gz \
+                                            forward_paired.fastq.gz \
+                                            forward_unpaired.fastq.gz \
+                                            reverse_paired.fastq.gz \
+                                            reverse_unpaired.fastq.gz \
                                             ILLUMINACLIP:${adapters}:2:30:10:8:True \
                                             LEADING:${params.quality_initial} \
                                             TRAILING:${params.quality_initial} \

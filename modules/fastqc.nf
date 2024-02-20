@@ -3,9 +3,10 @@ process fastqc {
 
     input:
     tuple val(sampleId), path(reads)
+    val(prefix)
 
     output:
-    tuple val(sampleId), path('initialfastq_forward_fastqc.txt'), path('initialfastq_reverse_fastqc.txt')
+    tuple val(sampleId), path("${prefix}_forward_fastqc.txt"), path("${prefix}_reverse_fastqc.txt")
 
     script:
     """
@@ -16,7 +17,9 @@ process fastqc {
            --delete \
            --outdir . \
            ${reads[0]} ${reads[1]}
-    parse_fastqc_output.py ${sampleId}_1_fastqc/fastqc_data.txt ${params.quality_initial} >> initialfastq_forward_fastqc.txt
-    parse_fastqc_output.py ${sampleId}_2_fastqc/fastqc_data.txt ${params.quality_initial} >> initialfastq_reverse_fastqc.txt
+    r1=\$(basename ${reads[0]} .fastq.gz)
+    r2=\$(basename ${reads[1]} .fastq.gz)
+    parse_fastqc_output.py \${r1}_fastqc/fastqc_data.txt ${params.quality_initial} >> ${prefix}_forward_fastqc.txt
+    parse_fastqc_output.py \${r2}_fastqc/fastqc_data.txt ${params.quality_initial} >> ${prefix}_reverse_fastqc.txt
     """
 }
