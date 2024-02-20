@@ -5,7 +5,8 @@ nextflow run nf_pipeline.nf \
     --reference_genome 'path/to/reference/genome.fasta' \
     --reads 'path/to/reads/sample_id_{1,2}.fastq.gz' \
     --threads 3 \
-    --primers 'path/to/primers.bed'
+    --primers 'path/to/primers.bed' \
+    --adapters 'path/to/adapters.fa' \
     -config nextflow.config \
     -with-report report.html \
     -with-dag flowchart.png \
