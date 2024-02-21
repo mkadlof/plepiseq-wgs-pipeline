@@ -14,6 +14,7 @@ include { masking } from './modules/masking.nf'
 include { merging } from './modules/merging.nf'
 include { picard } from './modules/picard.nf'
 include { viterbi } from './modules/viterbi.nf'
+include { wgsMetrics } from './modules/wgsMetrics.nf'
 
 
 workflow{
@@ -36,4 +37,5 @@ workflow{
     merging(combined, primers, pairs)
     picard(bwa.out)
     viterbi(merging.out, ref_genome)
+    wgsMetrics(viterbi.out, ref_genome)
 }
