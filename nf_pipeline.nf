@@ -3,6 +3,7 @@ params.threads = 5
 params.memory = 2024
 params.quality_initial = 5
 params.length = 90
+params.max_number_for_SV = 200000
 
 include { bwa } from './modules/bwa.nf'
 include { fastqc as fastqc_1 } from './modules/fastqc.nf'
@@ -10,6 +11,7 @@ include { fastqc as fastqc_2 } from './modules/fastqc.nf'
 include { trimmomatic } from './modules/trimmomatic.nf'
 include { filtering } from './modules/filtering.nf'
 include { masking } from './modules/masking.nf'
+include { picard } from './modules/picard.nf'
 
 
 workflow{
@@ -29,4 +31,5 @@ workflow{
     filtering(bwa.out, primers)
     masking_input = filtering.out.map { sampleId, bam1, bai1, bam2, bai2, stats -> [sampleId, bam1, bai1] }
     masking(masking_input, primers, pairs)
+    picard(bwa.out)
 }
