@@ -2,7 +2,7 @@
 
 # This script runs the nextflow pipeline with the given parameters
 nextflow run nf_pipeline.nf \
-    --reference_genome 'path/to/reference/genome.fasta' \
+    --ref_genome 'path/to/reference/genome.fasta' \
     --reads 'path/to/reads/sample_id_{1,2}.fastq.gz' \
     --threads 3 \
     --primers 'path/to/primers.bed' \

@@ -18,7 +18,7 @@ include { viterbi } from './modules/viterbi.nf'
 
 workflow{
     // Channels
-    reference_genome = Channel.value(params.reference_genome as Path)
+    ref_genome = Channel.value(params.ref_genome as Path)
     reads = Channel.fromFilePairs(params.reads)
     primers = Channel.value(params.primers as Path)
     pairs = Channel.value(params.pairs as Path)
@@ -26,16 +26,14 @@ workflow{
 
     // Processes
     fastqc_1(reads, "initialfastq")
-    bwa(reads, reference_genome)
+    bwa(reads, ref_genome)
     trimmomatic(reads, adapters)
     fastqc_2_input = trimmomatic.out.map { sampleId, forward_paired, forward_unpaired, reverse_paired, reverse_unpaired -> [sampleId, [forward_paired, reverse_paired]] }
     fastqc_2(fastqc_2_input, "aftertrimmomatic")
     filtering(bwa.out, primers)
     masking(filtering.out[0], primers, pairs)
-    left = filtering.out[1]
-    right = masking.out
-    combined = left.join(right)
+    combined = filtering.out[1].join(masking.out)
     merging(combined, primers, pairs)
     picard(bwa.out)
-    viterbi(merging.out, reference_genome)
+    viterbi(merging.out, ref_genome)
 }
