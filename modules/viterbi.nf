@@ -5,7 +5,7 @@ process viterbi {
     path ref_genome
 
     output:
-    tuple val(sampleId), path('downsample.bam'), path('downsample.bam.bai')
+    tuple val(sampleId), path('forvariants.bam'), path('forvariants.bam.bai')
 
     script:
     """
@@ -13,14 +13,12 @@ process viterbi {
                    --out clean_sort_dedup_trimmed_sort_viterbi.bam \
                    ${bam}
 
-#                    ${OUTPUT_DIR}/${prefix}_clean_sort_dedup_trimmed_sort.bam
-
-    lofreq indelqual --ref ${REFERENCE_GENOME_FASTA} \
-                     --out ${LOFREQ_OUTPUT_DIR}/${prefix}_clean_sort_dedup_trimmed_sort_viterbi_lofreq.bam \
-                     --dindel ${LOFREQ_OUTPUT_DIR}/${prefix}_clean_sort_dedup_trimmed_sort_viterbi.bam
-    samtools sort -@ ${cpu} \
-                  -o ${OUTPUT_DIR}/${prefix}_forvariants.bam \
-                  ${LOFREQ_OUTPUT_DIR}/${prefix}_clean_sort_dedup_trimmed_sort_viterbi_lofreq.bam
-    samtools index ${OUTPUT_DIR}/${prefix}_forvariants.bam
+    lofreq indelqual --ref ${ref_genome} \
+                     --out forvariants.bam \
+                     --dindel clean_sort_dedup_trimmed_sort_viterbi.bam
+    samtools sort -@ ${params.threads} \
+                  -o forvariants.bam \
+                  forvariants.bam
+    samtools index forvariants.bam
     """
 }

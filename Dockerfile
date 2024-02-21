@@ -414,6 +414,7 @@ RUN apt update && \
                                            libboost-iostreams1.74.0 \
                                            libboost-filesystem1.74.0 \
                                            libprotobuf32 \
+                                           libgsl27 \
                                            procps
 
 COPY --from=builder-base /opt /opt

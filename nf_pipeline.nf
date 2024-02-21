@@ -13,6 +13,7 @@ include { filtering } from './modules/filtering.nf'
 include { masking } from './modules/masking.nf'
 include { merging } from './modules/merging.nf'
 include { picard } from './modules/picard.nf'
+include { viterbi } from './modules/viterbi.nf'
 
 
 workflow{
@@ -31,11 +32,10 @@ workflow{
     fastqc_2(fastqc_2_input, "aftertrimmomatic")
     filtering(bwa.out, primers)
     masking(filtering.out[0], primers, pairs)
-
     left = filtering.out[1]
     right = masking.out
     combined = left.join(right)
     merging(combined, primers, pairs)
-
     picard(bwa.out)
+    viterbi(merging.out, reference_genome)
 }
