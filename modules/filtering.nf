@@ -7,7 +7,7 @@ process filtering {
 
     output:
     tuple val(sampleId), path('reads_inneramplicon.bam'), path('reads_inneramplicon.bam.bai'),
-                         path('clean_sort_dedup_trimmed_sort.bam'), path('clean_sort_dedup_trimmed_sort.bam.bai'),
+                         path('tmp.bam'), path('tmp.bam.bai'),
                          path('Statystyki_one_amplicon.txt')
 
     script:
@@ -19,12 +19,12 @@ process filtering {
     TO_MERGE=`ls -l reads_two_amplicons_for_*sorted_ivar.bam 2> /dev/null | tr -s " " |  cut -d " " -f9 | tr "\n" " "`
 
     if [ -n "\${TO_MERGE}" ]; then
-        samtools merge -o clean_sort_dedup_trimmed_sort.bam \${TO_MERGE}
+        samtools merge -o tmp.bam \${TO_MERGE}
     else
-        samtools view -b -o clean_sort_dedup_trimmed_sort.bam -L /dev/null reads_inneramplicon.bam
+        samtools view -b -o tmp.bam -L /dev/null reads_inneramplicon.bam
     fi
 
-    samtools sort -@ ${params.threads} -o clean_sort_dedup_trimmed_sort.bam clean_sort_dedup_trimmed_sort.bam
-    samtools index clean_sort_dedup_trimmed_sort.bam
+    samtools sort -@ ${params.threads} -o tmp.bam tmp.bam
+    samtools index tmp.bam
     """
 }

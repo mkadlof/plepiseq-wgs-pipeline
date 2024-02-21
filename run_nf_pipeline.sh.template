@@ -6,6 +6,7 @@ nextflow run nf_pipeline.nf \
     --reads 'path/to/reads/sample_id_{1,2}.fastq.gz' \
     --threads 3 \
     --primers 'path/to/primers.bed' \
+    --pairs 'path/to/pairs.tsv' \
     --adapters 'path/to/adapters.fa' \
     -config nextflow.config \
     -with-report report.html \
