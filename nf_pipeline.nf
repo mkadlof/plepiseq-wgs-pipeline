@@ -4,6 +4,7 @@ params.memory = 2024
 params.quality_initial = 5
 params.length = 90
 params.max_number_for_SV = 200000
+params.mask = 20
 
 include { bwa } from './modules/bwa.nf'
 include { fastqc as fastqc_1 } from './modules/fastqc.nf'
@@ -15,6 +16,7 @@ include { merging } from './modules/merging.nf'
 include { picard } from './modules/picard.nf'
 include { viterbi } from './modules/viterbi.nf'
 include { wgsMetrics } from './modules/wgsMetrics.nf'
+include { lowCov } from './modules/lowCov.nf'
 
 
 workflow{
@@ -38,4 +40,5 @@ workflow{
     picard(bwa.out)
     viterbi(merging.out, ref_genome)
     wgsMetrics(viterbi.out, ref_genome)
+    lowCov(viterbi.out, ref_genome)
 }
