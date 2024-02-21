@@ -8,6 +8,7 @@ include { bwa } from './modules/bwa.nf'
 include { fastqc as fastqc_1 } from './modules/fastqc.nf'
 include { fastqc as fastqc_2 } from './modules/fastqc.nf'
 include { trimmomatic } from './modules/trimmomatic.nf'
+include { filtering } from './modules/filtering.nf'
 
 
 workflow{
@@ -23,4 +24,5 @@ workflow{
     trimmomatic(reads, adapters)
     fastqc_2_input = trimmomatic.out.map { sampleId, forward_paired, forward_unpaired, reverse_paired, reverse_unpaired -> [sampleId, [forward_paired, reverse_paired]] }
     fastqc_2(fastqc_2_input, "aftertrimmomatic")
+    filtering(bwa.out, primers)
 }
