@@ -6,9 +6,9 @@ process filtering {
     path primers
 
     output:
-    tuple val(sampleId), path('reads_inneramplicon.bam'), path('reads_inneramplicon.bam.bai'),
-                         path('tmp.bam'), path('tmp.bam.bai'),
-                         path('Statystyki_one_amplicon.txt')
+    tuple val(sampleId), path('reads_inneramplicon.bam'), path('reads_inneramplicon.bam.bai')
+    tuple val(sampleId), path('tmp.bam') //, path('tmp.bam.bai')
+    tuple val(sampleId), path('Statystyki_one_amplicon.txt')
 
     script:
     """
@@ -25,6 +25,6 @@ process filtering {
     fi
 
     samtools sort -@ ${params.threads} -o tmp.bam tmp.bam
-    samtools index tmp.bam
+    # samtools index tmp.bam
     """
 }

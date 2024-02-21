@@ -11,6 +11,7 @@ include { fastqc as fastqc_2 } from './modules/fastqc.nf'
 include { trimmomatic } from './modules/trimmomatic.nf'
 include { filtering } from './modules/filtering.nf'
 include { masking } from './modules/masking.nf'
+include { merging } from './modules/merging.nf'
 include { picard } from './modules/picard.nf'
 
 
@@ -29,7 +30,12 @@ workflow{
     fastqc_2_input = trimmomatic.out.map { sampleId, forward_paired, forward_unpaired, reverse_paired, reverse_unpaired -> [sampleId, [forward_paired, reverse_paired]] }
     fastqc_2(fastqc_2_input, "aftertrimmomatic")
     filtering(bwa.out, primers)
-    masking_input = filtering.out.map { sampleId, bam1, bai1, bam2, bai2, stats -> [sampleId, bam1, bai1] }
-    masking(masking_input, primers, pairs)
+    masking(filtering.out[0], primers, pairs)
+
+    left = filtering.out[1]
+    right = masking.out
+    combined = left.join(right)
+    merging(combined, primers, pairs)
+
     picard(bwa.out)
 }

@@ -1,4 +1,4 @@
-process masking {
+process merging {
 
     input:
     tuple val(sampleId), path(filtering_bam), path(ivar_bam)
