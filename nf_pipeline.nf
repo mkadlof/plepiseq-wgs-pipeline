@@ -4,13 +4,15 @@ params.memory = 2024
 params.quality_initial = 5
 params.length = 90
 params.max_number_for_SV = 200000
-params.mask = 20
 params.max_depth = 6000
+params.min_cov = 20
+params.mask = 20
 params.quality_snp = 15
 params.pval = 0.05
 params.lower_ambig = 0.45
 params.upper_ambig = 0.55
-params.min_cov = 20
+params.quality_SNP = 15
+
 
 include { bwa } from './modules/bwa.nf'
 include { fastqc as fastqc_1 } from './modules/fastqc.nf'
@@ -24,6 +26,7 @@ include { viterbi } from './modules/viterbi.nf'
 include { wgsMetrics } from './modules/wgsMetrics.nf'
 include { lowCov } from './modules/lowCov.nf'
 include { varScan } from './modules/varscan.nf'
+include { freeBayes } from './modules/freeBayes.nf'
 
 
 workflow{
@@ -49,5 +52,6 @@ workflow{
     wgsMetrics(viterbi.out, ref_genome)
     lowCov(viterbi.out, ref_genome)
     varScan(viterbi.out.join(lowCov.out[1]), ref_genome)
+    freeBayes(viterbi.out.join(lowCov.out[1]), ref_genome)
 
 }
