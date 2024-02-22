@@ -12,8 +12,10 @@ params.pval = 0.05
 params.lower_ambig = 0.45
 params.upper_ambig = 0.55
 params.quality_SNP = 15
+params.ref_genome_id = "MN908947.3"
 
 
+include { indexGenome } from './modules/indexGenome.nf'
 include { bwa } from './modules/bwa.nf'
 include { fastqc as fastqc_1 } from './modules/fastqc.nf'
 include { fastqc as fastqc_2 } from './modules/fastqc.nf'
@@ -27,6 +29,7 @@ include { wgsMetrics } from './modules/wgsMetrics.nf'
 include { lowCov } from './modules/lowCov.nf'
 include { varScan } from './modules/varscan.nf'
 include { freeBayes } from './modules/freeBayes.nf'
+include { lofreq } from './modules/lofreq.nf'
 
 
 workflow{
@@ -38,6 +41,8 @@ workflow{
     adapters = Channel.value(params.adapters as Path)
 
     // Processes
+
+    indexGenome(ref_genome)
     fastqc_1(reads, "initialfastq")
     bwa(reads, ref_genome)
     trimmomatic(reads, adapters)
@@ -53,5 +58,6 @@ workflow{
     lowCov(viterbi.out, ref_genome)
     varScan(viterbi.out.join(lowCov.out[1]), ref_genome)
     freeBayes(viterbi.out.join(lowCov.out[1]), ref_genome)
+    lofreq(viterbi.out.join(lowCov.out[1]), ref_genome, indexGenome.out)
 
 }
