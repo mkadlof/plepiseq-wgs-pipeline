@@ -31,6 +31,7 @@ include { varScan } from './modules/varscan.nf'
 include { freeBayes } from './modules/freeBayes.nf'
 include { lofreq } from './modules/lofreq.nf'
 include { consensus } from './modules/consensus.nf'
+include { consensusMasking } from './modules/consensusMasking.nf'
 
 
 workflow{
@@ -59,4 +60,5 @@ workflow{
     freeBayes(viterbi.out.join(lowCov.out[1]), indexGenome.out)
     lofreq(viterbi.out.join(lowCov.out[1]), indexGenome.out)
     consensus(varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1]))
+    consensusMasking(consensus.out.join(lowCov.out[1]))
 }
