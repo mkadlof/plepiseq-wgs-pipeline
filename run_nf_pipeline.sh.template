@@ -8,6 +8,7 @@ nextflow run nf_pipeline.nf \
     --primers 'path/to/primers.bed' \
     --pairs 'path/to/pairs.tsv' \
     --adapters 'path/to/adapters.fa' \
+    --nextclade_db_dir 'path/to/nextclade/db' \
     -config nextflow.config \
     -with-report report.html \
     -with-dag flowchart.png \

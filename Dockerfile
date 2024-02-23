@@ -200,8 +200,8 @@ RUN curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/${NEXT
     chmod +x nextclade
 RUN mkdir -p /SARS-CoV2/
 # Switch comments to download nextclade dataset insted of copying it from local
-#RUN nextclade dataset get --name='sars-cov-2' --output-dir=/SARS-CoV2/nextclade/
 ADD data/nextclade/SARS-CoV2.tar.gz /home
+RUN nextclade dataset get --name='sars-cov-2' --output-dir=/SARS-CoV2/nextclade/
 ENV PATH="/opt/nextclade/bin:$PATH"
 
 # builder-fastqc
