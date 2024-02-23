@@ -6,7 +6,8 @@ process lofreq {
     path indexGenome
 
     output:
-    tuple val(sampleId), path('detected_variants_lofreq_final.vcf.gz'), path('lofreq_masked.fa')
+    tuple val(sampleId), path('detected_variants_lofreq_final.vcf.gz')
+    tuple val(sampleId), path('lofreq_masked.fa')
 
     script:
     """

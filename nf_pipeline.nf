@@ -30,6 +30,7 @@ include { lowCov } from './modules/lowCov.nf'
 include { varScan } from './modules/varscan.nf'
 include { freeBayes } from './modules/freeBayes.nf'
 include { lofreq } from './modules/lofreq.nf'
+include { consensus } from './modules/consensus.nf'
 
 
 workflow{
@@ -59,5 +60,5 @@ workflow{
     varScan(viterbi.out.join(lowCov.out[1]), ref_genome)
     freeBayes(viterbi.out.join(lowCov.out[1]), ref_genome)
     lofreq(viterbi.out.join(lowCov.out[1]), ref_genome, indexGenome.out)
-
+    consensus(varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1]))
 }

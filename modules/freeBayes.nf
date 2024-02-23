@@ -5,7 +5,8 @@ process freeBayes {
     path ref_genome
 
     output:
-    tuple val(sampleId), path('detected_variants_freebayes_final.vcf.gz'), path('freebayes_masked.fa')
+    tuple val(sampleId), path('detected_variants_freebayes_final.vcf.gz')
+    tuple val(sampleId), path('freebayes_masked.fa')
 
     script:
     """

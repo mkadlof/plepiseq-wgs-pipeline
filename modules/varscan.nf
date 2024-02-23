@@ -6,7 +6,8 @@ process varScan {
     path ref_genome
 
     output:
-    tuple val(sampleId), path('detected_variants_varscan.txt'), path('varscan_masked.fa')
+    tuple val(sampleId), path('detected_variants_varscan_final.vcf.gz')
+    tuple val(sampleId), path('varscan_masked.fa')
 
     script:
     """
