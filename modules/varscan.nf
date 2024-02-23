@@ -3,7 +3,7 @@ process varScan {
 
     input:
     tuple val(sampleId), path(bam), path(bai), path(lowcoverage_masked_fa)
-    path ref_genome
+    tuple path(reference_fasta), path(reference_fai)
 
     output:
     tuple val(sampleId), path('detected_variants_varscan_final.vcf.gz')
@@ -12,7 +12,7 @@ process varScan {
     script:
     """
     samtools mpileup --max-depth ${params.max_depth} \
-                 --fasta-ref ${ref_genome} \
+                 --fasta-ref ${reference_fasta} \
                  --min-BQ ${params.quality_snp} \
                  ${bam} >> ${bam}.mpileup
 
@@ -34,18 +34,18 @@ process varScan {
 
     bcftools norm --check-ref w \
                   --rm-dup all \
-                  --fasta-ref ${ref_genome}\
+                  --fasta-ref ${reference_fasta}\
                    detected_variants_varscan.vcf.gz | \
                        bcftools norm --check-ref w \
                                      --multiallelics -indels \
-                                     --fasta-ref ${ref_genome} | \
+                                     --fasta-ref ${reference_fasta} | \
                                            bcftools filter \
                                                     --include "QUAL >= \${qual} && AF >= ${params.lower_ambig} && DP >= ${params.min_cov}" > detected_variants_varscan_final.vcf
 
     bgzip --force detected_variants_varscan_final.vcf
     tabix detected_variants_varscan_final.vcf.gz
 
-    cat ${ref_genome} | bcftools consensus --samples - detected_variants_varscan_final.vcf.gz > varscan.fa
+    cat ${reference_fasta} | bcftools consensus --samples - detected_variants_varscan_final.vcf.gz > varscan.fa
     cat ${lowcoverage_masked_fa} varscan.fa >> tmp_varscan.fa
     mafft --auto --inputorder --quiet tmp_varscan.fa >> tmp_varscan_aln.fa
 

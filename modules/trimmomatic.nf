@@ -6,7 +6,8 @@ process trimmomatic {
     path adapters
 
     output:
-    tuple val(sampleId), path('forward_paired.fastq.gz'), path('forward_unpaired.fastq.gz'), path('reverse_paired.fastq.gz'), path('reverse_unpaired.fastq.gz')
+    tuple val(sampleId), path('*_paired.fastq.gz')
+    tuple val(sampleId), path('*_unpaired.fastq.gz')
 
     script:
     """

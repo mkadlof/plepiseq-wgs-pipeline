@@ -42,23 +42,21 @@ workflow{
     adapters = Channel.value(params.adapters as Path)
 
     // Processes
-
     indexGenome(ref_genome)
     fastqc_1(reads, "initialfastq")
-    bwa(reads, ref_genome)
     trimmomatic(reads, adapters)
-    fastqc_2_input = trimmomatic.out.map { sampleId, forward_paired, forward_unpaired, reverse_paired, reverse_unpaired -> [sampleId, [forward_paired, reverse_paired]] }
-    fastqc_2(fastqc_2_input, "aftertrimmomatic")
+    bwa(trimmomatic.out[0], indexGenome.out)
+    fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
     filtering(bwa.out, primers)
     masking(filtering.out[0], primers, pairs)
     combined = filtering.out[1].join(masking.out)
     merging(combined, primers, pairs)
     picard(bwa.out)
-    viterbi(merging.out, ref_genome)
-    wgsMetrics(viterbi.out, ref_genome)
-    lowCov(viterbi.out, ref_genome)
-    varScan(viterbi.out.join(lowCov.out[1]), ref_genome)
-    freeBayes(viterbi.out.join(lowCov.out[1]), ref_genome)
-    lofreq(viterbi.out.join(lowCov.out[1]), ref_genome, indexGenome.out)
+    viterbi(merging.out, indexGenome.out)
+    wgsMetrics(viterbi.out, indexGenome.out)
+    lowCov(viterbi.out, indexGenome.out)
+    varScan(viterbi.out.join(lowCov.out[1]), indexGenome.out)
+    freeBayes(viterbi.out.join(lowCov.out[1]), indexGenome.out)
+    lofreq(viterbi.out.join(lowCov.out[1]), indexGenome.out)
     consensus(varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1]))
 }

@@ -2,7 +2,7 @@ process freeBayes {
 
     input:
     tuple val(sampleId), path(bam), path(bai), path(lowcoverage_masked_fa)
-    path ref_genome
+    tuple path(reference_fasta), path(reference_fai)
 
     output:
     tuple val(sampleId), path('detected_variants_freebayes_final.vcf.gz')
@@ -15,17 +15,17 @@ process freeBayes {
               --min-mapping-quality 20 \
               --min-base-quality ${params.quality_SNP} \
               --use-mapping-quality \
-              --fasta-reference ${ref_genome} \
+              --fasta-reference ${reference_fasta} \
               --ploidy 1 \
               ${bam} > detected_variants_freebayes.vcf
 
     cat detected_variants_freebayes.vcf | \
         bcftools norm --check-ref w \
                       --rm-dup all \
-                      --fasta-ref ${ref_genome} | \
+                      --fasta-ref ${reference_fasta} | \
                           bcftools norm --check-ref w \
                                         --multiallelics -indels \
-                                        --fasta-ref ${ref_genome} > detected_variants_freebayes_fix.vcf
+                                        --fasta-ref ${reference_fasta} > detected_variants_freebayes_fix.vcf
     
     qual=`echo ${params.pval} | awk '{print int(10*-log(\$1)/log(10))}'`
     
@@ -48,7 +48,7 @@ process freeBayes {
                         bcftools sort --output-type z > detected_variants_freebayes_final.vcf.gz
     tabix detected_variants_freebayes_final.vcf.gz
 
-    cat ${ref_genome} | \
+    cat ${reference_fasta} | \
             bcftools consensus --samples - \
                                detected_variants_freebayes_final.vcf.gz > freebayes.fa
     cat ${lowcoverage_masked_fa} \

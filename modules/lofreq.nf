@@ -2,8 +2,7 @@ process lofreq {
 
     input:
     tuple val(sampleId), path(bam), path(bai), path(lowcoverage_masked_fa)
-    path ref_genome
-    path indexGenome
+    tuple path(reference_fasta), path(reference_fai)
 
     output:
     tuple val(sampleId), path('detected_variants_lofreq_final.vcf.gz')
@@ -12,7 +11,7 @@ process lofreq {
     script:
     """
     lofreq call-parallel --pp-threads ${params.threads} \
-                         --ref ${ref_genome} \
+                         --ref ${reference_fasta} \
                          --max-depth ${params.max_depth} \
                          --min-cov ${params.min_cov} \
                          --call-indels \
@@ -22,10 +21,10 @@ process lofreq {
     cat detected_variants_lofreq.vcf | \
             bcftools norm --check-ref w \
                           --rm-dup all \
-                          --fasta-ref ${ref_genome} | \
+                          --fasta-ref ${reference_fasta} | \
                               bcftools norm --check-ref w \
                                             --multiallelics -indels \
-                                            --fasta-ref ${ref_genome} > detected_variants_lofreq_fix.vcf
+                                            --fasta-ref ${reference_fasta} > detected_variants_lofreq_fix.vcf
 
 
     qual=`echo ${params.pval} | awk '{print int(10*-log(\$1)/log(10))}'`
@@ -58,7 +57,7 @@ process lofreq {
                         bcftools sort --output-type z > detected_variants_lofreq_final.vcf.gz
     tabix detected_variants_lofreq_final.vcf.gz
     
-    cat ${ref_genome} | \
+    cat ${reference_fasta} | \
         bcftools consensus --samples - \
                            detected_variants_lofreq_final.vcf.gz > lofreq.fa
     cat lowcoverage_masked.fa lofreq.fa > tmp_lofreq.fa

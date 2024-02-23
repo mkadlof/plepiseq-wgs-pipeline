@@ -1,13 +1,13 @@
 process indexGenome {
 
     input:
-    path ref_genome
+    path reference_fasta
 
     output:
-    path("${ref_genome}.fai")
+    tuple path("${reference_fasta}"), path("${reference_fasta}.fai")
 
     script:
     """
-    samtools faidx ${ref_genome}
+    samtools faidx ${reference_fasta}
     """
 }
