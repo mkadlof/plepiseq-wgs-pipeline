@@ -33,6 +33,8 @@ include { lofreq } from './modules/lofreq.nf'
 include { consensus } from './modules/consensus.nf'
 include { consensusMasking } from './modules/consensusMasking.nf'
 include { variantIdentification } from './modules/variantIdentification.nf'
+include { functionalAnalysis } from './modules/functionalAnalysis.nf'
+include { consensusAnalysis } from './modules/consensusAnalysis.nf'
 
 
 workflow{
@@ -63,4 +65,6 @@ workflow{
     consensus(varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1]))
     consensusMasking(consensus.out.join(lowCov.out[1]))
     variantIdentification(varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1]).join(consensusMasking.out))
+    functionalAnalysis(varScan.out[0].join(freeBayes.out[0]).join(lofreq.out[0]))
+    consensusAnalysis(varScan.out[0].join(freeBayes.out[0]).join(lofreq.out[0]))
 }
