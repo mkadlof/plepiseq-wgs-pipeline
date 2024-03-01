@@ -67,8 +67,8 @@ workflow{
     consensus(varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1]))
     consensusMasking(consensus.out.join(lowCov.out[1]))
     manta(picard.out.join(consensusMasking.out), indexGenome.out)
-    variantIdentification(varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1]).join(consensusMasking.out))
+    variantIdentification(varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1]).join(manta.out))
     functionalAnalysis(varScan.out[0].join(freeBayes.out[0]).join(lofreq.out[0]))
     consensusAnalysis(varScan.out[0].join(freeBayes.out[0]).join(lofreq.out[0]))
-    simpleStats(consensusMasking.out.join(wgsMetrics.out))
+    simpleStats(manta.out.join(wgsMetrics.out))
 }
