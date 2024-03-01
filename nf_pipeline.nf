@@ -24,6 +24,7 @@ include { filtering } from './modules/filtering.nf'
 include { masking } from './modules/masking.nf'
 include { merging } from './modules/merging.nf'
 include { picard } from './modules/picard.nf'
+include { manta } from './modules/manta.nf'
 include { viterbi } from './modules/viterbi.nf'
 include { wgsMetrics } from './modules/wgsMetrics.nf'
 include { lowCov } from './modules/lowCov.nf'
@@ -65,6 +66,7 @@ workflow{
     lofreq(viterbi.out.join(lowCov.out[1]), indexGenome.out)
     consensus(varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1]))
     consensusMasking(consensus.out.join(lowCov.out[1]))
+    manta(picard.out.join(consensusMasking.out), indexGenome.out)
     variantIdentification(varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1]).join(consensusMasking.out))
     functionalAnalysis(varScan.out[0].join(freeBayes.out[0]).join(lofreq.out[0]))
     consensusAnalysis(varScan.out[0].join(freeBayes.out[0]).join(lofreq.out[0]))

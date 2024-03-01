@@ -1,5 +1,5 @@
 process varScan {
-    publishDir "results/variants", mode: 'symlink'
+    publishDir "results/${sampleId}", mode: 'symlink'
 
     input:
     tuple val(sampleId), path(bam), path(bai), path(lowcoverage_masked_fa)
