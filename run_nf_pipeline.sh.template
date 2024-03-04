@@ -13,7 +13,6 @@ nextflow run nf_pipeline.nf \
     -config nextflow.config \
     -with-report report.html \
     -with-dag flowchart.png \
+    -with-docker nf_illumina_sars-3.0:latest \
     -resume
 
-# If you run in docker, then add:
-# -with-docker nf_illumina_sars-3.0:latest \

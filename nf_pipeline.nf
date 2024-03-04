@@ -33,10 +33,11 @@ include { freeBayes } from './modules/freeBayes.nf'
 include { lofreq } from './modules/lofreq.nf'
 include { consensus } from './modules/consensus.nf'
 include { consensusMasking } from './modules/consensusMasking.nf'
-include { variantIdentification } from './modules/variantIdentification.nf'
 include { functionalAnalysis } from './modules/functionalAnalysis.nf'
 include { consensusAnalysis } from './modules/consensusAnalysis.nf'
 include { simpleStats } from './modules/simpleStats.nf'
+include { nextclade } from './modules/nextclade.nf'
+include { pangolin } from './modules/pangolin.nf'
 
 
 workflow{
@@ -67,7 +68,8 @@ workflow{
     consensus(varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1]))
     consensusMasking(consensus.out.join(lowCov.out[1]))
     manta(picard.out.join(consensusMasking.out), indexGenome.out)
-    variantIdentification(varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1]).join(manta.out))
+    nextclade(manta.out)
+    pangolin(manta.out)
     functionalAnalysis(varScan.out[0].join(freeBayes.out[0]).join(lofreq.out[0]))
     consensusAnalysis(varScan.out[0].join(freeBayes.out[0]).join(lofreq.out[0]))
     simpleStats(manta.out.join(wgsMetrics.out))
