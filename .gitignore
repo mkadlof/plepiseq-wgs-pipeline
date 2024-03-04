@@ -19,3 +19,12 @@ report.html
 [._]s[a-rt-v][a-z]
 [._]ss[a-gi-z]
 [._]sw[a-p]
+
+# Writerside
+doc/*
+!doc/images/
+!doc/topics/
+!doc/pdfSourceDOC.pdf
+
+# Pangolin
+data/pangolin

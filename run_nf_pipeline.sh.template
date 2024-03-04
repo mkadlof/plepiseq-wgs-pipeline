@@ -9,6 +9,7 @@ nextflow run nf_pipeline.nf \
     --pairs 'path/to/pairs.tsv' \
     --adapters 'path/to/adapters.fa' \
     --nextclade_db_dir 'path/to/nextclade/db' \
+    --pangolin_db_absolute_path_on_host '/home/user/path/to/project/root/data/pangolin' \
     -config nextflow.config \
     -with-report report.html \
     -with-dag flowchart.png \

@@ -190,7 +190,8 @@ RUN wget https://github.com/cov-lineages/pangolin/archive/refs/tags/v${PANGOLIN_
     rm v${PANGOLIN_VERSION}.tar.gz
 WORKDIR /downloads/pangolin-${PANGOLIN_VERSION}
 RUN python setup.py install && \
-    pangolin --update
+    pip freeze && \
+    pip uninstall --yes pangolin_data
 
 # builder-nextclade
 FROM builder-base as builder-nextclade
@@ -402,6 +403,7 @@ RUN echo 'alias ls="ls --color --group-directories-first"' >> /root/.bashrc && \
 
 ENV PATH="/opt/usher/bin:/opt/blat/bin:/opt/gofasta/bin:/opt/minimap2/bin:/opt/bwa/bin:/opt/FastQC:/opt/nextclade/bin:/opt/freebayes/bin:/opt/vcftools/bin:/opt/lofreq/bin:/opt/ivar/bin:/opt/bedtools2/bin:/opt/htslib/bin:/opt/bcftools/bin:/opt/samtools/bin:/opt/venv/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 ENV LD_LIBRARY_PATH="/opt/htslib/lib:/opt/tbb/lib:/opt/isa-l/lib:${LD_LIBRARY_PATH}"
+ENV PYTHONPATH="/home/SARS-CoV2/pangolin"
 
 RUN apt update && \
     apt install -y --no-install-recommends bc  \
