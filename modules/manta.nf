@@ -34,7 +34,7 @@ process manta {
 
             if [ \${ILE_SV} -gt 0 ]; then
                 cat ${reference_fasta} | bcftools consensus -s - manta_results.vcf.gz  > output_manta.fa
-                python /SARS-CoV2/scripts/insert_SV_python2.py ${consensus_masked_fasta} output_manta.fa output_consensus_masked_SV.fa
+                insert_SV_python2.py ${consensus_masked_fasta} output_manta.fa output_consensus_masked_SV.fa
             else
                 HEADER=`head -1 ${consensus_masked_fasta}`
                 NEW_HEADER=`echo -e "\${HEADER}_SV"`

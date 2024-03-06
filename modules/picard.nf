@@ -8,7 +8,7 @@ process picard {
 
     script:
     """
-    ILE=`samtools view clean_sort.bam | wc -l `
+    ILE=`samtools view ${bam} | wc -l `
     # dodajemy 2 żeby nie miec pustych przelotów
     ILE=`echo "\${ILE} + 2" | bc -l`
     NORM=`echo "${params.max_number_for_SV}/\${ILE}" | bc -l `
