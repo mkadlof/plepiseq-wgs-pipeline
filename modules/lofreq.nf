@@ -1,12 +1,13 @@
 process lofreq {
+    publishDir "results/${sampleId}", mode: 'symlink'
 
     input:
-    tuple val(sampleId), path(bam), path(bai), path(lowcoverage_masked_fa)
+    tuple val(sampleId), path(bam), path(bai)
     tuple path(reference_fasta), path(reference_fai)
 
     output:
     tuple val(sampleId), path('detected_variants_lofreq_final.vcf.gz'), path('detected_variants_lofreq_final.vcf.gz.tbi')
-    tuple val(sampleId), path('lofreq_masked.fa')
+    tuple val(sampleId), path('lofreq.fa')
 
     script:
     """
@@ -60,10 +61,5 @@ process lofreq {
     cat ${reference_fasta} | \
         bcftools consensus --samples - \
                            detected_variants_lofreq_final.vcf.gz > lofreq.fa
-    cat lowcoverage_masked.fa lofreq.fa > tmp_lofreq.fa
-    mafft --auto --inputorder --quiet tmp_lofreq.fa > tmp_lofreq_aln.fa
-    get_N.py tmp_lofreq_aln.fa
-    mv "output_lofreq_masked.fa" "lofreq_masked.fa"
-
     """
 }

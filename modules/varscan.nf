@@ -2,12 +2,12 @@ process varScan {
     publishDir "results/${sampleId}", mode: 'symlink'
 
     input:
-    tuple val(sampleId), path(bam), path(bai), path(lowcoverage_masked_fa)
+    tuple val(sampleId), path(bam), path(bai)
     tuple path(reference_fasta), path(reference_fai)
 
     output:
     tuple val(sampleId), path('detected_variants_varscan_final.vcf.gz'), path('detected_variants_varscan_final.vcf.gz.tbi')
-    tuple val(sampleId), path('varscan_masked.fa')
+    tuple val(sampleId), path('varscan.fa')
 
     script:
     """
@@ -46,10 +46,5 @@ process varScan {
     tabix detected_variants_varscan_final.vcf.gz
 
     cat ${reference_fasta} | bcftools consensus --samples - detected_variants_varscan_final.vcf.gz > varscan.fa
-    cat ${lowcoverage_masked_fa} varscan.fa >> tmp_varscan.fa
-    mafft --auto --inputorder --quiet tmp_varscan.fa >> tmp_varscan_aln.fa
-
-    get_N.py tmp_varscan_aln.fa
-    mv output_varscan_masked.fa varscan_masked.fa
     """
 }

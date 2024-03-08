@@ -1,12 +1,13 @@
 process freeBayes {
+    publishDir "results/${sampleId}", mode: 'symlink'
 
     input:
-    tuple val(sampleId), path(bam), path(bai), path(lowcoverage_masked_fa)
+    tuple val(sampleId), path(bam), path(bai)
     tuple path(reference_fasta), path(reference_fai)
 
     output:
     tuple val(sampleId), path('detected_variants_freebayes_final.vcf.gz'), path('detected_variants_freebayes_final.vcf.gz.tbi')
-    tuple val(sampleId), path('freebayes_masked.fa')
+    tuple val(sampleId), path('freebayes.fa')
 
     script:
     """
@@ -51,13 +52,5 @@ process freeBayes {
     cat ${reference_fasta} | \
             bcftools consensus --samples - \
                                detected_variants_freebayes_final.vcf.gz > freebayes.fa
-    cat ${lowcoverage_masked_fa} \
-        freebayes.fa > tmp_freebayes.fa
-
-    mafft --auto --inputorder --quiet tmp_freebayes.fa > tmp_freebayes_aln.fa
-
-    get_N.py tmp_freebayes_aln.fa
-    
-    mv output_freebayes_masked.fa freebayes_masked.fa
     """
 }
