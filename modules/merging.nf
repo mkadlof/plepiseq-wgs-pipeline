@@ -1,4 +1,5 @@
 process merging {
+    publishDir "results/${sampleId}", mode: 'symlink'
 
     input:
     tuple val(sampleId), path(filtering_bam), path(ivar_bam)
@@ -10,8 +11,8 @@ process merging {
 
     script:
     """
-    samtools merge -o clean_sort_dedup_trimmed_sort.bam ${filtering_bam} ${ivar_bam}
-    samtools sort -@ ${params.threads} -o clean_sort_dedup_trimmed_sort.bam clean_sort_dedup_trimmed_sort.bam
+    samtools merge -o clean_sort_dedup_trimmed_sort_tmp.bam ${filtering_bam} ${ivar_bam}
+    samtools sort -@ ${params.threads} -o clean_sort_dedup_trimmed_sort.bam clean_sort_dedup_trimmed_sort_tmp.bam
     samtools index clean_sort_dedup_trimmed_sort.bam
     """
 }

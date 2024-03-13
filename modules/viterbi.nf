@@ -1,4 +1,5 @@
 process viterbi {
+    publishDir "results/${sampleId}", mode: 'symlink'
 
     input:
     tuple val(sampleId), path(bam), path(bai)

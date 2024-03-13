@@ -1,5 +1,5 @@
 process filtering {
-    publishDir "results/${sampleId}", mode: 'symlink', pattern: 'Statystyki_one_amplicon.txt'
+    publishDir "results/${sampleId}", mode: 'symlink'
 
     input:
     tuple val(sampleId), path(bam), path(bai)

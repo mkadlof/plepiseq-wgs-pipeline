@@ -14,7 +14,7 @@ process masking {
     length=`echo "${params.length} - 40" | bc -l`
     ivar trim -i ${bam} \
              -b ${primers} \
-             -m ${params.length} \
+             -m \${length} \
              -f ${pairs} \
              -q ${params.quality_initial} \
              -e \
