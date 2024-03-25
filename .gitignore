@@ -26,5 +26,8 @@ doc/*
 !doc/topics/
 !doc/pdfSourceDOC.pdf
 
-# Pangolin
+# Pangolin and nextclade
 data/pangolin
+data/nextclade
+
+

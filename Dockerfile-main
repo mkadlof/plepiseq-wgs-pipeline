@@ -7,7 +7,7 @@ ARG VARSCAN_VERSION="2.4.6"
 ARG FREEBAYESS_VERSION="1.3.6"
 ARG SNPEFF_VERSION="4_3t"
 ARG PANGOLIN_VERSION="4.3.1"
-ARG NEXTCLADE_VERSION="2.14.0"
+ARG NEXTCLADE_VERSION="3.3.1"
 ARG FASTQC_VERSION="0.12.1"
 ARG TRIMMOMATIC_VERSION="0.39"
 ARG BWA_VERSION="0.7.17"
@@ -200,8 +200,6 @@ WORKDIR /opt/nextclade/bin
 RUN curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/${NEXTCLADE_VERSION}/nextclade-x86_64-unknown-linux-gnu" -o "nextclade" && \
     chmod +x nextclade
 RUN mkdir -p /SARS-CoV2/
-# Switch comments to download nextclade dataset insted of copying it from local
-ADD data/nextclade/SARS-CoV2.tar.gz /home
 ENV PATH="/opt/nextclade/bin:$PATH"
 RUN nextclade dataset get --name='sars-cov-2' --output-dir=/SARS-CoV2/nextclade/
 
@@ -444,6 +442,24 @@ COPY --from=builder-usher /opt/usher/bin/usher /opt/usher/bin/usher
 COPY --from=builder-usher /opt/tbb /opt/tbb
 
 ADD data/generic/generic_data.tar.gz /home/SARS-CoV2
-ADD data/nextclade/SARS-CoV2.tar.gz /home
+#ADD data/nextclade/SARS-CoV2.tar.gz /home
 
 WORKDIR /home
+
+# updater container
+FROM python:3.11.8-slim-bookworm AS updater
+
+LABEL maintainer="Michal Lazniewski <mlazniewski@pzh.gov.pl>"
+LABEL maintainer="Michał Kadlof <mkadlof@pzh.gov.pl>"
+
+COPY --from=builder-nextclade /opt/nextclade /opt/nextclade
+# install git and clean apt cache
+RUN apt update && apt install -y --no-install-recommends git && apt clean && rm -rf /var/lib/apt/lists/*
+
+ADD bin/update.sh /home/update.sh
+WORKDIR /home/pangolin
+WORKDIR /home/nextclade
+RUN chmod 777 /home/pangolin /home/nextclade
+WORKDIR /home
+ENTRYPOINT ["/home/update.sh"]
+

@@ -1,0 +1,14 @@
+.nextflow
+.git
+doc
+results
+tmp
+work
+.gitignore
+.nextflow.log
+.python-version
+*.png
+*.html
+*.sh
+*.sh.template
+*.md
