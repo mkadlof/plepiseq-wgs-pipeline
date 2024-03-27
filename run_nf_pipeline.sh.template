@@ -8,11 +8,10 @@ nextflow run nf_pipeline.nf \
     --primers 'path/to/primers.bed' \
     --pairs 'path/to/pairs.tsv' \
     --adapters 'path/to/adapters.fa' \
-    --nextclade_db_dir 'path/to/nextclade/db' \
     --pangolin_db_absolute_path_on_host '/home/user/path/to/project/root/data/pangolin' \
+    --nextclade_db_absolute_path_on_host '/home/user/path/to/project/root/data/nextclade' \
     -config nextflow.config \
     -with-report report.html \
     -with-dag flowchart.png \
     -with-docker nf_illumina_sars-3.0:latest \
     -resume
-
