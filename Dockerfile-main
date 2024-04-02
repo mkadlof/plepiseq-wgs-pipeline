@@ -18,6 +18,7 @@ ARG USHER_VERSION="0.6.3"
 ARG ISA_VERSION="2.30.0"
 ARG TBB_VERSION="2019_U9"
 ARG TBB_VERSION2="v2021.10.0"
+ARG KRAKEN2_VERSION="v2.1.3"
 
 # This is multistage, parallel build. We first build a base image.
 # Then, in parallel, we build all the tools we need.
@@ -389,6 +390,16 @@ RUN curl -fsSL "https://github.com/oneapi-src/oneTBB/archive/${TBB_VERSION}.tar.
     mkdir -p /opt/tbb/lib && \
     cp /downloads/usher/build/tbb_cmake_build/tbb_cmake_build_subdir_release/libtbb_preview.so.2 /opt/tbb/lib
 
+# builder-kraken2
+FROM builder-base as builder-kraken2
+ARG KRAKEN2_VERSION
+WORKDIR /downloads
+RUN git clone --depth 1 --branch ${KRAKEN2_VERSION} https://github.com/DerrickWood/kraken2.git
+WORKDIR /downloads/kraken2
+RUN mkdir -p /opt/kraken2 && \
+    ./install_kraken2.sh /opt/kraken2/bin
+CMD bash
+
 
 # production
 FROM python:3.11.8-slim-bookworm AS production
@@ -399,9 +410,9 @@ LABEL maintainer="Michał Kadlof <mkadlof@pzh.gov.pl>"
 RUN echo 'alias ls="ls --color --group-directories-first"' >> /root/.bashrc && \
     echo "PS1='\[\033[36m\][\[\033[m\]\[\033[34m\]\[\e[1m \u@\h \e[0m\] \[\033[32m\]\W\[\033[m\]\[\033[36m\]]\[\033[m\]# '" >> /root/.bashrc
 
-ENV PATH="/opt/usher/bin:/opt/blat/bin:/opt/gofasta/bin:/opt/minimap2/bin:/opt/bwa/bin:/opt/FastQC:/opt/nextclade/bin:/opt/freebayes/bin:/opt/vcftools/bin:/opt/lofreq/bin:/opt/ivar/bin:/opt/bedtools2/bin:/opt/htslib/bin:/opt/bcftools/bin:/opt/samtools/bin:/opt/venv/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ENV PATH="/opt/kraken2/bin:/opt/usher/bin:/opt/blat/bin:/opt/gofasta/bin:/opt/minimap2/bin:/opt/bwa/bin:/opt/FastQC:/opt/nextclade/bin:/opt/freebayes/bin:/opt/vcftools/bin:/opt/lofreq/bin:/opt/ivar/bin:/opt/bedtools2/bin:/opt/htslib/bin:/opt/bcftools/bin:/opt/samtools/bin:/opt/venv/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 ENV LD_LIBRARY_PATH="/opt/htslib/lib:/opt/tbb/lib:/opt/isa-l/lib:${LD_LIBRARY_PATH}"
-ENV PYTHONPATH="/home/SARS-CoV2/pangolin"
+ENV PYTHONPATH="/home/external_databases/pangolin"
 
 RUN apt update && \
     apt install -y --no-install-recommends bc  \
@@ -415,7 +426,8 @@ RUN apt update && \
                                            libboost-filesystem1.74.0 \
                                            libprotobuf32 \
                                            libgsl27 \
-                                           procps
+                                           procps \
+                                           libgomp1
 
 COPY --from=builder-base /opt /opt
 COPY --from=builder-samtools /opt/samtools /opt/samtools
@@ -440,9 +452,9 @@ COPY --from=builder-faToVcf /opt/blat /opt/blat
 # Usher builds with several binaries, but pelines use only a one. We copy only that one.
 COPY --from=builder-usher /opt/usher/bin/usher /opt/usher/bin/usher
 COPY --from=builder-usher /opt/tbb /opt/tbb
+COPY --from=builder-kraken2 /opt/kraken2 /opt/kraken2
 
 ADD data/generic/generic_data.tar.gz /home/SARS-CoV2
-#ADD data/nextclade/SARS-CoV2.tar.gz /home
 
 WORKDIR /home
 

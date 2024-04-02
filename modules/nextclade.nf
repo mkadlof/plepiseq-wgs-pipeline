@@ -1,6 +1,6 @@
 process nextclade {
     publishDir "results/${sampleId}", mode: 'symlink'
-    containerOptions "--volume ${params.nextclade_db_absolute_path_on_host}:/home/SARS-CoV2/nextclade_db"
+    containerOptions "--volume ${params.nextclade_db_absolute_path_on_host}:/home/external_databases/nextclade_db"
 
     input:
     tuple val(sampleId), path(consensus_masked_sv_fa)
@@ -10,7 +10,7 @@ process nextclade {
 
     script:
     """
-    nextclade run --input-dataset /home/SARS-CoV2/nextclade_db/sars-cov-2.zip \
+    nextclade run --input-dataset /home/external_databases/nextclade_db/sars-cov-2.zip \
                   --output-csv nextstrain_lineage.csv \
                   --output-all nextclade_lineages \
                   ${consensus_masked_sv_fa}

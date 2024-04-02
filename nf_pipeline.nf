@@ -16,6 +16,7 @@ params.ref_genome_id = "MN908947.3"
 
 
 include { indexGenome } from './modules/indexGenome.nf'
+include { kraken2 } from './modules/kraken2.nf'
 include { bwa } from './modules/bwa.nf'
 include { fastqc as fastqc_1 } from './modules/fastqc.nf'
 include { fastqc as fastqc_2 } from './modules/fastqc.nf'
@@ -51,6 +52,7 @@ workflow{
     // Processes
     indexGenome(ref_genome)
     fastqc_1(reads, "initialfastq")
+    kraken2(reads)
     trimmomatic(reads, adapters)
     bwa(trimmomatic.out[0], indexGenome.out)
     fastqc_2(trimmomatic.out[0], "aftertrimmomatic")

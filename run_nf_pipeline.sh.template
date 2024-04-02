@@ -8,8 +8,9 @@ nextflow run nf_pipeline.nf \
     --primers 'path/to/primers.bed' \
     --pairs 'path/to/pairs.tsv' \
     --adapters 'path/to/adapters.fa' \
-    --pangolin_db_absolute_path_on_host '/home/user/path/to/project/root/data/pangolin' \
-    --nextclade_db_absolute_path_on_host '/home/user/path/to/project/root/data/nextclade' \
+    --pangolin_db_absolute_path_on_host '/home/user/path/to/pangolin_db' \
+    --nextclade_db_absolute_path_on_host '/home/user/path/to/nextclade_db' \
+    --kraken2_db_absolute_path_on_host '/home/user/path/to/kraken2_db' \
     -config nextflow.config \
     -with-report report.html \
     -with-dag flowchart.png \
