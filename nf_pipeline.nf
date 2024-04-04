@@ -42,6 +42,7 @@ include { pangolin } from './modules/pangolin.nf'
 
 // Coinfection line
 include { coinfection_ivar } from './modules/coinfection_ivar.nf'
+include { coinfection_varscan } from './modules/coinfection_varscan.nf'
 
 
 workflow{
@@ -81,4 +82,6 @@ workflow{
 
     // Coinfection line
     coinfection_ivar(bwa.out, indexGenome.out)
+    coinfection_varscan(coinfection_ivar.out[1])
+
 }
