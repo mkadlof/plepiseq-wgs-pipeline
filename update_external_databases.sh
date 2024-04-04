@@ -2,6 +2,15 @@
 
 # This script should be run periodically to update the external databases used by the pipeline.
 #
+# Example crontab entries:
+
+# Update nextclade every Saturday at 3:00 AM
+# Update pangolin every Saturday at 3:05 AM
+# Update kraken2 every 3 months on the 1st day of the month at 3:10 AM
+
+# 0 3 * * 6 cd /path/to/sars-illumina && bin/update_external_databases.sh nextclade
+# 5 3 * * 6 cd /path/to/sars-illumina && bin/update_external_databases.sh pangolin
+# 10 3 1 */3 * cd /path/to/sars-illumina && bin/update_external_databases.sh kraken
 
 CONTAINER="nf_illumina_sars-3.0-updater:latest"
 
@@ -13,7 +22,8 @@ if [ -z "$container_id" ]; then
 fi
 
 docker run \
-       --volume $(pwd)/data/nextclade:/home/nextclade \
-       --volume $(pwd)/data/pangolin:/home/pangolin \
+       --volume $(pwd)/data/${1}:/home/${1}:rw \
        --user $(id -u):$(id -g) \
-       $CONTAINER
+       --name nf_illumina_sars-3.0-updating-${1} \
+       --rm \
+       $CONTAINER $1

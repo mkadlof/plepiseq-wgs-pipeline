@@ -12,10 +12,19 @@ docker build --target updater -f Dockerfile-main -t nf_illumina_sars-3.0-updater
 Run the updater script. The working dir must be in project root directory.
 
 ```bash
-update_external_databases.sh
+update_external_databases.sh nextclade
+update_external_databases.sh pangolin
+update_external_databases.sh kraken
 ```
 
-Total size of download is ~2-3 MiB.
+Total size of downloads is ~55 GiB.
+
+| Database  | Size     |
+|-----------|----------|
+| pangolin  | ~90 MiB  |
+| nextclade | ~1.3 MiB |
+| kraken    | ~55 GiB  |
+
 If everything work fine in directories `data\pangolin` and `data\nextclade` you should see downloaded content like below:
 
 ```
@@ -26,6 +35,17 @@ data/pangolin/
 ├── bin
 ├── pangolin_data
 └── pangolin_data-1.25.1.dist-info
+
+data/kraken
+└── k2_standard_20240112.tar.gz
+```
+
+It is recommended to put the following in crontab or equivalently systemd timer.
+
+```bash
+0 3 * * 6 cd /path/to/sars-illumina && bin/update_external_databases.sh nextclade
+5 3 * * 6 cd /path/to/sars-illumina && bin/update_external_databases.sh pangolin
+10 3 1 */3 * cd /path/to/sars-illumina && bin/update_external_databases.sh kraken
 ```
 
 ## Updates internals
@@ -36,6 +56,7 @@ The following section contain information what and how is updated. Unless you ne
 
 * Nextclade
 * Pangolin
+* Kraken
 
 ### Nextclade
 
@@ -61,7 +82,6 @@ process nextclade {
 ```
 
 ### Pangolin
-
 [Pangolin](https://github.com/cov-lineages/pangolin) (**P**hylogenetic **A**ssignment of **N**amed **G**lobal **O**utbreak **LIN**eages) is alternative to Nextclade software for assigning evolutionary lineage to SARS-Cov2.
 
 To make it work properly, it requires a database that is stored in the Git repository [pangolin-data](https://github.com/cov-lineages/pangolin-data).
@@ -101,3 +121,31 @@ So the manual download consist of two steps:
 1. Install the desired version of `pangolin-data` package in `data/pangolin` directory.
 2. Provide absolute path to that dir during starting pipeline \
    `--pangolin_db_absolute_path_on_host /absolute/path/to/data/pangolin`
+
+### Kraken
+
+[Kraken 2](https://ccb.jhu.edu/software/kraken2/) is a taxonomic classification system using exact k-mer matches.
+The pipeline utilizes it to detect contamination in samples. It requires a database of approximately 55 GiB, which could potentially be reduced to 16 GiB or 8 GiB, albeit at the cost of sensitivity and accuracy. It updated roughly quarterly. Skipping updates may result in skipping newer taxa.
+
+Database may be built for user own (not recommended) or be downloaded from aws s3. DB is maintained by Kraken 2 maintainers. Here you can find more [here](https://github.com/BenLangmead/aws-indexes), and [here](https://benlangmead.github.io/aws-indexes/).
+
+Downloading is via aws cli (`apt install awscli`), python library `boto3` or HTTP protocol.
+There are several types of databases, that differ with set of organism. We use and recommend using `standard` db, which is quite complete. There is also `nt` db which contain all RefSeq and GenBank sequences, but it's size and processing time is too high for routine surveillance.
+
+Links for http downloads are available [here](https://benlangmead.github.io/aws-indexes/k2).
+They are in form of:
+`https://genome-idx.s3.amazonaws.com/kraken/k2_DBNAME_YYYMMDD.tar.gz`
+
+where DB name is one of following:
+`standard`, `standard_08gb`, `standard_16gb`, `viral`, `minusb`, `pluspf`, `pluspf_08gb`, `pluspf_16gb`, `pluspfp`, `pluspfp_08gb`, `pluspfp_16gb`, `nt`, `eupathdb48`.
+
+Refer to official docs for more details.
+
+In case of our pipeline we use python script that is using `boto3` library. It is part of `nf_illumina_sars-3.0-updater` container. For running this script simply pass `kraken` to the container during running.
+
+We recommend using for this dedicated script: `update_externeal_databases.sh`.
+
+Kraken DB will not be updated if local path already contain the file with the same name.
+
+
+

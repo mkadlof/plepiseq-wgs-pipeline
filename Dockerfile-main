@@ -465,12 +465,18 @@ LABEL maintainer="Michal Lazniewski <mlazniewski@pzh.gov.pl>"
 LABEL maintainer="Michał Kadlof <mkadlof@pzh.gov.pl>"
 
 COPY --from=builder-nextclade /opt/nextclade /opt/nextclade
-RUN apt update && apt install -y --no-install-recommends git  && apt clean && rm -rf /var/lib/apt/lists/*
+RUN apt update && \
+    apt install -y --no-install-recommends git && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install --no-cache-dir boto3==1.34.75
 
 ADD bin/update.sh /home/update.sh
+ADD bin/kraken_updater.py /home/kraken_updater.py
 WORKDIR /home/pangolin
 WORKDIR /home/nextclade
-RUN chmod 777 /home/pangolin /home/nextclade
+WORKDIR /home/kraken
+RUN chown -R 1000:1000 /home && chmod 777 /home/pangolin /home/nextclade /home/kraken
 WORKDIR /home
 ENTRYPOINT ["/home/update.sh"]
 

@@ -84,7 +84,11 @@ def main():
 
     if target_db:
         local_path = os.path.join(args.local_path, target_db.split("/")[-1])
-        download_from_s3(bucket_name, target_db, local_path)
+        # Check if the file already exists
+        if not os.path.exists(local_path):
+            download_from_s3(bucket_name, target_db, local_path)
+        else:
+            print(f"File {local_path} already exists. Skipping download.")
     else:
         print("Database was not found.")
 
