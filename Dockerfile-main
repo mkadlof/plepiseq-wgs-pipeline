@@ -465,8 +465,7 @@ LABEL maintainer="Michal Lazniewski <mlazniewski@pzh.gov.pl>"
 LABEL maintainer="Michał Kadlof <mkadlof@pzh.gov.pl>"
 
 COPY --from=builder-nextclade /opt/nextclade /opt/nextclade
-# install git and clean apt cache
-RUN apt update && apt install -y --no-install-recommends git && apt clean && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y --no-install-recommends git  && apt clean && rm -rf /var/lib/apt/lists/*
 
 ADD bin/update.sh /home/update.sh
 WORKDIR /home/pangolin

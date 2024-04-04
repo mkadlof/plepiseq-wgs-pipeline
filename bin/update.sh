@@ -10,3 +10,5 @@ pip install \
     --target pangolin \
     --upgrade \
     git+https://github.com/cov-lineages/pangolin-data.git
+
+# Update kraken2
