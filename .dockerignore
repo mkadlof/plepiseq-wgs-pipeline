@@ -4,6 +4,9 @@ doc
 results
 tmp
 work
+data/kraken
+data/nextclade
+data/pangolin
 .gitignore
 .nextflow.log
 .python-version

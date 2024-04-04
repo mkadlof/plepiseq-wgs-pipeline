@@ -29,6 +29,7 @@ doc/*
 # Pangolin and nextclade
 data/pangolin
 data/nextclade
+data/kraken
 
 
 

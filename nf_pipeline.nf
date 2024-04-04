@@ -40,6 +40,9 @@ include { simpleStats } from './modules/simpleStats.nf'
 include { nextclade } from './modules/nextclade.nf'
 include { pangolin } from './modules/pangolin.nf'
 
+// Coinfection line
+include { coinfection_ivar } from './modules/coinfection_ivar.nf'
+
 
 workflow{
     // Channels
@@ -75,4 +78,7 @@ workflow{
     functionalAnalysis(varScan.out[0].join(freeBayes.out[0]).join(lofreq.out[0]))
     consensusAnalysis(varScan.out[0].join(freeBayes.out[0]).join(lofreq.out[0]))
     simpleStats(manta.out.join(wgsMetrics.out))
+
+    // Coinfection line
+    coinfection_ivar(bwa.out, indexGenome.out)
 }
