@@ -14,3 +14,8 @@ git+https://github.com/cov-lineages/constellations.git@f2d5a096a744d444b1dd42509
 # own scripts dependencies
 pysam==0.22.0
 pyvcf3==1.0.3
+
+# contamination module dependencies
+matplotlib==3.7.5
+seaborn==0.13.2
+scipy==1.12.0

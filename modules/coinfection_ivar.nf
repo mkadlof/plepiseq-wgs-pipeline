@@ -4,6 +4,7 @@ process coinfection_ivar {
     input:
     tuple val(sampleId), path(mapped_reads),  path(mapped_reads_bai)
     tuple path(reference_fasta), path(reference_fai)
+    path primers
 
     output:
     tuple val(sampleId), path('for_contamination_sorted.bam'), path('for_contamination_sorted.bam.bai')
@@ -12,7 +13,7 @@ process coinfection_ivar {
     script:
     """
     ivar trim -i ${mapped_reads} \
-              -b ${params.primers} \
+              -b ${primers} \
               -m ${params.length} \
               -q ${params.quality_initial} \
               -e \
