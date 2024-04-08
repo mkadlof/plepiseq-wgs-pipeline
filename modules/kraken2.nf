@@ -1,7 +1,7 @@
 process kraken2 {
     publishDir "results/${sampleId}", mode: 'symlink'
     containerOptions "--volume ${params.kraken2_db_absolute_path_on_host}:/home/external_databases/kraken2"
-
+    maxForks 5
 
     input:
     tuple val(sampleId), path(reads)

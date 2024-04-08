@@ -1,6 +1,7 @@
 process bwa {
     publishDir "results/${sampleId}", mode: 'symlink', pattern: 'mapped_reads.bam'
     publishDir "results/${sampleId}", mode: 'symlink', pattern: 'mapped_reads.bam.bai'
+    maxForks 5
 
     input:
     tuple val(sampleId), path(reads)

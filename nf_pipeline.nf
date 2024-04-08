@@ -72,13 +72,15 @@ workflow{
     varScan(viterbi.out, indexGenome.out)
     freeBayes(viterbi.out, indexGenome.out)
     lofreq(viterbi.out, indexGenome.out)
-    consensus(varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1]))
+    c0 = varScan.out[0].join(freeBayes.out[0]).join(lofreq.out[0])
+    c1 = varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1])
+    consensus(c1)
     consensusMasking(consensus.out.join(lowCov.out[1]))
     manta(picard.out.join(consensusMasking.out), indexGenome.out)
     nextclade(manta.out)
     pangolin(manta.out)
-    functionalAnalysis(varScan.out[0].join(freeBayes.out[0]).join(lofreq.out[0]))
-    consensusAnalysis(varScan.out[0].join(freeBayes.out[0]).join(lofreq.out[0]))
+    functionalAnalysis(c0)
+    consensusAnalysis(c0)
     simpleStats(manta.out.join(wgsMetrics.out))
 
     // Coinfection line
