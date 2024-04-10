@@ -3,7 +3,7 @@ results/
 
 # nextflow
 .nextflow/
-.nextflow.log
+.nextflow.log*
 work/
 *.html
 
@@ -30,6 +30,10 @@ doc/*
 data/pangolin
 data/nextclade
 data/kraken
+
+# Modeller
+# file with key
+third-party/modeller/config.py
 
 
 

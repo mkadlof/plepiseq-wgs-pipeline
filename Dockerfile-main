@@ -400,6 +400,10 @@ RUN mkdir -p /opt/kraken2 && \
     ./install_kraken2.sh /opt/kraken2/bin
 CMD bash
 
+# builder-modeller
+FROM builder-base as modeller
+ADD third-party/modeller/modeller.tar.gz /opt
+ADD third-party/modeller/config.py /opt/modeller/modlib/modeller/config.py
 
 # production
 FROM python:3.11.8-slim-bookworm AS production
@@ -410,7 +414,7 @@ LABEL maintainer="Michał Kadlof <mkadlof@pzh.gov.pl>"
 RUN echo 'alias ls="ls --color --group-directories-first"' >> /root/.bashrc && \
     echo "PS1='\[\033[36m\][\[\033[m\]\[\033[34m\]\[\e[1m \u@\h \e[0m\] \[\033[32m\]\W\[\033[m\]\[\033[36m\]]\[\033[m\]# '" >> /root/.bashrc
 
-ENV PATH="/opt/kraken2/bin:/opt/usher/bin:/opt/blat/bin:/opt/gofasta/bin:/opt/minimap2/bin:/opt/bwa/bin:/opt/FastQC:/opt/nextclade/bin:/opt/freebayes/bin:/opt/vcftools/bin:/opt/lofreq/bin:/opt/ivar/bin:/opt/bedtools2/bin:/opt/htslib/bin:/opt/bcftools/bin:/opt/samtools/bin:/opt/venv/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ENV PATH="/opt/modeller/bin:/opt/kraken2/bin:/opt/usher/bin:/opt/blat/bin:/opt/gofasta/bin:/opt/minimap2/bin:/opt/bwa/bin:/opt/FastQC:/opt/nextclade/bin:/opt/freebayes/bin:/opt/vcftools/bin:/opt/lofreq/bin:/opt/ivar/bin:/opt/bedtools2/bin:/opt/htslib/bin:/opt/bcftools/bin:/opt/samtools/bin:/opt/venv/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 ENV LD_LIBRARY_PATH="/opt/htslib/lib:/opt/tbb/lib:/opt/isa-l/lib:${LD_LIBRARY_PATH}"
 ENV PYTHONPATH="/home/external_databases/pangolin"
 
@@ -453,6 +457,7 @@ COPY --from=builder-faToVcf /opt/blat /opt/blat
 COPY --from=builder-usher /opt/usher/bin/usher /opt/usher/bin/usher
 COPY --from=builder-usher /opt/tbb /opt/tbb
 COPY --from=builder-kraken2 /opt/kraken2 /opt/kraken2
+COPY --from=modeller /opt/modeller /opt/modeller
 
 ADD data/generic/generic_data.tar.gz /home/SARS-CoV2
 

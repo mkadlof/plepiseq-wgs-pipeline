@@ -7,6 +7,7 @@ process nextclade {
 
     output:
     tuple val(sampleId), path("nextclade_lineages"), path('nextstrain_lineage.csv')
+    tuple val(sampleId), path('nextclade_lineages/nextclade.cds_translation.S.fasta')
 
     script:
     """

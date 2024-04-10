@@ -39,6 +39,7 @@ include { consensusAnalysis } from './modules/consensusAnalysis.nf'
 include { simpleStats } from './modules/simpleStats.nf'
 include { nextclade } from './modules/nextclade.nf'
 include { pangolin } from './modules/pangolin.nf'
+include { modeller } from './modules/modeller.nf'
 
 // Coinfection line
 include { coinfection_ivar } from './modules/coinfection_ivar.nf'
@@ -78,6 +79,7 @@ workflow{
     consensusMasking(consensus.out.join(lowCov.out[1]))
     manta(picard.out.join(consensusMasking.out), indexGenome.out)
     nextclade(manta.out)
+    modeller(nextclade.out[1])
     pangolin(manta.out)
     functionalAnalysis(c0)
     consensusAnalysis(c0)
