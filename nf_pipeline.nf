@@ -18,6 +18,7 @@ params.ref_genome_id = "MN908947.3"
 include { indexGenome } from './modules/indexGenome.nf'
 include { kraken2 } from './modules/kraken2.nf'
 include { bwa } from './modules/bwa.nf'
+include { dehumanization } from './modules/dehumanization.nf'
 include { fastqc as fastqc_1 } from './modules/fastqc.nf'
 include { fastqc as fastqc_2 } from './modules/fastqc.nf'
 include { trimmomatic } from './modules/trimmomatic.nf'
@@ -61,6 +62,7 @@ workflow{
     kraken2(reads)
     trimmomatic(reads, adapters)
     bwa(trimmomatic.out[0], indexGenome.out)
+    dehumanization(bwa.out, trimmomatic.out[1])
     fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
     filtering(bwa.out, primers)
     masking(filtering.out[0], primers, pairs)

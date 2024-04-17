@@ -1,0 +1,20 @@
+process dehumanization  {
+    publishDir "results/${sampleId}", mode: 'symlink'
+
+    input:
+    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai')
+    tuple val(sampleId), path(reads)
+
+    output:
+    tuple val(sampleId), path('forward_paired_nohuman.fq.gz'), path('reverse_paired_nohuman.fq.gz')
+
+    script:
+    """
+    samtools view mapped_reads.bam | cut -f1 | sort | uniq >> lista_id_nohuman.txt
+    seqtk subseq ${reads[0]} lista_id_nohuman.txt >> forward_paired_nohuman.fq
+    seqtk subseq ${reads[1]} lista_id_nohuman.txt >> reverse_paired_nohuman.fq
+
+    gzip forward_paired_nohuman.fq
+    gzip reverse_paired_nohuman.fq
+    """
+}

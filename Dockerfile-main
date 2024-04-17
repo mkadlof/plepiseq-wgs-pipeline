@@ -431,7 +431,8 @@ RUN apt update && \
                                            libprotobuf32 \
                                            libgsl27 \
                                            procps \
-                                           libgomp1
+                                           libgomp1 \
+                                           seqtk
 
 COPY --from=builder-base /opt /opt
 COPY --from=builder-samtools /opt/samtools /opt/samtools
