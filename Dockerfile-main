@@ -432,7 +432,8 @@ RUN apt update && \
                                            libgsl27 \
                                            procps \
                                            libgomp1 \
-                                           seqtk
+                                           seqtk \
+                                           muscle3
 
 COPY --from=builder-base /opt /opt
 COPY --from=builder-samtools /opt/samtools /opt/samtools

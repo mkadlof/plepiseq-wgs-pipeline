@@ -34,6 +34,7 @@ include { varScan } from './modules/varscan.nf'
 include { freeBayes } from './modules/freeBayes.nf'
 include { lofreq } from './modules/lofreq.nf'
 include { consensus } from './modules/consensus.nf'
+include { vcf_for_fasta } from './modules/vcf_for_fasta.nf'
 include { consensusMasking } from './modules/consensusMasking.nf'
 include { functionalAnalysis } from './modules/functionalAnalysis.nf'
 include { consensusAnalysis } from './modules/consensusAnalysis.nf'
@@ -78,6 +79,7 @@ workflow{
     c0 = varScan.out[0].join(freeBayes.out[0]).join(lofreq.out[0])
     c1 = varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1])
     consensus(c1)
+    vcf_for_fasta(consensus.out, indexGenome.out)
     consensusMasking(consensus.out.join(lowCov.out[1]))
     manta(picard.out.join(consensusMasking.out), indexGenome.out)
     nextclade(manta.out)

@@ -13,7 +13,8 @@ git+https://github.com/cov-lineages/constellations.git@f2d5a096a744d444b1dd42509
 
 # own scripts dependencies
 pysam==0.22.0
-pyvcf3==1.0.3
+# PyVCF3
+git+https://github.com/dridk/PyVCF3.git@2d841f7d8333ab07dd23de51c9d5227c548934a5
 
 # contamination module dependencies
 matplotlib==3.7.5
