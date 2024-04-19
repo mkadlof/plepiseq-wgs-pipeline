@@ -26,10 +26,11 @@ doc/*
 !doc/topics/
 !doc/pdfSourceDOC.pdf
 
-# Pangolin and nextclade
+# external databases
 data/pangolin
 data/nextclade
 data/kraken
+data/freyja
 
 # Modeller
 # file with key

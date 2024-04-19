@@ -10,7 +10,8 @@
 
 # 0 3 * * 6 cd /path/to/sars-illumina && bin/update_external_databases.sh nextclade
 # 5 3 * * 6 cd /path/to/sars-illumina && bin/update_external_databases.sh pangolin
-# 10 3 1 */3 * cd /path/to/sars-illumina && bin/update_external_databases.sh kraken
+# 10 3 * * 6 cd /path/to/sars-illumina && bin/update_external_databases.sh freyja
+# 15 3 1 */3 * cd /path/to/sars-illumina && bin/update_external_databases.sh kraken
 
 CONTAINER="nf_illumina_sars-3.0-updater:latest"
 
@@ -18,6 +19,13 @@ CONTAINER="nf_illumina_sars-3.0-updater:latest"
 container_id=$(docker images -q $CONTAINER)
 if [ -z "$container_id" ]; then
     echo "Missing container $CONTAINER. Build it before running this script!"
+    exit 1
+fi
+
+# Check if argument is valid
+if [ "$1" != "nextclade" ] && [ "$1" != "pangolin" ] && [ "$1" != "kraken" ] && [ "$1" != "freyja" ]
+then
+    echo "Invalid argument supplied. Please provide one of the following: nextclade, pangolin, kraken, freyja"
     exit 1
 fi
 

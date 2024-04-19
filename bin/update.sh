@@ -5,14 +5,14 @@
 # Check if argument is provided
 if [ -z "$1" ]
 then
-    echo "No argument supplied. Please provide one of the following: nextclade, pangolin, kraken"
+    echo "No argument supplied. Please provide one of the following: nextclade, pangolin, kraken, freyja"
     exit 1
 fi
 
 # Check if argument is valid
-if [ "$1" != "nextclade" ] && [ "$1" != "pangolin" ] && [ "$1" != "kraken" ]
+if [ "$1" != "nextclade" ] && [ "$1" != "pangolin" ] && [ "$1" != "kraken" ] && [ "$1" != "freyja" ]
 then
-    echo "Invalid argument supplied. Please provide one of the following: nextclade, pangolin, kraken"
+    echo "Invalid argument supplied. Please provide one of the following: nextclade, pangolin, kraken, freyja"
     exit 1
 fi
 
@@ -35,4 +35,13 @@ fi
 if [ "$1" == "kraken" ]
 then
   /home/kraken_updater.py standard /home/kraken
+fi
+
+# Update freyja
+if [ "$1" == "freyja" ]
+then
+  cd /home/freyja
+  wget https://raw.githubusercontent.com/andersen-lab/Freyja-data/main/lineages.yml
+  wget https://raw.githubusercontent.com/andersen-lab/Freyja-data/main/curated_lineages.json
+  wget https://github.com/andersen-lab/Freyja-data/raw/main/usher_barcodes.csv
 fi
