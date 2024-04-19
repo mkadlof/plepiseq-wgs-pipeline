@@ -85,7 +85,7 @@ workflow{
     nextclade(manta.out)
     modeller(nextclade.out[1])
     pangolin(manta.out)
-    functionalAnalysis(c0)
+    functionalAnalysis(vcf_for_fasta.out)
     consensusAnalysis(c0)
     simpleStats(manta.out.join(wgsMetrics.out))
 

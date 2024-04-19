@@ -6,7 +6,7 @@ process vcf_for_fasta {
     tuple path(reference_fasta), path(reference_fai)
 
     output:
-    tuple val(sampleId), path("consensus.vcf.gz")
+    tuple val(sampleId), path("consensus.vcf.gz"), path("consensus.vcf.gz.tbi")
 
     script:
     """
