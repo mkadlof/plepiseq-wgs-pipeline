@@ -44,6 +44,7 @@ include { pangolin } from './modules/pangolin.nf'
 include { modeller } from './modules/modeller.nf'
 
 // Coinfection line
+include { freyja } from './modules/freyja.nf'
 include { coinfection_ivar } from './modules/coinfection_ivar.nf'
 include { coinfection_varscan } from './modules/coinfection_varscan.nf'
 include { coinfection_analysis } from './modules/coinfection_analysis.nf'
@@ -91,6 +92,7 @@ workflow{
 
     // Coinfection line
     coinfection_ivar(bwa.out, indexGenome.out, primers)
+    freyja(coinfection_ivar.out[0], indexGenome.out)
     coinfection_varscan(coinfection_ivar.out[1])
     coinfection_analysis(coinfection_varscan.out)
 }

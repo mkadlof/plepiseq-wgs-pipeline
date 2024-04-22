@@ -11,6 +11,7 @@ nextflow run nf_pipeline.nf \
     --pangolin_db_absolute_path_on_host '/home/user/path/to/pangolin_db' \
     --nextclade_db_absolute_path_on_host '/home/user/path/to/nextclade_db' \
     --kraken2_db_absolute_path_on_host '/home/user/path/to/kraken2_db' \
+    --freyja_db_absolute_path_on_host '/home/user/path/to/freyja' \
     -config nextflow.config \
     -with-report report.html \
     -with-dag flowchart.png \
