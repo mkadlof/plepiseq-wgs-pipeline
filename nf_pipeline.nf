@@ -36,8 +36,7 @@ include { lofreq } from './modules/lofreq.nf'
 include { consensus } from './modules/consensus.nf'
 include { vcf_for_fasta } from './modules/vcf_for_fasta.nf'
 include { consensusMasking } from './modules/consensusMasking.nf'
-include { functionalAnalysis } from './modules/functionalAnalysis.nf'
-include { consensusAnalysis } from './modules/consensusAnalysis.nf'
+include { snpEff } from './modules/snpEff.nf'
 include { simpleStats } from './modules/simpleStats.nf'
 include { nextclade } from './modules/nextclade.nf'
 include { pangolin } from './modules/pangolin.nf'
@@ -77,8 +76,7 @@ workflow{
     varScan(viterbi.out, indexGenome.out)
     freeBayes(viterbi.out, indexGenome.out)
     lofreq(viterbi.out, indexGenome.out)
-    c0 = varScan.out[0].join(freeBayes.out[0]).join(lofreq.out[0])
-    c1 = varScan.out[1].join(freeBayes.out[1]).join(lofreq.out[1])
+    c1 = varScan.out.join(freeBayes.out).join(lofreq.out)
     consensus(c1)
     vcf_for_fasta(consensus.out, indexGenome.out)
     consensusMasking(consensus.out.join(lowCov.out[1]))
@@ -86,8 +84,7 @@ workflow{
     nextclade(manta.out)
     modeller(nextclade.out[1])
     pangolin(manta.out)
-    functionalAnalysis(vcf_for_fasta.out)
-    consensusAnalysis(c0)
+    snpEff(vcf_for_fasta.out)
     simpleStats(manta.out.join(wgsMetrics.out))
 
     // Coinfection line

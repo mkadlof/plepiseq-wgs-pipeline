@@ -14,6 +14,6 @@ nextflow run nf_pipeline.nf \
     --freyja_db_absolute_path_on_host '/home/user/path/to/freyja' \
     -config nextflow.config \
     -with-report report.html \
-    -with-dag flowchart.png \
+    -with-dag flowchart-raw.png \
     -with-docker nf_illumina_sars-3.0:latest \
     -resume

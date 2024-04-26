@@ -1,4 +1,4 @@
-process functionalAnalysis {
+process snpEff {
     publishDir "results/${sampleId}", mode: 'symlink'
 
     input:

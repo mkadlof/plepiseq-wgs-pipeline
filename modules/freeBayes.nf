@@ -6,7 +6,6 @@ process freeBayes {
     tuple path(reference_fasta), path(reference_fai)
 
     output:
-    tuple val(sampleId), path('detected_variants_freebayes_final.vcf.gz'), path('detected_variants_freebayes_final.vcf.gz.tbi')
     tuple val(sampleId), path('freebayes.fa')
 
     script:
