@@ -1,3 +1,1 @@
 # Pipeline description
-
-Start typing here...
