@@ -11,7 +11,7 @@ params.quality_snp = 15
 params.pval = 0.05
 params.lower_ambig = 0.45
 params.upper_ambig = 0.55
-params.quality_SNP = 15
+params.quality_snp = 15
 params.ref_genome_id = "MN908947.3"
 
 

@@ -13,7 +13,7 @@ process freeBayes {
     freebayes --limit-coverage ${params.max_depth} \
               --min-coverage ${params.min_cov} \
               --min-mapping-quality 20 \
-              --min-base-quality ${params.quality_SNP} \
+              --min-base-quality ${params.quality_snp} \
               --use-mapping-quality \
               --fasta-reference ${reference_fasta} \
               --ploidy 1 \

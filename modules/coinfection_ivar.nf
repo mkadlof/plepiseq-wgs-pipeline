@@ -24,7 +24,7 @@ process coinfection_ivar {
 
     samtools mpileup --max-depth 10000 \
                  --fasta-ref ${reference_fasta} \
-                 --min-BQ ${params.quality_SNP} \
+                 --min-BQ ${params.quality_snp} \
                  for_contamination_sorted.bam >> for_contamination.mpileup
     """
 }

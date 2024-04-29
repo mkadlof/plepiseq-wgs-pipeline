@@ -9,7 +9,7 @@ The steps are depicted on image in [](pipeline-overview.md) (`IndexGenome` modul
 Goal of **Main** section is to perform mapping with [bwa](%bwa.url%) aligner, filtering, small indel calling by three callers ([varScan](%varscan.url%), [freeBayes](%freebayess.url%) and [lofreq](%lofreq.url%)), identify low quality / coverage regions and finally obtain consensus sequence.
 
 ### Quality control 
-This section executes [FastQC](%fastqc.url%). Test is run on raw dataset and after trimming primers.
+This section executes [FastQC](%fastqc.url%). Test is run on raw dataset and after trimming adapters with [Trimmomatic](%trimmomatic.url%).
 
 ### Contamination detection
 This section test if sample is nt contaminated with other species than SarsCov-2.

@@ -15,5 +15,5 @@ nextflow run nf_pipeline.nf \
     -config nextflow.config \
     -with-report report.html \
     -with-dag flowchart-raw.png \
-    -with-docker nf_illumina_sars-3.0:latest \
+    -with-docker nf_illumina_sars-3.0-main:latest \
     -resume
