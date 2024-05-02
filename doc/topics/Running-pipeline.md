@@ -113,9 +113,13 @@ To run pipeline with modified parameter simply add appropriate flag:
 This parameters comes with Nextflow and should not be modified without solid reason.
 
 `-config` path to nextflow config file. Default file `nextflow.config` is provided with repo. 
+
 `-with-report` path to report from pipeline execution. May be safely disabled. Default: `report.html`
+
 `-with-dag` path tu file with pipeline graph. May be safely disabled Default: `flowchart-raw.png`
+
 `-with-docker` Docker image used for execution processes. Strictly required. Default: `nf_illumina_sars-3.0-main:latest`
+
 `-resume` Control if restarted pipeline should use cached results or not. Irrelevant in production environment, since every sample will be always run exactly once. In development or during debug may significantly speed up things.
 
 
