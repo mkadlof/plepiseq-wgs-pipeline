@@ -21,10 +21,10 @@ work/
 [._]sw[a-p]
 
 # Writerside
-doc/*
 !doc/images/
 !doc/topics/
 !doc/pdfSourceDOC.pdf
+
 
 # external databases
 data/pangolin
