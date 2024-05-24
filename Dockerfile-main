@@ -1,4 +1,3 @@
-# Package versions
 ARG SAMTOOLS_VERSION="1.17"
 ARG BCFTOOLS_VERSION="1.17"
 ARG HTSLIB_VERSION="1.17"
@@ -462,7 +461,12 @@ COPY --from=builder-usher /opt/tbb /opt/tbb
 COPY --from=builder-kraken2 /opt/kraken2 /opt/kraken2
 COPY --from=modeller /opt/modeller /opt/modeller
 
-ADD data/generic/generic_data.tar.gz /home/SARS-CoV2
+COPY data/generic/contaminations /home/SARS-CoV2/contaminations
+COPY data/generic/vcf_template /home/SARS-CoV2/vcf_template
+COPY data/generic/modeller /home/SARS-CoV2/modeller
+
+COPY bin /home/SARS-CoV2/bin
+ENV PATH=$PATH:/home/SARS-CoV2/bin
 
 WORKDIR /home
 
@@ -486,5 +490,6 @@ WORKDIR /home/nextclade
 WORKDIR /home/kraken
 WORKDIR /home/freyja
 RUN chown -R 1000:1000 /home && chmod 777 /home/pangolin /home/nextclade /home/kraken /home/freyja
+
 WORKDIR /home
 ENTRYPOINT ["/home/update.sh"]

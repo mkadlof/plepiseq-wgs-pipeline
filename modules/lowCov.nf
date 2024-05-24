@@ -1,5 +1,6 @@
 process lowCov {
-    publishDir "results/${sampleId}", mode: 'symlink'
+    tag "Predicting low coverage regions for sample:\t$sampleId"
+    //publishDir "${params.results_dir}/${sampleId}/lowcoverage", mode: 'symlink'
 
     input:
     tuple val(sampleId), path(bam), path(bai)
@@ -11,7 +12,8 @@ process lowCov {
 
     script:
     """
-    pysam_quality_mask_final.py ${bam} 10 ${params.mask}
+    position_quality_for_coverage=10
+    predict_lowcoverage_pysam.py ${bam} \${position_quality_for_coverage} ${params.mask} ${reference_fasta}
     cat quality_mask.bed | bedtools merge -d 2 | \
                            awk 'BEGIN {OFS = "\t"}; {if (\$3-\$2 > 3) print \$1,\$2,\$3}' >> low_coverage.bed
     bedtools maskfasta -fi ${reference_fasta} \

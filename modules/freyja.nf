@@ -1,5 +1,6 @@
 process freyja {
-    publishDir "results/${sampleId}", mode: 'symlink'
+    tag "Running freyja for sample:\t$sampleId"
+    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "coinfections.tsv"
     containerOptions "--volume ${params.freyja_db_absolute_path_on_host}:/home/external_databases/freyja"
 
     input:
@@ -15,6 +16,7 @@ process freyja {
     if [ \$count -eq 0 ]; then
         echo "No reads in the bam file"
         touch coinfections.tsv
+        echo "No reads mapped to provided reference genome" >> coinfections.tsv
         exit 0
     else
         mkdir variants_files depth_files demix_files

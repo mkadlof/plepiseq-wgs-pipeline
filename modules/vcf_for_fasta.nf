@@ -1,5 +1,6 @@
 process vcf_for_fasta {
-    publishDir "results/${sampleId}", mode: 'symlink'
+    tag "Creating VCF for consensus sequence for sample:\t$sampleId"
+    publishDir "${params.results_dir}/${sampleId}/consensus_vcf", mode: 'copy', pattern: "\${vcf_output}*"
 
     input:
     tuple val(sampleId), path("consensus.fa")

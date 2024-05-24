@@ -1,5 +1,6 @@
 process manta {
-    publishDir "results/${sampleId}", mode: 'symlink'
+    tag "Predicting final sequence for sample:\t$sampleId"
+    publishDir "${params.results_dir}/${sampleId}/", mode: 'copy'
 
     container 'nf_illumina_sars-3.0-manta:latest'
 
@@ -12,6 +13,7 @@ process manta {
 
     script:
     """
+   
     ILE_ODCZYTOW=`samtools view ${bam_file} | wc -l`
     if [  \${ILE_ODCZYTOW} -lt 1000 ]; then
         # pusty bam, nie puszczamy manty, po prostu tworzymy kopie plikow z poprawionymi nazwami
@@ -27,7 +29,7 @@ process manta {
 
         if [ -e Manta_results/results/variants/diploidSV.vcf.gz ]; then
 
-            bcftools view -O z -o manta_results.vcf.gz -i 'FILTER="PASS" | FILTER="MaxDepth"' Manta_results/results/variants/diploidSV.vcf.gz
+            bcftools view -O z -o manta_results.vcf.gz -i 'FILTER="PASS" | FILTER="MaxDepth" | FILTER="NoPairSupport"' Manta_results/results/variants/diploidSV.vcf.gz
                     tabix manta_results.vcf.gz
 
             ILE_SV=`zcat manta_results.vcf.gz  | grep ${params.ref_genome_id} | grep -v cont | wc -l`

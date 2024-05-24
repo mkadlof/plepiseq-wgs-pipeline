@@ -1,5 +1,6 @@
 process simpleStats {
-    publishDir "results/${sampleId}", mode: 'symlink'
+    tag "Predicting poor amplicons for sample:\t$sampleId"
+    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "primers_poor*"
 
     input:
     tuple val(sampleId), path(consensus_masked_fa), path(picard_statistics_txt)

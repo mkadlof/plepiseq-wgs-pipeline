@@ -1,5 +1,6 @@
 process picard {
-
+    tag "Preparing bam for SV caller for sample:\t$sampleId"
+    // publishDir "${params.results_dir}/${sampleId}/bam_for_SV", mode: 'symlink', pattern: "downsample.bam*"
     input:
     tuple val(sampleId), path(bam), path(bai)
 

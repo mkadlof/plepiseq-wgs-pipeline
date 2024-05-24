@@ -1,5 +1,6 @@
 process lofreq {
-    publishDir "results/${sampleId}", mode: 'symlink'
+    tag "Predicting mutations with lofreq for sample:\t$sampleId"
+    publishDir "${params.results_dir}/${sampleId}/lofreq", mode: 'symlink'
 
     input:
     tuple val(sampleId), path(bam), path(bai)

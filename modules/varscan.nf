@@ -1,5 +1,6 @@
 process varScan {
-    publishDir "results/${sampleId}", mode: 'symlink'
+    tag "Predicting mutations with varscan for sample:\t$sampleId"
+    publishDir "${params.results_dir}/${sampleId}/varscan", mode: 'symlink'
 
     input:
     tuple val(sampleId), path(bam), path(bai)

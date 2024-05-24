@@ -1,5 +1,6 @@
 process freeBayes {
-    publishDir "results/${sampleId}", mode: 'symlink'
+    tag "Predicting mutations with freebayes for sample:\t$sampleId"
+    publishDir "${params.results_dir}/${sampleId}/freebayes", mode: 'symlink'
 
     input:
     tuple val(sampleId), path(bam), path(bai)
@@ -12,7 +13,7 @@ process freeBayes {
     """
     freebayes --limit-coverage ${params.max_depth} \
               --min-coverage ${params.min_cov} \
-              --min-mapping-quality 20 \
+              --min-mapping-quality ${params.mapping_quality} \
               --min-base-quality ${params.quality_snp} \
               --use-mapping-quality \
               --fasta-reference ${reference_fasta} \

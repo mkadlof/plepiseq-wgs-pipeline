@@ -1,5 +1,6 @@
 process snpEff {
-    publishDir "results/${sampleId}", mode: 'symlink'
+    tag "Predicting phenotypic effect of mutations for sample:\t$sampleId"
+    publishDir "${params.results_dir}/${sampleId}", mode: 'symlink', pattern: "detected_variants_consensus_annotated.txt"
 
     input:
     tuple val(sampleId), path(consensus_vcf_gz), path(consensus_vcf_gz_tbi)
@@ -10,6 +11,8 @@ process snpEff {
 
     script:
     """
+    
+
     java -jar /opt/snpEff/snpEff.jar ann -noStats ${params.ref_genome_id} \
          ${consensus_vcf_gz} > detected_variants_consensus_annotated.vcf
 

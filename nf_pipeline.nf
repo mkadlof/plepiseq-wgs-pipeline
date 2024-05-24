@@ -1,52 +1,84 @@
-// Number of threads (used in several different modules)
-params.threads = 5
+// Variables not present in run_nf_pipeline.sh.template file
+// See run_nf_pipeline.sh.template menu help for explanations 
 params.memory = 2024
 params.quality_initial = 5
 params.length = 90
 params.max_number_for_SV = 200000
-params.max_depth = 6000
+params.max_depth = 600 // updated to better fit new filtering approach
 params.min_cov = 20
 params.mask = 20
 params.quality_snp = 15
 params.pval = 0.05
 params.lower_ambig = 0.45
 params.upper_ambig = 0.55
-params.quality_snp = 15
-params.ref_genome_id = "MN908947.3"
+//params.ref_genome_id = "MN908947.3"
+params.window_size = 50 // Wielkosc okna w ktorym wyrownujemy pokrycie
+params.mapping_quality = 30
 
 
-include { indexGenome } from './modules/indexGenome.nf'
-include { kraken2 } from './modules/kraken2.nf'
-include { bwa } from './modules/bwa.nf'
-include { dehumanization } from './modules/dehumanization.nf'
-include { fastqc as fastqc_1 } from './modules/fastqc.nf'
-include { fastqc as fastqc_2 } from './modules/fastqc.nf'
-include { trimmomatic } from './modules/trimmomatic.nf'
-include { filtering } from './modules/filtering.nf'
-include { masking } from './modules/masking.nf'
-include { merging } from './modules/merging.nf'
-include { picard } from './modules/picard.nf'
-include { manta } from './modules/manta.nf'
-include { viterbi } from './modules/viterbi.nf'
-include { wgsMetrics } from './modules/wgsMetrics.nf'
-include { lowCov } from './modules/lowCov.nf'
-include { varScan } from './modules/varscan.nf'
-include { freeBayes } from './modules/freeBayes.nf'
-include { lofreq } from './modules/lofreq.nf'
-include { consensus } from './modules/consensus.nf'
-include { vcf_for_fasta } from './modules/vcf_for_fasta.nf'
-include { consensusMasking } from './modules/consensusMasking.nf'
-include { snpEff } from './modules/snpEff.nf'
-include { simpleStats } from './modules/simpleStats.nf'
-include { nextclade } from './modules/nextclade.nf'
-include { pangolin } from './modules/pangolin.nf'
-include { modeller } from './modules/modeller.nf'
+// Variables that we strongly recommed to be set via run_nf_pipeline.sh.template file
+// already present in that file
+
+
+// Specifing location of reads/primers/adapters etc.
+params.threads = 5
+params.ref_genome = ""
+params.reads = ""
+params.primers = ""
+params.pairs = ""
+params.adapters = ""
+
+
+// Subcategory
+// paths to EXTERNAL databases with no defaults
+params.pangolin_db_absolute_path_on_host = ""
+params.nextclade_db_absolute_path_on_host = ""
+params.kraken2_db_absolute_path_on_host = ""
+params.freyja_db_absolute_path_on_host = ""
+
+params.modules = "/home/michall/git/nf_illumina_sars_ml/modules"
+params.results_dir = "./results"
+
+
+
+// Old parameter not settable by sh wrapper
+params.ref_genome_id=new File(params.ref_genome).readLines().get(0).replaceAll('>','')
+
+
+include { indexGenome } from "${params.modules}/indexGenome.nf"
+include { kraken2 } from "${params.modules}/kraken2.nf"
+include { bwa } from "${params.modules}/bwa.nf"
+include { dehumanization } from "${params.modules}/dehumanization.nf"
+include { fastqc as fastqc_1 } from "${params.modules}/fastqc.nf"
+include { fastqc as fastqc_2 } from "${params.modules}/fastqc.nf"
+include { trimmomatic } from "${params.modules}/trimmomatic.nf"
+include { filtering } from "${params.modules}/filtering_novel.nf"
+include { masking } from "${params.modules}/masking.nf"
+include { merging } from "${params.modules}/merging.nf"
+include { picard } from "${params.modules}/picard.nf"
+include { manta } from "${params.modules}/manta.nf"
+include { viterbi } from "${params.modules}/viterbi.nf"
+include { wgsMetrics } from "${params.modules}/wgsMetrics.nf"
+include { lowCov } from "${params.modules}/lowCov.nf"
+include { varScan } from "${params.modules}/varscan.nf"
+include { freeBayes } from "${params.modules}/freeBayes.nf"
+include { lofreq } from "${params.modules}/lofreq.nf"
+include { consensus } from "${params.modules}/consensus.nf"
+include { vcf_for_fasta } from "${params.modules}/vcf_for_fasta.nf"
+include { consensusMasking } from "${params.modules}/consensusMasking.nf"
+include { snpEff } from "${params.modules}/snpEff.nf"
+include { simpleStats } from "${params.modules}/simpleStats.nf"
+include { nextclade } from "${params.modules}/nextclade.nf"
+include { pangolin } from "${params.modules}/pangolin.nf"
+include { modeller } from "${params.modules}/modeller.nf"
 
 // Coinfection line
-include { freyja } from './modules/freyja.nf'
-include { coinfection_ivar } from './modules/coinfection_ivar.nf'
-include { coinfection_varscan } from './modules/coinfection_varscan.nf'
-include { coinfection_analysis } from './modules/coinfection_analysis.nf'
+
+include { freyja } from "${params.modules}/freyja.nf"
+include { coinfection_ivar } from "${params.modules}/coinfection_ivar.nf"
+include { coinfection_varscan } from "${params.modules}/coinfection_varscan.nf"
+include { coinfection_analysis } from "${params.modules}/coinfection_analysis.nf"
+
 
 
 workflow{

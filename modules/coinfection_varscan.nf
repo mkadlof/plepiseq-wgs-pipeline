@@ -1,5 +1,6 @@
 process coinfection_varscan {
-    publishDir "results/${sampleId}", mode: 'symlink'
+    tag "Varscan during coinfection analysis for sample:\t$sampleId"
+    //publishDir "${params.results_dir}//${sampleId}", mode: 'symlink'
 
     input:
     tuple val(sampleId), path(for_contamination_mpileup)
@@ -14,7 +15,7 @@ process coinfection_varscan {
                                                      --min-avg-qual \${varscan_qual} \
                                                      --p-value 0.9 \
                                                      --min-var-freq 0.05 \
-                                                     --min-coverage 20 \
+                                                     --min-coverage ${params.min_cov} \
                                                      --variants \
                                                      --min-reads2 0 > detected_variants_varscan_contamination.txt
 

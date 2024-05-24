@@ -1,5 +1,6 @@
 process merging {
-    publishDir "results/${sampleId}", mode: 'symlink'
+    tag "Merging alignments for sample:\t$sampleId"
+    // publishDir "${params.results_dir}/${sampleId}/filtered_bam", mode: 'symlink', pattern "clean_sort_dedup_trimmed_sort.bam*"
 
     input:
     tuple val(sampleId), path(filtering_bam), path(ivar_bam)

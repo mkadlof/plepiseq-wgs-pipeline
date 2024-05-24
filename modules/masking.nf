@@ -1,5 +1,6 @@
 process masking {
-    publishDir "results/${sampleId}", mode: 'symlink'
+    tag "Masking primers for sample:\t$sampleId"
+    //publishDir "${params.results_dir}/${sampleId}/ivar", mode: 'symlink'
 
     input:
     tuple val(sampleId), path(bam), path(bai)

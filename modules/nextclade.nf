@@ -1,5 +1,6 @@
 process nextclade {
-    publishDir "results/${sampleId}", mode: 'symlink'
+    tag "Predicting nextclade for for sample:\t$sampleId"
+    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "nextstrain_lineage.csv"
     containerOptions "--volume ${params.nextclade_db_absolute_path_on_host}:/home/external_databases/nextclade_db"
 
     input:

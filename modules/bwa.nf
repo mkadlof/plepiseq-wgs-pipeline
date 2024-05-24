@@ -1,6 +1,7 @@
 process bwa {
-    publishDir "results/${sampleId}", mode: 'symlink', pattern: 'mapped_reads.bam'
-    publishDir "results/${sampleId}", mode: 'symlink', pattern: 'mapped_reads.bam.bai'
+    tag "Mapping reads to reference for sample:\t$sampleId"
+    //publishDir "${params.results_dir}/${sampleId}/mapping", mode: 'symlink', pattern: 'mapped_reads.bam*'
+    //publishDir "results/${sampleId}", mode: 'symlink', pattern: 'mapped_reads.bam.bai'
     maxForks 5
 
     input:

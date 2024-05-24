@@ -1,5 +1,4 @@
 process indexGenome {
-
     input:
     path reference_fasta
 

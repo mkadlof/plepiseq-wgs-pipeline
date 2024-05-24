@@ -1,5 +1,6 @@
 process pangolin {
-    publishDir "results/${sampleId}", mode: 'symlink'
+    tag "Predicting PANGO lineage for for sample:\t$sampleId"
+    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "pangolin_lineage.csv"
     containerOptions "--volume ${params.pangolin_db_absolute_path_on_host}:/home/external_databases/pangolin"
 
     input:

@@ -1,5 +1,6 @@
 process dehumanization  {
-    publishDir "results/${sampleId}", mode: 'symlink'
+    tag "Preparing input data without non-SRAS-CoV-2 reads for sample:\t$sampleId"
+    publishDir "${params.results_dir}/${sampleId}", mode: 'copy'
 
     input:
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai')
