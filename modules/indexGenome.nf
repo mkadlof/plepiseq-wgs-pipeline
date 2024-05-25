@@ -1,12 +1,14 @@
 process indexGenome {
     input:
-    path reference_fasta
+    val(x)
+    // path reference_fasta
 
     output:
-    tuple path("${reference_fasta}"), path("${reference_fasta}.fai")
+    tuple path("genome.fasta"), path("genome.fasta.fai")
 
     script:
     """
-    samtools faidx ${reference_fasta}
+    cp $x genome.fasta  
+    samtools faidx genome.fasta
     """
 }

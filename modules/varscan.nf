@@ -11,7 +11,7 @@ process varScan {
 
     script:
     """
-    samtools mpileup --max-depth ${params.max_depth} \
+    samtools mpileup -B --max-depth ${params.max_depth} \
                  --fasta-ref ${reference_fasta} \
                  --min-BQ ${params.quality_snp} \
                  ${bam} >> ${bam}.mpileup

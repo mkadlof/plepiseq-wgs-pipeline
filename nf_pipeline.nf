@@ -1,48 +1,45 @@
-// Variables not present in run_nf_pipeline.sh.template file
-// See run_nf_pipeline.sh.template menu help for explanations 
+// Programs parameters can be modified by a shell wrapper
 params.memory = 2024
 params.quality_initial = 5
 params.length = 90
 params.max_number_for_SV = 200000
-params.max_depth = 600 // updated to better fit new filtering approach
+params.max_depth = 600 
 params.min_cov = 20
 params.mask = 20
 params.quality_snp = 15
 params.pval = 0.05
 params.lower_ambig = 0.45
 params.upper_ambig = 0.55
-//params.ref_genome_id = "MN908947.3"
 params.window_size = 50 // Wielkosc okna w ktorym wyrownujemy pokrycie
 params.mapping_quality = 30
 
 
-// Variables that we strongly recommed to be set via run_nf_pipeline.sh.template file
-// already present in that file
-
-
-// Specifing location of reads/primers/adapters etc.
+// Specifing location of reads and primers and nesccessery databases, MUST be selected by a user
 params.threads = 5
-params.ref_genome = ""
-params.reads = ""
-params.primers = ""
-params.pairs = ""
-params.adapters = ""
-
-
-// Subcategory
-// paths to EXTERNAL databases with no defaults
+params.reads = "" // To dalej musi podac user
+params.primers_id = "" // zastepujemy w wrapper nazwa dostepnego katalogu V4, V4.1 itd. to podaje user
 params.pangolin_db_absolute_path_on_host = ""
 params.nextclade_db_absolute_path_on_host = ""
 params.kraken2_db_absolute_path_on_host = ""
 params.freyja_db_absolute_path_on_host = ""
 
-params.modules = "/home/michall/git/nf_illumina_sars_ml/modules"
+// adapters, can be set  by a user but there is a defualt
+params.adapters_id="TruSeq3-PE-2" // To podaje user ale jest default
+
+// output dir, by default "results" directory
 params.results_dir = "./results"
 
+// Directory with modules, maybe move the .nf file to tha main script to remove one settable parameter ? MUST be indicated by user
+params.modules = "/home/michall/git/nf_illumina_sars_ml/modules"
 
+// Old parameter not settable anymore by a shell wrapper
+//params.ref_genome_id=new File(params.ref_genome).readLines().get(0).replaceAll('>','')
+params.ref_genome="/home/SARS-CoV2/genome/sarscov2.fasta"
+params.primers="/home/SARS-CoV2/primers/${params.primers_id}/nCoV-2019.scheme.bed"
+params.pairs="/home/SARS-CoV2/primers/${params.primers_id}/pairs.tsv"
+params.adapters="/home/SARS-CoV2/adapters/${params.adapters_id}.fa"
 
-// Old parameter not settable by sh wrapper
-params.ref_genome_id=new File(params.ref_genome).readLines().get(0).replaceAll('>','')
+params.ref_genome_id="MN908947.3"
 
 
 include { indexGenome } from "${params.modules}/indexGenome.nf"
@@ -83,24 +80,24 @@ include { coinfection_analysis } from "${params.modules}/coinfection_analysis.nf
 
 workflow{
     // Channels
-    ref_genome = Channel.value(params.ref_genome as Path)
+    // ref_genome = Channel.value(params.ref_genome)
     reads = Channel.fromFilePairs(params.reads)
-    primers = Channel.value(params.primers as Path)
-    pairs = Channel.value(params.pairs as Path)
-    adapters = Channel.value(params.adapters as Path)
+    // primers = Channel.value(params.primers)
+    //pairs = Channel.value(params.pairs)
+    //adapters = Channel.value(params.adapters)
 
     // Processes
-    indexGenome(ref_genome)
+    indexGenome(params.ref_genome)
     fastqc_1(reads, "initialfastq")
     kraken2(reads)
-    trimmomatic(reads, adapters)
+    trimmomatic(reads, params.adapters)
     bwa(trimmomatic.out[0], indexGenome.out)
     dehumanization(bwa.out, trimmomatic.out[1])
     fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
-    filtering(bwa.out, primers)
-    masking(filtering.out[0], primers, pairs)
+    filtering(bwa.out, params.primers)
+    masking(filtering.out[0], params.primers, params.pairs)
     combined = filtering.out[1].join(masking.out)
-    merging(combined, primers, pairs)
+    merging(combined)
     picard(bwa.out)
     viterbi(merging.out, indexGenome.out)
     wgsMetrics(viterbi.out, indexGenome.out)
@@ -120,7 +117,7 @@ workflow{
     simpleStats(manta.out.join(wgsMetrics.out))
 
     // Coinfection line
-    coinfection_ivar(bwa.out, indexGenome.out, primers)
+    coinfection_ivar(bwa.out, indexGenome.out, params.primers)
     freyja(coinfection_ivar.out[0], indexGenome.out)
     coinfection_varscan(coinfection_ivar.out[1])
     coinfection_analysis(coinfection_varscan.out)

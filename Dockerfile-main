@@ -465,6 +465,10 @@ COPY data/generic/contaminations /home/SARS-CoV2/contaminations
 COPY data/generic/vcf_template /home/SARS-CoV2/vcf_template
 COPY data/generic/modeller /home/SARS-CoV2/modeller
 
+COPY data/generic/genome/SarsCov2/ /home/SARS-CoV2/genome
+COPY data/generic/adapters /home/SARS-CoV2/adapters
+COPY data/generic/primers /home/SARS-CoV2/primers
+
 COPY bin /home/SARS-CoV2/bin
 ENV PATH=$PATH:/home/SARS-CoV2/bin
 

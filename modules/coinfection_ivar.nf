@@ -5,7 +5,7 @@ process coinfection_ivar {
     input:
     tuple val(sampleId), path(mapped_reads),  path(mapped_reads_bai)
     tuple path(reference_fasta), path(reference_fai)
-    path primers
+    val(primers)
 
     output:
     tuple val(sampleId), path('for_contamination_sorted.bam'), path('for_contamination_sorted.bam.bai')

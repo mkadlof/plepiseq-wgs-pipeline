@@ -4,7 +4,7 @@ process trimmomatic {
 
     input:
     tuple val(sampleId), path(reads)
-    path adapters
+    val(adapters)
 
     output:
     tuple val(sampleId), path('*_paired.fastq.gz')

@@ -4,8 +4,8 @@ process masking {
 
     input:
     tuple val(sampleId), path(bam), path(bai)
-    path primers
-    path pairs
+    val(primers)
+    val(pairs)
 
     output:
     tuple val(sampleId), path('ivar_trimmed_all.bam')

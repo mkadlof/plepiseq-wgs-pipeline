@@ -4,8 +4,6 @@ process merging {
 
     input:
     tuple val(sampleId), path(filtering_bam), path(ivar_bam)
-    path primers
-    path pairs
 
     output:
     tuple val(sampleId), path('clean_sort_dedup_trimmed_sort.bam'), path('clean_sort_dedup_trimmed_sort.bam.bai')

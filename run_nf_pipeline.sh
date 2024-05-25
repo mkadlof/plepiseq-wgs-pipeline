@@ -5,10 +5,10 @@
 
 ## Stage 1. External files and databases without defaults
 
-genome="" # -g
+#genome="" # -g
 reads="" # -r 
-primers="" # -p
-adapters="" # -a
+primers_id="" # -p
+adapters_id="TruSeq3-PE-2" # -a
 
 pangolin_dir="" # -w
 nextclade_dir="" # -x
@@ -49,20 +49,29 @@ usage() {
     echo -e "-h                                Wywołanie pomocy/Help message"
     echo
     echo -e "Pliki wejsciowe/Input data"
-    echo -e "-r\t[format: fastq.gz, example: '/some/directory/*_R{1,2}.fastq.gz]'"
+    echo -e "-r\t[format: fastq.gz, example: '/some/directory/*_R{1,2}.fastq.gz']"
     echo -e "  \tSciezka do katalogu z wynikami sekwencjonowania wraz z wzorcem nazewnicta plikow"
     echo -e "  \tPath to sequencing data with naming pattern for sequencing files. Use single quotes for this argument"
-    echo -e "-g\t[format: fasta, example: /some/directory/sars.fasta]"
-    echo -e "  \tSciezka do pliku z genomeme referencyjnym dla wirusa SARS-CoV-2"
-    echo -e "  \tPath to a file in fasta format with SARS-CoV-2 reference genome"
-    echo -e "-p\t[format: bed, example: /some/directory/primers.bed]"
-    echo -e "  \tSciezka do pliku z primer'ami uzytymi w trakcie sekwencjonowania w formacie bed"
-    echo -e "  \tKatalog w ktorym znajduje sie ten plik musi zawierac rozniec plik pairs.tsv"
-    echo -e "  \tPath to a file in bed format with primers location in reference genome"
-    echo -e "  \tThis direcory must also contain pairs.tsv file"   
-    echo -e "-a\t[format: fasta, example :/some/directory/adapters.fasta]"
-    echo -e "  \tŚcieżka do pliku w formacie fasta zawierającego sekwencje adapterów"
-    echo -e "  \tPath to a fasta file with adapters sequence"
+    #echo -e "-g\t[format: fasta, example: /some/directory/sars.fasta]"
+    #echo -e "  \tSciezka do pliku z genomeme referencyjnym dla wirusa SARS-CoV-2"
+    #echo -e "  \tPath to a file in fasta format with SARS-CoV-2 reference genome"
+    #echo -e "-p\t[format: bed, example: /some/directory/primers.bed]"
+    #echo -e "  \tSciezka do pliku z primer'ami uzytymi w trakcie sekwencjonowania w formacie bed"
+    #echo -e "  \tKatalog w ktorym znajduje sie ten plik musi zawierac rozniec plik pairs.tsv"
+    #echo -e "  \tPath to a file in bed format with primers location in reference genome"
+    #echo -e "  \tThis direcory must also contain pairs.tsv file"   
+    
+    echo -e "-p\t[format: string, example: V4.1, expected: one of V1 V1200 V1201 V2 V3 V4.1 V4 V5.3.2 VarSkip2]"
+    echo -e "  \tNazwa schematu amplikonow uzyta w sekseprymencie"
+    echo -e "  \tName of amplicon scheme used to amplify genetic materia"
+
+    #echo -e "-a\t[format: fasta, example :/some/directory/adapters.fasta]"
+    #echo -e "  \tŚcieżka do pliku w formacie fasta zawierającego sekwencje adapterów"
+    #echo -e "  \tPath to a fasta file with adapters sequence"
+    echo -e "-a\t[format: string, example: TruSeq3-PE-2, default: TruSeq3-PE-2, expected: one of NexteraPE-PE TruSeq2-PE TruSeq2-SE TruSeq3-PE-2 TruSeq3-PE TruSeq3-SE]"
+    echo -e "  \tNazwa schematu amplikonow uzyta w sekseprymencie"
+    echo -e "  \tName of amplicon scheme used to amplify genetic materia"
+    
     echo -e "-w\t[format: none, directory, example: /some/directory/]"
     echo -e "  \tŚcieżka do katalogu z baza Pangolin"
     echo -e "  \tPath to a direcory with Pangolin data"
@@ -132,9 +141,9 @@ usage() {
 while getopts ":r:g:p:a:w:x:y:z:m:o:b:c:j:d:e:f:i:k:l:n:s:u:t:h" flag; do
 	case  "${flag}" in
 		r) reads="${OPTARG}" ;;
-		g) genome="${OPTARG}" ;;
-		p) primers="${OPTARG}" ;;
-		a) adapters="${OPTARG}" ;;
+		# g) genome="${OPTARG}" ;;
+		p) primers_id="${OPTARG}" ;;
+		a) adapters_id="${OPTARG}" ;;
 		w) pangolin_dir="${OPTARG}" ;;
 		x) nextclade_dir="${OPTARG}" ;;
 		y) kraken2_dir="${OPTARG}" ;;
@@ -187,35 +196,47 @@ if [ $(echo "${expanded_reads}" | wc -w) -lt 2 ]; then
 fi
 
 ## Check if a file with provided genome exists
-if [ ! -e "${genome}" ]; then
-	echo -e "Nie podano argumentu -g / Podany plik nie istnieje"
-	echo -e "Please specify path to a genome with -g / Provided file does not exist"
-	exit 1
-fi
+#if [ ! -e "${genome}" ]; then
+#	echo -e "Nie podano argumentu -g / Podany plik nie istnieje"
+#	echo -e "Please specify path to a genome with -g / Provided file does not exist"
+#	exit 1
+#fi
 
 ## Check if a file with primers exist
-if [ ! -e "${primers}" ]; then
-        echo -e "Nie podano argumentu -p / Podany plik nie istnieje"
-        echo -e "Please specify path to a file with primers with -p / Provided file does not exist"
-        exit 1
-else
-	TMP_PATH=`dirname ${primers}`
-	if [ ! -e "${TMP_PATH}/pairs.tsv" ]; then
-		echo -e "W katalogu z primerami brakuje pliku pairs.tsv"
-		echo -e "Directory with a primers does not contain pairs.tsv file"
-		exit 1
-	else
-		pairs="${TMP_PATH}/pairs.tsv"
-	fi
+#if [ ! -e "${primers}" ]; then
+#        echo -e "Nie podano argumentu -p / Podany plik nie istnieje"
+#        echo -e "Please specify path to a file with primers with -p / Provided file does not exist"
+#        exit 1
+#else
+#	TMP_PATH=`dirname ${primers}`
+#	if [ ! -e "${TMP_PATH}/pairs.tsv" ]; then
+#		echo -e "W katalogu z primerami brakuje pliku pairs.tsv"
+#		echo -e "Directory with a primers does not contain pairs.tsv file"
+#		exit 1
+#	else
+#		pairs="${TMP_PATH}/pairs.tsv"
+#	fi
+#fi
+
+CORRECT_ID=0
+ALL_PRIMERS=(V1 V1200 V1201 V2 V3 V4.1 V4 V5.3.2 VarSkip2)
+for var in ${ALL_PRIMERS[@]}; do
+	if [ ${primers_id} == ${var} ];then
+	       CORRECT_ID=1
+	       break
+       	fi	       
+
+if [ ${CORRECT_ID} -eq 0 ]; then
+	echo -e "Nie podano wlasciwej wartosci dla parametru -p / Dostepne wartosci to ${ALL_PRIMERS[@]}\n"
+	echo -e "Please specify correct primer scheme name with -p / Available options are ${ALL_PRIMERS[@]}\n"
+	exit 1
 fi
-
-
 ## Check if file with adapters exist
-if [ ! -e "${adapters}" ]; then
-        echo -e 'Nie podano argumentu -a / Podany plik nie istnieje\n'
-        echo -e 'Please specify path to adapter sequences with -a / Provided file does not exist\n'
-        exit 1
-fi
+#if [ ! -e "${adapters}" ]; then
+#        echo -e 'Nie podano argumentu -a / Podany plik nie istnieje\n'
+#        echo -e 'Please specify path to adapter sequences with -a / Provided file does not exist\n'
+#        exit 1
+#fi
 
 ## Check if directory with pangolin data exists
 if [ ! -d "${pangolin_dir}" ]; then
@@ -358,10 +379,8 @@ fi
 
 nextflow run  /home/michall/git/nf_illumina_sars_ml/nf_pipeline.nf \
 	--reads ${reads} \
-	--ref_genome ${genome} \
-	--primers ${primers} \
-	--pairs ${pairs} \
-	--adapters ${adapters} \
+	--primers_id ${primers_id} \
+	--adapters_id ${adapters_id} \
 	--pangolin_db_absolute_path_on_host ${pangolin_dir} \
 	--nextclade_db_absolute_path_on_host ${nextclade_dir} \
 	--kraken2_db_absolute_path_on_host ${kraken2_dir} \
@@ -383,3 +402,6 @@ nextflow run  /home/michall/git/nf_illumina_sars_ml/nf_pipeline.nf \
 	--threads ${cpu} \
 	-with-docker sars_illumina_nf:1.0
 
+
+### Wywolanie ###
+#(base) michall@compute:/mnt/sda1/michall/EQA2024/SARS/SARS2_wersja_nf/primers_53_new$ ./run_nf_pipeline.sh -r '/mnt/sda1/michall/EQA2024/SARS/SARS2_wersja_nf/primers_53/*_{1,2}.fastq.gz' -p EQA2024.V5_3 -w /mnt/sda1/michall/EQA2023/test_SARS2_nextflow/data/pangolin -x /mnt/sda1/michall/EQA2023/test_SARS2_nextflow/data/nextclade -y /home/michall/kraken2/kraken2_db/kraken2_sdb/ -z /mnt/sda1/michall/EQA2023/test_SARS2_nextflow/data/freyja/ -m /home/michall/git/nf_illumina_sars_ml/modules -t 10

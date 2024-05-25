@@ -5,7 +5,7 @@ process filtering {
 
     input:
     tuple val(sampleId), path(bam), path(bai)
-    path primers
+    val(primers)
 
     output:
     tuple val(sampleId), path('first_pass_sorted.bam'), path('first_pass_sorted.bam.bai') 
