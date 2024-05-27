@@ -98,7 +98,7 @@ workflow{
     masking(filtering.out[0], params.primers, params.pairs)
     combined = filtering.out[1].join(masking.out)
     merging(combined)
-    picard(bwa.out)
+    picard(bwa.out,  params.primers, params.pairs)
     viterbi(merging.out, indexGenome.out)
     wgsMetrics(viterbi.out, indexGenome.out)
     lowCov(viterbi.out, indexGenome.out)

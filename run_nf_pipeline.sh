@@ -225,6 +225,7 @@ for var in ${ALL_PRIMERS[@]}; do
 	       CORRECT_ID=1
 	       break
        	fi	       
+done
 
 if [ ${CORRECT_ID} -eq 0 ]; then
 	echo -e "Nie podano wlasciwej wartosci dla parametru -p / Dostepne wartosci to ${ALL_PRIMERS[@]}\n"
@@ -400,7 +401,7 @@ nextflow run  /home/michall/git/nf_illumina_sars_ml/nf_pipeline.nf \
 	--window_size ${window_size} \
 	--mapping_quality ${mapping_quality} \
 	--threads ${cpu} \
-	-with-docker sars_illumina_nf:1.0
+	-with-docker sars_illumina_nf:1.0 -with-trace 
 
 
 ### Wywolanie ###

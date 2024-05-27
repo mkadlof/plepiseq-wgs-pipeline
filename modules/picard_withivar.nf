@@ -6,7 +6,7 @@ process picard {
     val(primers)
     val(pairs)
     output:
-    tuple val(sampleId), path('downsample.bam'), path('downsample.bam.bai')
+    tuple val(sampleId), path('downsample_ivar_sorted.bam'), path('downsample_ivar_sorted.bam.bai')
 
     script:
     """
@@ -25,5 +25,26 @@ process picard {
                                     --OUTPUT downsample.bam -F \${NORM}
     samtools index downsample.bam
 
+
+    # Dodajemy rowniez usuuwanie primerow w tej sekwencji
+    # ALe musimy obejsc sytuacje w ktorej nie ma mapowan
+    
+
+    if [ \${ILE} -lt 100 ] ;then
+        cp downsample.bam downsample_ivar_sorted.bam
+        cp downsample.bam.bai downsample_ivar_sorted.bam.bai
+    else
+    ivar trim -i downsample.bam \
+             -b ${primers} \
+             -q ${params.quality_initial} \
+             -e \
+             -p downsample_ivar
+    
+    samtools sort -@ ${params.threads} -o downsample_ivar_sorted.bam downsample_ivar.bam
+    samtools index downsample_ivar_sorted.bam
+    fi
+    # MAnta nie rozumie chyba soft-clipping 
+    # patrz przykladi 06 z SARS2 z EQA2024
+    # z tego powodu wracam do prostszej wersji modulu
     """
 }

@@ -1,6 +1,6 @@
 process vcf_for_fasta {
     tag "Creating VCF for consensus sequence for sample:\t$sampleId"
-    publishDir "${params.results_dir}/${sampleId}/consensus_vcf", mode: 'copy', pattern: "\${vcf_output}*"
+    publishDir "${params.results_dir}/${sampleId}/consensus_vcf", mode: 'copy', pattern: "*vcf*"
 
     input:
     tuple val(sampleId), path("consensus.fa")
@@ -16,6 +16,8 @@ process vcf_for_fasta {
 
     # plik ten jest częścią repozytorium w katalogu
     vcf_output="consensus.vcf" # nazwa pliku vcf dla sekwencji konsensusowej
+    # usuwamy x ktore teraz w genomie znacza delecje ale ani moj skrypt ani snpeff tego nie zrozumie
+    sed -i s'/x//'g consensus.fa
     prep_own_vcf.py ${reference_fasta} consensus.fa \$N \${vcf_input} \${vcf_output}
     bgzip \${vcf_output};
     tabix \${vcf_output}.gz

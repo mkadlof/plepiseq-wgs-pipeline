@@ -16,7 +16,7 @@ sequence_with_n = ''
 i = 0  # index
 
 for element in record[0].seq:
-    if element == 'n' and record[1].seq[i] != '-':
+    if element == 'n' and record[1].seq[i] != 'x':
         sequence_with_n += 'N'
     elif element != 'n':
         sequence_with_n += record[1].seq[i].upper()
@@ -24,7 +24,7 @@ for element in record[0].seq:
     i += 1
 
 # r remove '-' in fixed sequence
-sequence_with_n = ''.join([element for element in sequence_with_n if element != '-'])
+sequence_with_n = ''.join([element for element in sequence_with_n if element != 'X'])
 with open(f'output_{name_of_sequence}_masked.fa', 'w') as f:
     f.write(f'>{name_of_sequence}\n')
     f.write(sequence_with_n + '\n')

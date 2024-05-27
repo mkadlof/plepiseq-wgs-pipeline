@@ -1,6 +1,6 @@
 process snpEff {
     tag "Predicting phenotypic effect of mutations for sample:\t$sampleId"
-    publishDir "${params.results_dir}/${sampleId}", mode: 'symlink', pattern: "detected_variants_consensus_annotated.txt"
+    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "detected_variants_consensus_annotated.txt"
 
     input:
     tuple val(sampleId), path(consensus_vcf_gz), path(consensus_vcf_gz_tbi)

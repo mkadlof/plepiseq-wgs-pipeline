@@ -59,7 +59,7 @@ process lofreq {
     tabix detected_variants_lofreq_final.vcf.gz
     
     cat ${reference_fasta} | \
-        bcftools consensus --samples - \
+        bcftools consensus --mark-del X --samples - \
                            detected_variants_lofreq_final.vcf.gz > lofreq.fa
     """
 }

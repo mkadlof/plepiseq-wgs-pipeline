@@ -45,6 +45,6 @@ process varScan {
     bgzip --force detected_variants_varscan_final.vcf
     tabix detected_variants_varscan_final.vcf.gz
 
-    cat ${reference_fasta} | bcftools consensus --samples - detected_variants_varscan_final.vcf.gz > varscan.fa
+    cat ${reference_fasta} | bcftools consensus --mark-del X --samples - detected_variants_varscan_final.vcf.gz > varscan.fa
     """
 }

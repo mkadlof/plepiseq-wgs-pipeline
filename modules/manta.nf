@@ -28,8 +28,8 @@ process manta {
         python Manta_results/runWorkflow.py -j ${params.threads} --quiet
 
         if [ -e Manta_results/results/variants/diploidSV.vcf.gz ]; then
-
-            bcftools view -O z -o manta_results.vcf.gz -i 'FILTER="PASS" | FILTER="MaxDepth" | FILTER="NoPairSupport"' Manta_results/results/variants/diploidSV.vcf.gz
+            # Wywalamy skomplikowane SV jak translokacje itd typun BND
+            bcftools view -O z -o manta_results.vcf.gz -i '(FILTER="PASS" | FILTER="MaxDepth" | FILTER="NoPairSupport") && SVTYPE != "BND"' Manta_results/results/variants/diploidSV.vcf.gz
                     tabix manta_results.vcf.gz
 
             ILE_SV=`zcat manta_results.vcf.gz  | grep ${params.ref_genome_id} | grep -v cont | wc -l`

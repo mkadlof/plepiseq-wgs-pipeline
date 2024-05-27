@@ -50,7 +50,7 @@ process freeBayes {
     tabix detected_variants_freebayes_final.vcf.gz
 
     cat ${reference_fasta} | \
-            bcftools consensus --samples - \
+            bcftools consensus --mark-del X --samples - \
                                detected_variants_freebayes_final.vcf.gz > freebayes.fa
     """
 }
