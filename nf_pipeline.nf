@@ -113,7 +113,7 @@ workflow{
     nextclade(manta.out)
     modeller(nextclade.out[1])
     pangolin(manta.out)
-    snpEff(vcf_for_fasta.out)
+    snpEff(vcf_for_fasta.out.join(viterbi.out), indexGenome.out)
     simpleStats(manta.out.join(wgsMetrics.out))
 
     // Coinfection line
