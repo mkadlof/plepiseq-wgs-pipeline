@@ -35,9 +35,10 @@ mapping_quality=30 # -u
 
 ## Stage 3. Other parameters with defaults, only some can be set via contect menu
 cpu=1 # -t
-container_name=""
+container_name="" #-g
 
 mempory=2024 #
+
 # Creating help message
 
 echo ${cpu}
@@ -133,6 +134,9 @@ usage() {
     echo -e "Parametry inne"
     echo -e "-t  [int, default: 1, expected: at least 1]"
     echo -e "  \tIlość CPU/No of CPU threads"
+    echo -e "-g  [str, example: sars_illumina_nf:1.0]"
+    echo -e "  \tNazwa obrazu docker ze wszystkim programi z ktorych korzysta program/Docker image name with all the tools used by the pipeline"
+
 }
 
 
@@ -141,7 +145,7 @@ usage() {
 while getopts ":r:g:p:a:w:x:y:z:m:o:b:c:j:d:e:f:i:k:l:n:s:u:t:h" flag; do
 	case  "${flag}" in
 		r) reads="${OPTARG}" ;;
-		# g) genome="${OPTARG}" ;;
+		g) container_name="${OPTARG}" ;;
 		p) primers_id="${OPTARG}" ;;
 		a) adapters_id="${OPTARG}" ;;
 		w) pangolin_dir="${OPTARG}" ;;
@@ -376,9 +380,10 @@ if [ ${cpu} -lt 1 ]; then
         exit 1
 fi
 
+# Test czy obraz istnieje w systemie 
+
 # Calling pipeline
 
-#UWAGA POZOSTALA NAZWA OBRAZU ZBUDOWANEGO PRZEZE MNIE !!!
 
 nextflow run ${project_dir}/nf_pipeline.nf \
 	--reads ${reads} \
@@ -403,7 +408,7 @@ nextflow run ${project_dir}/nf_pipeline.nf \
 	--window_size ${window_size} \
 	--mapping_quality ${mapping_quality} \
 	--threads ${cpu} \
-	-with-docker sars_illumina_nf:1.0 -with-trace 
+	-with-docker ${container_name} -with-trace 
 
 
 ### Wywolanie ###
