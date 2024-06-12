@@ -16,7 +16,7 @@ kraken2_dir="" # -y
 freyja_dir="" # -z
 
 results_dir="`pwd`/results" # -o
-modules_dir="" # -m 
+project_dir="" # -m 
 
 ## Stage 2. Algorithm paramters with defaults
 quality_initial=5 # -b
@@ -85,8 +85,8 @@ usage() {
     echo -e "  \tŚcieżka do katalogu z baza dla programu freyja"
     echo -e "  \tPath to a direcory with data for freyja"
     echo -e "-m\t[format: none, directory, example :/some/directory/]"
-    echo -e "  \tŚcieżka do katalogu z modulami pipeline'u"
-    echo -e "  \tPath to a direcory with modules used by this pipeline"
+    echo -e "  \tŚcieżka do katalogu z pobranym z github repozytorium"
+    echo -e "  \tPath to a direcory with pipeline downloaded from github"
     echo -e "Wyniki/Output data"
     echo -e "-o\t[format: none, directory, example: /some/directory/, default: ./results]"
     echo -e "  \tŚcieżka do katalogu z w ktorym zostana umieszczone wyniki"
@@ -149,7 +149,7 @@ while getopts ":r:g:p:a:w:x:y:z:m:o:b:c:j:d:e:f:i:k:l:n:s:u:t:h" flag; do
 		y) kraken2_dir="${OPTARG}" ;;
 		z) freyja_dir="${OPTARG}" ;;
 		o) results_dir="${OPTARG}" ;;
-		m) modules_dir="${OPTARG}" ;;
+		m) project_dir="${OPTARG}" ;;
 		b) quality_initial="${OPTARG}" ;;
 		c) length="${OPTARG}" ;;
 		j) quality_snp="${OPTARG}" ;;
@@ -274,7 +274,7 @@ if [ -d "${results_dir}" ]; then
 fi
 
 ## Check if directory with nextflow modules exists
-if [ ! -d "${modules_dir}" ]; then
+if [ ! -d "${project_dir}" ]; then
          echo -e 'Nie podano argumentu -m / Podany katalog nie istnieje\n'
          echo -e 'Please specify path to directory with modules using -m / Provided direcotry does not exist\n'
          exit 1
@@ -378,7 +378,9 @@ fi
 
 # Calling pipeline
 
-nextflow run  /home/michall/git/nf_illumina_sars_ml/nf_pipeline.nf \
+#UWAGA POZOSTALA NAZWA OBRAZU ZBUDOWANEGO PRZEZE MNIE !!!
+
+nextflow run ${project_dir}/nf_pipeline.nf \
 	--reads ${reads} \
 	--primers_id ${primers_id} \
 	--adapters_id ${adapters_id} \
@@ -387,7 +389,7 @@ nextflow run  /home/michall/git/nf_illumina_sars_ml/nf_pipeline.nf \
 	--kraken2_db_absolute_path_on_host ${kraken2_dir} \
 	--freyja_db_absolute_path_on_host ${freyja_dir} \
 	--results_dir ${results_dir} \
-	--modules ${modules_dir} \
+	--modules ${project_dir}/modules \
 	--quality_initial ${quality_initial} \
 	--length ${length} \
 	--quality_snp ${quality_snp} \
@@ -405,4 +407,4 @@ nextflow run  /home/michall/git/nf_illumina_sars_ml/nf_pipeline.nf \
 
 
 ### Wywolanie ###
-#(base) michall@compute:/mnt/sda1/michall/EQA2024/SARS/SARS2_wersja_nf/primers_53_new$ ./run_nf_pipeline.sh -r '/mnt/sda1/michall/EQA2024/SARS/SARS2_wersja_nf/primers_53/*_{1,2}.fastq.gz' -p EQA2024.V5_3 -w /mnt/sda1/michall/EQA2023/test_SARS2_nextflow/data/pangolin -x /mnt/sda1/michall/EQA2023/test_SARS2_nextflow/data/nextclade -y /home/michall/kraken2/kraken2_db/kraken2_sdb/ -z /mnt/sda1/michall/EQA2023/test_SARS2_nextflow/data/freyja/ -m /home/michall/git/nf_illumina_sars_ml/modules -t 10
+#(base) michall@compute:/mnt/sda1/michall/EQA2024/SARS/SARS2_wersja_nf/primers_53_new$ ./run_nf_pipeline.sh -r '/mnt/sda1/michall/EQA2024/SARS/SARS2_wersja_nf/primers_53/*_{1,2}.fastq.gz' -p EQA2024.V5_3 -w /mnt/sda1/michall/EQA2023/test_SARS2_nextflow/data/pangolin -x /mnt/sda1/michall/EQA2023/test_SARS2_nextflow/data/nextclade -y /home/michall/kraken2/kraken2_db/kraken2_sdb/ -z /mnt/sda1/michall/EQA2023/test_SARS2_nextflow/data/freyja/ -m /home/michall/git/nf_illumina_sars_ml -t 10
