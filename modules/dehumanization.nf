@@ -1,5 +1,5 @@
 process dehumanization  {
-    tag "Preparing input data without non-SRAS-CoV-2 reads for sample:\t$sampleId"
+    tag "dehumanization:${sampleId}"
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy'
 
     input:

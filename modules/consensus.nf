@@ -1,6 +1,5 @@
 process consensus {
-    tag "Calculating consensus sequence for sample:\t$sampleId"
-    // publishDir "${params.results_dir}/${sampleId}", mode: 'symlink'
+    tag "consensus:${sampleId}"
 
     input:
     tuple val(sampleId), path(freebayes_fa), path(lofreq_fa), path(varscan_fa)

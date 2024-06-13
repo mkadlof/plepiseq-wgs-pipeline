@@ -3,7 +3,7 @@
 ![flowchart](flowchart.png "Overview of the pipeline.")
 
 NextFlow pipeline for SARS-CoV-2 Illumina data consist of 30 NextFlow modules.
-The steps are depicted on image in [](pipeline-overview.md) (`IndexGenome` module which gives input to many other modules was hidden for clarity). Modules are grouped into logical sections, by their function.
+The steps are depicted on image in [](pipeline-overview.md). Modules are grouped into logical sections, by their function.
 
 ### Main section
 Goal of **Main** section is to perform mapping with [bwa](%bwa.url%) aligner, filtering, small indel calling by three callers ([varScan](%varscan.url%), [freeBayes](%freebayess.url%) and [lofreq](%lofreq.url%)), identify low quality / coverage regions and finally obtain consensus sequence.

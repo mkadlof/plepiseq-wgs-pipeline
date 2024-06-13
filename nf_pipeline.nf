@@ -10,39 +10,36 @@ params.quality_snp = 15
 params.pval = 0.05
 params.lower_ambig = 0.45
 params.upper_ambig = 0.55
-params.window_size = 50 // Wielkosc okna w ktorym wyrownujemy pokrycie
+params.window_size = 50 // Window size in which we equalize the coverage
 params.mapping_quality = 30
 
 
-// Specifing location of reads and primers and nesccessery databases, MUST be selected by a user
+// Specifying location of reads and primers and necessary databases, MUST be selected by a user
 params.threads = 5
-params.reads = "" // To dalej musi podac user
-params.primers_id = "" // zastepujemy w wrapper nazwa dostepnego katalogu V4, V4.1 itd. to podaje user
+params.reads = "" // Must be provided by user
+params.primers_id = "" // We replace the name of the available directory in the wrapper with V4, V4.1, etc. The user provides this.
 params.pangolin_db_absolute_path_on_host = ""
 params.nextclade_db_absolute_path_on_host = ""
 params.kraken2_db_absolute_path_on_host = ""
 params.freyja_db_absolute_path_on_host = ""
 
-// adapters, can be set  by a user but there is a defualt
+// adapters, can be set  by a user but there is a default
 params.adapters_id="TruSeq3-PE-2" // To podaje user ale jest default
 
 // output dir, by default "results" directory
 params.results_dir = "./results"
 
-// Directory with modules, maybe move the .nf file to tha main script to remove one settable parameter ? MUST be indicated by user
-params.modules = "/home/michall/git/nf_illumina_sars_ml/modules"
+// Directory with modules, maybe move the .nf file to the main script to remove one settable parameter ? MUST be indicated by user
+params.modules = "/absolute/path/to/directory/with/modules"
 
 // Old parameter not settable anymore by a shell wrapper
-//params.ref_genome_id=new File(params.ref_genome).readLines().get(0).replaceAll('>','')
-params.ref_genome="/home/SARS-CoV2/genome/sarscov2.fasta"
-params.primers="/home/SARS-CoV2/primers/${params.primers_id}/nCoV-2019.scheme.bed"
-params.pairs="/home/SARS-CoV2/primers/${params.primers_id}/pairs.tsv"
-params.adapters="/home/SARS-CoV2/adapters/${params.adapters_id}.fa"
+params.ref_genome="/home/data/genome/sarscov2.fasta"
+params.primers="/home/data/primers/${params.primers_id}/nCoV-2019.scheme.bed"
+params.pairs="/home/data/primers/${params.primers_id}/pairs.tsv"
+params.adapters="/home/data/adapters/${params.adapters_id}.fa"
 
 params.ref_genome_id="MN908947.3"
 
-
-include { indexGenome } from "${params.modules}/indexGenome.nf"
 include { kraken2 } from "${params.modules}/kraken2.nf"
 include { bwa } from "${params.modules}/bwa.nf"
 include { dehumanization } from "${params.modules}/dehumanization.nf"
@@ -54,7 +51,7 @@ include { masking } from "${params.modules}/masking.nf"
 include { merging } from "${params.modules}/merging.nf"
 include { picard } from "${params.modules}/picard.nf"
 include { manta } from "${params.modules}/manta.nf"
-include { viterbi } from "${params.modules}/viterbi.nf"
+include { indelQual } from "${params.modules}/indelQual.nf"
 include { wgsMetrics } from "${params.modules}/wgsMetrics.nf"
 include { lowCov } from "${params.modules}/lowCov.nf"
 include { varScan } from "${params.modules}/varscan.nf"
@@ -70,28 +67,20 @@ include { pangolin } from "${params.modules}/pangolin.nf"
 include { modeller } from "${params.modules}/modeller.nf"
 
 // Coinfection line
-
 include { freyja } from "${params.modules}/freyja.nf"
 include { coinfection_ivar } from "${params.modules}/coinfection_ivar.nf"
 include { coinfection_varscan } from "${params.modules}/coinfection_varscan.nf"
 include { coinfection_analysis } from "${params.modules}/coinfection_analysis.nf"
 
-
-
 workflow{
     // Channels
-    // ref_genome = Channel.value(params.ref_genome)
     reads = Channel.fromFilePairs(params.reads)
-    // primers = Channel.value(params.primers)
-    //pairs = Channel.value(params.pairs)
-    //adapters = Channel.value(params.adapters)
 
     // Processes
-    indexGenome(params.ref_genome)
     fastqc_1(reads, "initialfastq")
     kraken2(reads)
     trimmomatic(reads, params.adapters)
-    bwa(trimmomatic.out[0], indexGenome.out)
+    bwa(trimmomatic.out[0])
     dehumanization(bwa.out, trimmomatic.out[1])
     fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
     filtering(bwa.out, params.primers)
@@ -99,26 +88,26 @@ workflow{
     combined = filtering.out[1].join(masking.out)
     merging(combined)
     picard(bwa.out,  params.primers, params.pairs)
-    viterbi(merging.out, indexGenome.out)
-    wgsMetrics(viterbi.out, indexGenome.out)
-    lowCov(viterbi.out, indexGenome.out)
-    varScan(viterbi.out, indexGenome.out)
-    freeBayes(viterbi.out, indexGenome.out)
-    lofreq(viterbi.out, indexGenome.out)
+    indelQual(merging.out)
+    wgsMetrics(indelQual.out)
+    lowCov(indelQual.out)
+    varScan(indelQual.out)
+    freeBayes(indelQual.out)
+    lofreq(indelQual.out)
     c1 = varScan.out.join(freeBayes.out).join(lofreq.out)
     consensus(c1)
-    vcf_for_fasta(consensus.out, indexGenome.out)
+    vcf_for_fasta(consensus.out)
     consensusMasking(consensus.out.join(lowCov.out[1]))
-    manta(picard.out.join(consensusMasking.out), indexGenome.out)
+    manta(picard.out.join(consensusMasking.out))
     nextclade(manta.out)
     modeller(nextclade.out[1])
     pangolin(manta.out)
-    snpEff(vcf_for_fasta.out.join(viterbi.out), indexGenome.out)
+    snpEff(vcf_for_fasta.out.join(indelQual.out))
     simpleStats(manta.out.join(wgsMetrics.out))
 
     // Coinfection line
-    coinfection_ivar(bwa.out, indexGenome.out, params.primers)
-    freyja(coinfection_ivar.out[0], indexGenome.out)
+    coinfection_ivar(bwa.out, params.primers)
+    freyja(coinfection_ivar.out[0])
     coinfection_varscan(coinfection_ivar.out[1])
     coinfection_analysis(coinfection_varscan.out)
 }

@@ -1,10 +1,9 @@
 process freeBayes {
-    tag "Predicting mutations with freebayes for sample:\t$sampleId"
-    publishDir "${params.results_dir}/${sampleId}/freebayes", mode: 'symlink'
+    tag "freeBayes:${sampleId}"
+    publishDir "${params.results_dir}/${sampleId}/freebayes", mode: 'copy'
 
     input:
     tuple val(sampleId), path(bam), path(bai)
-    tuple path(reference_fasta), path(reference_fai)
 
     output:
     tuple val(sampleId), path('freebayes.fa')
@@ -16,14 +15,14 @@ process freeBayes {
               --min-mapping-quality ${params.mapping_quality} \
               --min-base-quality ${params.quality_snp} \
               --use-mapping-quality \
-              --fasta-reference ${reference_fasta} \
+              --fasta-reference \${GENOME_FASTA} \
               --ploidy 1 \
               ${bam} > detected_variants_freebayes.vcf
 
     cat detected_variants_freebayes.vcf | \
         bcftools norm --check-ref w \
                       --rm-dup all \
-                      --fasta-ref ${reference_fasta} | \
+                      --fasta-ref \${GENOME_FASTA} | \
                           bcftools norm --check-ref w \
                                         --multiallelics -indels \
                                         --fasta-ref ${reference_fasta} > detected_variants_freebayes_fix.vcf
@@ -49,7 +48,7 @@ process freeBayes {
                         bcftools sort --output-type z > detected_variants_freebayes_final.vcf.gz
     tabix detected_variants_freebayes_final.vcf.gz
 
-    cat ${reference_fasta} | \
+    cat \${GENOME_FASTA} | \
             bcftools consensus --mark-del X --samples - \
                                detected_variants_freebayes_final.vcf.gz > freebayes.fa
     """

@@ -25,7 +25,7 @@
         <toc-element topic="Main-Module-masking.md">
         </toc-element>
         <toc-element topic="Main-Module-merging.md"/>
-        <toc-element topic="Main-module-viterbi.md">
+        <toc-element topic="Main-module-indelQual.md">
         </toc-element>
         <toc-element topic="Main-Module-lowCov.md">
         </toc-element>

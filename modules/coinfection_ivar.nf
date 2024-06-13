@@ -1,10 +1,8 @@
 process coinfection_ivar {
-    tag "Masking primers during coinfection analysis for sample:\t$sampleId"
-    // publishDir "${params.results_dir}/${sampleId}/coinfections", mode: 'symlink'
+    tag "coinfection_ivar:${sampleId}"
 
     input:
     tuple val(sampleId), path(mapped_reads),  path(mapped_reads_bai)
-    tuple path(reference_fasta), path(reference_fai)
     val(primers)
 
     output:
@@ -22,10 +20,8 @@ process coinfection_ivar {
 
     samtools sort -@ ${params.threads} -o for_contamination_sorted.bam for_contamination.bam
     samtools index for_contamination_sorted.bam
-
-   
     samtools mpileup -B --max-depth 20000 \
-                 --fasta-ref ${reference_fasta} \
+                 --fasta-ref \${GENOME_FASTA} \
                  --min-BQ ${params.quality_snp} \
                  for_contamination_sorted.bam >> for_contamination.mpileup
     """

@@ -1,6 +1,6 @@
 process fastqc {
-    tag "${prefix} QC analysis for sample:\t$sampleId"
-    publishDir "${params.results_dir}/${sampleId}/QC", mode: 'symlink'
+    tag "${prefix}_fastqc:${sampleId}"
+    publishDir "${params.results_dir}/${sampleId}/QC", mode: 'copy'
 
     input:
     tuple val(sampleId), path(reads)

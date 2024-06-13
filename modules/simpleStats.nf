@@ -1,5 +1,5 @@
 process simpleStats {
-    tag "Predicting poor amplicons for sample:\t$sampleId"
+    tag "simpleStats:${sampleId}"
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "primers_poor*"
 
     input:

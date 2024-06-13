@@ -1,6 +1,5 @@
 process trimmomatic {
-    tag "Initial filtering nad clipping of reads for sample:\t$sampleId"
-    //publishDir "${params.results_dir}/${sampleId}/reads_clipping", mode: 'symlink'
+    tag "trimmomatic:${sampleId}"
 
     input:
     tuple val(sampleId), path(reads)

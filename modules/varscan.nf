@@ -1,10 +1,9 @@
 process varScan {
-    tag "Predicting mutations with varscan for sample:\t$sampleId"
+    tag "varScan:${sampleId}"
     publishDir "${params.results_dir}/${sampleId}/varscan", mode: 'symlink'
 
     input:
     tuple val(sampleId), path(bam), path(bai)
-    tuple path(reference_fasta), path(reference_fai)
 
     output:
     tuple val(sampleId), path('varscan.fa')
@@ -12,7 +11,7 @@ process varScan {
     script:
     """
     samtools mpileup -B --max-depth ${params.max_depth} \
-                 --fasta-ref ${reference_fasta} \
+                 --fasta-ref \${GENOME_FASTA} \
                  --min-BQ ${params.quality_snp} \
                  ${bam} >> ${bam}.mpileup
 
@@ -34,7 +33,7 @@ process varScan {
 
     bcftools norm --check-ref w \
                   --rm-dup all \
-                  --fasta-ref ${reference_fasta}\
+                  --fasta-ref \${GENOME_FASTA} \
                    detected_variants_varscan.vcf.gz | \
                        bcftools norm --check-ref w \
                                      --multiallelics -indels \
@@ -45,6 +44,6 @@ process varScan {
     bgzip --force detected_variants_varscan_final.vcf
     tabix detected_variants_varscan_final.vcf.gz
 
-    cat ${reference_fasta} | bcftools consensus --mark-del X --samples - detected_variants_varscan_final.vcf.gz > varscan.fa
+    cat \${GENOME_FASTA} | bcftools consensus --mark-del X --samples - detected_variants_varscan_final.vcf.gz > varscan.fa
     """
 }

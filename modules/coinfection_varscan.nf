@@ -1,6 +1,5 @@
 process coinfection_varscan {
-    tag "Varscan during coinfection analysis for sample:\t$sampleId"
-    //publishDir "${params.results_dir}//${sampleId}", mode: 'symlink'
+    tag "coinfection_varscan:${sampleId}"
 
     input:
     tuple val(sampleId), path(for_contamination_mpileup)

@@ -1,5 +1,5 @@
 process coinfection_analysis {
-    tag "Final step in coinfection analysis for sample:\t$sampleId"
+    tag "coinfection_analysis:${sampleId}"
     publishDir "${params.results_dir}/${sampleId}/", mode: 'copy'
 
     input:
@@ -10,9 +10,10 @@ process coinfection_analysis {
 
     script:
     """
-    # analiza konfekcji oparta jest o podobieństwo do 3 znanych sampli z EQA2023
-    # nowa wersja skryptu pozawala podawac dowolna ilosc probek dla ktorych wiemy ze sa koinfekowane
-    # wystarczy dodawac kolejen pliki
+    # The coinfection analysis is based on similarity to 3 known samples from EQA2023.
+    # The new version of the script allows specifying any number of samples that are known to be
+    # coinfected. Simply add additional files.
+
     predict_contamination_illumina.py ${detected_variants_varscan_contamination_txt} \
                                       ${sampleId} \
                                       /home/SARS-CoV2/contaminations/ESIB_EQA_2023.SARS2.09_contaminations.txt \

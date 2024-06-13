@@ -1,10 +1,9 @@
 process lofreq {
-    tag "Predicting mutations with lofreq for sample:\t$sampleId"
-    publishDir "${params.results_dir}/${sampleId}/lofreq", mode: 'symlink'
+    tag "lofreq:${sampleId}"
+    publishDir "${params.results_dir}/${sampleId}/lofreq", mode: 'copy'
 
     input:
     tuple val(sampleId), path(bam), path(bai)
-    tuple path(reference_fasta), path(reference_fai)
 
     output:
     tuple val(sampleId), path('lofreq.fa')
@@ -12,7 +11,7 @@ process lofreq {
     script:
     """
     lofreq call-parallel --pp-threads ${params.threads} \
-                         --ref ${reference_fasta} \
+                         --ref \${GENOME_FASTA} \
                          --max-depth ${params.max_depth} \
                          --min-cov ${params.min_cov} \
                          --call-indels \
@@ -22,11 +21,10 @@ process lofreq {
     cat detected_variants_lofreq.vcf | \
             bcftools norm --check-ref w \
                           --rm-dup all \
-                          --fasta-ref ${reference_fasta} | \
+                          --fasta-ref \${GENOME_FASTA} | \
                               bcftools norm --check-ref w \
                                             --multiallelics -indels \
-                                            --fasta-ref ${reference_fasta} > detected_variants_lofreq_fix.vcf
-
+                                            --fasta-ref \${GENOME_FASTA} > detected_variants_lofreq_fix.vcf
 
     qual=`echo ${params.pval} | awk '{print int(10*-log(\$1)/log(10))}'`
     cat detected_variants_lofreq_fix.vcf | \
@@ -58,7 +56,7 @@ process lofreq {
                         bcftools sort --output-type z > detected_variants_lofreq_final.vcf.gz
     tabix detected_variants_lofreq_final.vcf.gz
     
-    cat ${reference_fasta} | \
+    cat \${GENOME_FASTA} | \
         bcftools consensus --mark-del X --samples - \
                            detected_variants_lofreq_final.vcf.gz > lofreq.fa
     """

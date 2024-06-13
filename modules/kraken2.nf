@@ -1,9 +1,8 @@
 process kraken2 {
-    tag "Running kraken2 for sample:\t$sampleId"
-    publishDir "${params.results_dir}/${sampleId}/kraken2", mode: 'symlink', pattern: "report_kraken2_individualreads.txt"
-    publishDir "${params.results_dir}/${sampleId}/kraken2", mode: 'symlink', pattern: "report_kraken2.txt"
-    publishDir "${params.results_dir}/${sampleId}", mode: 'symlink', pattern: "summary_kraken.txt"
-
+    tag "kraken2:${sampleId}"
+    publishDir "${params.results_dir}/${sampleId}/kraken2", mode: 'copy', pattern: "report_kraken2_individualreads.txt"
+    publishDir "${params.results_dir}/${sampleId}/kraken2", mode: 'copy', pattern: "report_kraken2.txt"
+    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "summary_kraken.txt"
     containerOptions "--volume ${params.kraken2_db_absolute_path_on_host}:/home/external_databases/kraken2"
     maxForks 5
 

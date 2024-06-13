@@ -26,8 +26,6 @@
 
 `functionalAnalysis.nf`
 
-`indexGenome.nf`
-
 `kraken2.nf`
 
 `lofreq.nf`
@@ -56,6 +54,6 @@
 
 `vcf_for_fasta.nf`
 
-`viterbi.nf`
+`indelQual.nf`
 
 `wgsMetrics.nf`

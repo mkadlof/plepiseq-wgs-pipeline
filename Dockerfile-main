@@ -461,16 +461,18 @@ COPY --from=builder-usher /opt/tbb /opt/tbb
 COPY --from=builder-kraken2 /opt/kraken2 /opt/kraken2
 COPY --from=modeller /opt/modeller /opt/modeller
 
-COPY data/generic/contaminations /home/SARS-CoV2/contaminations
-COPY data/generic/vcf_template /home/SARS-CoV2/vcf_template
-COPY data/generic/modeller /home/SARS-CoV2/modeller
+COPY data/contaminations /home/data/contaminations
+COPY data/vcf_template /home/data/vcf_template
+COPY data/modeller /home/data/modeller
 
-COPY data/generic/genome/SarsCov2/ /home/SARS-CoV2/genome
-COPY data/generic/adapters /home/SARS-CoV2/adapters
-COPY data/generic/primers /home/SARS-CoV2/primers
+COPY data/genome/SarsCov2/ /home/data/genome
+COPY data/adapters /home/data/adapters
+COPY data/primers /home/data/primers
 
-COPY bin /home/SARS-CoV2/bin
-ENV PATH=$PATH:/home/SARS-CoV2/bin
+COPY bin /home/bin
+ENV PATH=$PATH:/home/bin
+ENV GENOME_ID="MN908947.3"
+ENV GENOME_FASTA="/home/data/genome/sarscov2.fasta"
 
 WORKDIR /home
 

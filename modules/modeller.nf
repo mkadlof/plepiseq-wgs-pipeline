@@ -1,5 +1,5 @@
 process modeller {
-    tag "Running modeller for sample:\t$sampleId"
+    tag "modeller:${sampleId}"
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}_spike.pdb"
 
     input:

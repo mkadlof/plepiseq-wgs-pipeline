@@ -1,10 +1,11 @@
 process picard {
-    tag "Preparing bam for SV caller for sample:\t$sampleId"
-    // publishDir "${params.results_dir}/${sampleId}/bam_for_SV", mode: 'symlink', pattern: "downsample.bam*"
+    tag "picard:${sampleId}"
+
     input:
     tuple val(sampleId), path(bam), path(bai)
     val(primers)
     val(pairs)
+
     output:
     tuple val(sampleId), path('downsample.bam'), path('downsample.bam.bai')
 
@@ -24,6 +25,5 @@ process picard {
                                     --INPUT ${bam} \
                                     --OUTPUT downsample.bam -F \${NORM}
     samtools index downsample.bam
-
     """
 }

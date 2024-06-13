@@ -71,7 +71,7 @@ RUN rpm -Uvh mafft-7.520-gcc_fc6.x86_64.rpm
 
 ## Kopiowanie wymaganych plikow
 RUN mkdir -p /SARS-CoV2/ 
-COPY data/generic/genome /SARS-CoV2/genome
+COPY data/genome /SARS-CoV2/genome
 #COPY scripts /SARS-CoV2/scripts
 WORKDIR /
 

@@ -1,6 +1,5 @@
 process consensusMasking {
-    tag "Masking low covereage regions for a consensus sequence of sample:\t$sampleId"
-    // publishDir "${params.results_dir}/${sampleId}", mode: 'symlink'
+    tag "consensusMasking:${sampleId}"
 
     input:
     tuple val(sampleId), path(lowcoverage_masked_fa), path(consensus_fa)

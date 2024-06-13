@@ -33,7 +33,7 @@ subgraph cluster_main {
     v20 [label="masking"];
     v21 [shape=circle,label="",fixedsize=true,width=0.1]; // join
     v22 [label="merging"];
-    v24 [label="viterbi"];
+    v24 [label="indelQual"];
     v26 [label="lowCov"];
 
     // indels callers

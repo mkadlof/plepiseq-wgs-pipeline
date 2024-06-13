@@ -1,10 +1,6 @@
-# Main: Module viterbi
+# Main: Module indelQual
 
 ```Bash
-    lofreq viterbi --ref ${reference_fasta} \
-                   --out clean_sort_dedup_trimmed_sort_viterbi.bam \
-                   ${bam}
-
     lofreq indelqual --ref ${reference_fasta} \
                      --out forvariants.bam \
                      --dindel clean_sort_dedup_trimmed_sort_viterbi.bam
