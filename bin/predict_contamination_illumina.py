@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
-import matplotlib.pyplot as plt
-import pandas as pd
 import sys
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
 from scipy.stats import kstest
-import numpy as np
 
 path1 = sys.argv[1]  # data for an analyzed sample
 title = sys.argv[2]  # plot title
-list_of_coinfected_samples = sys.argv[3:] # list of TXT files obtained with Varscan on a BAM file for known coinfected
-#samples  prior to any filtering, but with primer sites masked with ivar
+list_of_coinfected_samples = sys.argv[3:]  # list of TXT files obtained with Varscan on a BAM file for known coinfected
+# samples  prior to any filtering, but with primer sites masked with ivar
 
 
 # Tested samples data, we extract "VarFreq" column from a file and convert these values to floats
@@ -33,9 +34,8 @@ ax.set_title(f'Alternative alleles frequencies for {title}')
 f.savefig(f'{title}_alternative_alleles_frequencies.png', dpi=600)
 
 # Compare an analyzed sample with known co-infected samples, calculate p-value using KS test
-pval_list =[]
+pval_list = []
 for known_sample in list_of_coinfected_samples:
-
     coinfected_sample = pd.read_csv(known_sample, sep='\t')
     coinfected_sample.VarFreq = [float(x.split('%')[0]) / 100 for x in coinfected_sample.VarFreq]
     coinfected_sample_fortest = [x for x in coinfected_sample.VarFreq if 0.1 <= x <= 0.9]
@@ -43,8 +43,6 @@ for known_sample in list_of_coinfected_samples:
     # run ks test to determine if distributions
     pval = kstest(data_sample_fortest, coinfected_sample_fortest).pvalue
     pval_list.append(pval)
-
-
 
 pval_list = np.array(pval_list)
 text = "\t".join(map(str, pval_list))

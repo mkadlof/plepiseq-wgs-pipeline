@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
 import os
-from typing import Dict, Any
-
-import pysam
+import subprocess
 import sys
 import time
 from collections import defaultdict
+from typing import Dict, Any
+
 import numpy as np
-import subprocess
+import pysam
 
 
 def read_pair_generator(bam, region_string=None):
@@ -65,13 +65,13 @@ def get_empty_amplikon_coverage_in_windows(slownik_amplikonow, szerokosc_okna=10
                 # jestesmy na ostatnim elemencie listy
                 # nie ma wiec wartosci o indekscie i+1
                 # usuwamy poprzeni wpis i zamieniamy go tak by konczyl sie na wartosci end
-                del(slownik_pokrycia_local[klucz][f"{initial_split[i-1]}_{initial_split[i] - 1}"])
-                slownik_pokrycia_local[klucz][f"{initial_split[i-1]}_{end}"] = 0
+                del (slownik_pokrycia_local[klucz][f"{initial_split[i - 1]}_{initial_split[i] - 1}"])
+                slownik_pokrycia_local[klucz][f"{initial_split[i - 1]}_{end}"] = 0
 
     return slownik_pokrycia_local
 
 
-def read_amplicon_scheme_RSV(bed, bed_offset = 0):
+def read_amplicon_scheme_RSV(bed, bed_offset=0):
     """
     Prosty skrypt do wczytywania informacji z pliku bed do slownikow.
     :param bed: Plik w formacie bed ze schematem amplikonow. Opis stosowanego formatu powinien byc umieszczony
@@ -85,13 +85,13 @@ def read_amplicon_scheme_RSV(bed, bed_offset = 0):
     a wartosciami jest zawsze 0. 
     line[0] - nazwa genomu referencyjnego z ktorego korzystamy. Potrzebne d otworzenia tymczasowych bed-ow do ivar-a.
     """
-    slownik_amplikonow_with_alt_outer: Dict[int, Dict[Any, Any]] = {} # slowanik z zewnetrznymi granicami amplikonu
+    slownik_amplikonow_with_alt_outer: Dict[int, Dict[Any, Any]] = {}  # slowanik z zewnetrznymi granicami amplikonu
     # (czyl 5' primer left i 3' right)
-    slownik_amplikonow_with_alt_inner: Dict[int, Dict[Any, Any]] = {} # to samo ale granice wewnetrzne
+    slownik_amplikonow_with_alt_inner: Dict[int, Dict[Any, Any]] = {}  # to samo ale granice wewnetrzne
     # (3' left i 5' right)
-    slownik_amplikonow_uzycie_left: Dict[int, int] = {} # slownik z iloscia odczytow mapujacych sie na primer
+    slownik_amplikonow_uzycie_left: Dict[int, int] = {}  # slownik z iloscia odczytow mapujacych sie na primer
     # left danego amplikonu
-    slownik_amplikonow_uzycie_right: Dict[int, int] = {} # slownik z iloscia odczytow mapujacych sie na primer
+    slownik_amplikonow_uzycie_right: Dict[int, int] = {}  # slownik z iloscia odczytow mapujacych sie na primer
     # right danego amplikonu
 
     with open(bed) as f:
@@ -105,9 +105,8 @@ def read_amplicon_scheme_RSV(bed, bed_offset = 0):
             numer = int(numer)
 
             if numer not in slownik_amplikonow_with_alt_outer.keys():
-
-                slownik_amplikonow_with_alt_outer[numer] = {} # Ten slownik trzyma zewnetrzne granice amplikonow
-                slownik_amplikonow_with_alt_inner[numer] = {} # Ten slownik trzyma wewnetrzne granice amplikonow
+                slownik_amplikonow_with_alt_outer[numer] = {}  # Ten slownik trzyma zewnetrzne granice amplikonow
+                slownik_amplikonow_with_alt_inner[numer] = {}  # Ten slownik trzyma wewnetrzne granice amplikonow
 
                 slownik_amplikonow_with_alt_outer[numer]['LEFT'] = []
                 slownik_amplikonow_with_alt_outer[numer]['RIGHT'] = []
@@ -131,8 +130,8 @@ def read_amplicon_scheme_RSV(bed, bed_offset = 0):
         slownik_amplikonow_uzycie_left, slownik_amplikonow_uzycie_right, line[0]
 
 
-def filter_reads(initial_bam, final_bam_forward, final_bam_reverse, statystyki, min_length = 90, mapq = 30,
-                 min_overlap = 0.6):
+def filter_reads(initial_bam, final_bam_forward, final_bam_reverse, statystyki, min_length=90, mapq=30,
+                 min_overlap=0.6):
     """
     Podstawowa funkcja do filtrowania pliku bam na dlugosc, zakres mapowania i jakosc odczytu.
     Ponadto rozbija plik fo filtrowaniu na zawierajacy mapowania 'forward'i 'reverse.
@@ -154,7 +153,7 @@ def filter_reads(initial_bam, final_bam_forward, final_bam_reverse, statystyki, 
 
     for pair1, pair2 in read_pair_generator(all_reads):
         done = True
-        if pair1.rlen <  min_length or pair2.rlen < min_length:
+        if pair1.rlen < min_length or pair2.rlen < min_length:
             done = False
             statystyki.write(
                 f"{pair1.qname}\t{pair1.reference_name}\t"
@@ -177,7 +176,6 @@ def filter_reads(initial_bam, final_bam_forward, final_bam_reverse, statystyki, 
                 f"{pair1.reference_start}\t{pair1.reference_end}\t"
                 f"{pair2.reference_start}\t{pair2.reference_end}\tShort alignment\n")
 
-
         if pair1.is_forward and done:
             forward_reads.write(pair1)
             reverse_reads.write(pair2)
@@ -193,6 +191,7 @@ def filter_reads(initial_bam, final_bam_forward, final_bam_reverse, statystyki, 
                 f"{pair1.reference_start}\t{pair1.reference_end}\t"
                 f"{pair2.reference_start}\t{pair2.reference_end}\tFilter OK\n")
     return True
+
 
 def check_validity(slownik, cap, start, end):
     """
@@ -218,6 +217,7 @@ def check_validity(slownik, cap, start, end):
     # odczyt nie mapuje sie na okno z niskim pokryciem
     return False
 
+
 def update_slownik_pokrycia(slownik_pokrycia, reference_start, reference_end, mate_reference_start, mate_reference_end):
     """
     Funkcja do updatu wartosci w slowniku z pokryciem.
@@ -240,11 +240,11 @@ def update_slownik_pokrycia(slownik_pokrycia, reference_start, reference_end, ma
         klucz_end = int(klucz.split('_')[1])
         okno_zakres = set(range(klucz_start, klucz_end))
 
-        #jaka frakcja okna jest obejmowana przez odczyt i pare tego odczytu
+        # jaka frakcja okna jest obejmowana przez odczyt i pare tego odczytu
         pokrycie_read = len(okno_zakres.intersection(odczyt_zakres)) / (klucz_end - klucz_start)
         pokrycie_mate = len(okno_zakres.intersection(odczyt_mate_zakres)) / (klucz_end - klucz_start)
 
-        #update wartosci slownika
+        # update wartosci slownika
         slownik_pokrycia[klucz] += pokrycie_read
         slownik_pokrycia[klucz] += pokrycie_mate
 
@@ -253,7 +253,7 @@ def update_slownik_pokrycia(slownik_pokrycia, reference_start, reference_end, ma
 
 def write_reads_two_amplicons(initial_bam, final_bam, statystyki, primer_left_outer, primer_left_inner,
                               primer_right_outer, primer_right_inner, amplikon_bed, primer_middle, half, initial_pokrycie, cap,
-                              trim = True, ref_name='MN908947.3', lista_to_merge = [], uzyte = {}):
+                              trim=True, ref_name='MN908947.3', lista_to_merge=[], uzyte={}):
     '''
     Tutaj mamy funkcje ktora szuka readow w pliku initial_bam, ktore sa w danym amplikonie definiowanym przez amienne
     primer_left i primer_right. Obie zmienne sa dwuelementowymi listami ktore w układzie - indek half open czyli <)
@@ -286,7 +286,6 @@ def write_reads_two_amplicons(initial_bam, final_bam, statystyki, primer_left_ou
     # przekazano slownik z pokryciami dla danego amplikonu
     amplikon_ilosc = initial_pokrycie
 
-
     empty = True
     with open(statystyki, 'w') as f:
         # lecimy po parach odczytów
@@ -318,35 +317,34 @@ def write_reads_two_amplicons(initial_bam, final_bam, statystyki, primer_left_ou
 
                     # najpierw patrzymy czy nasz odczyt jest wewnatrz mega-amplikonu
                     # i nie przekraczamy docelowego pokrycia
-                    if begin_amplikon_L <= left_pair.reference_start  \
-                                and end_amplikon_R  > right_pair.reference_end \
-                                and not done and np.any([x < cap for x in amplikon_ilosc.values()]):
-
+                    if begin_amplikon_L <= left_pair.reference_start \
+                            and end_amplikon_R > right_pair.reference_end \
+                            and not done and np.any([x < cap for x in amplikon_ilosc.values()]):
 
                         # teraz patrzymy czy nasz odczyt wnosi cos do amplikonu ktory wypadl
                         # najpierw okreslamy zakres odczytow z pary
-                        left_pair_zakres= set(range(left_pair.reference_start, left_pair.reference_end))
+                        left_pair_zakres = set(range(left_pair.reference_start, left_pair.reference_end))
                         right_pair_zakres = set(range(right_pair.reference_start, right_pair.reference_end))
 
                         if half == 'left':
                             # wypadl prawy amplikon bierzemy lewa polowe zakresu lewy - middle - prawy
-                            moj_amplikon = set(range(begin_amplikon_L, primer_middle ))
+                            moj_amplikon = set(range(begin_amplikon_L, primer_middle))
                         else:
                             # wypadl lewy primer interesuje nasz prawa czesc mega-amplikonu
                             moj_amplikon = set(range(primer_middle, end_amplikon_R))
 
                         # okreslamy jaki procent interesujacego nas amplikonu
                         # zajmowana jest przez odczyty z pary
-                        common_positions_left_pair = len(left_pair_zakres.intersection(moj_amplikon))/float(len(left_pair_zakres))
-                        common_positions_right_pair = len(right_pair_zakres.intersection(moj_amplikon))/float(len(right_pair_zakres))
+                        common_positions_left_pair = len(left_pair_zakres.intersection(moj_amplikon)) / float(len(left_pair_zakres))
+                        common_positions_right_pair = len(right_pair_zakres.intersection(moj_amplikon)) / float(len(right_pair_zakres))
 
                         # TU JEST WAZNY FRAGMENT BO DECYDUJE JAKI ODCZYT JEST DODWANAY DO AMPLIKONOW
                         # O NISKIM POKRYCIU AKTUALNIE EMPIRYCZNIE WYMAGAMY BY DLA PARY JEDEN Z ODCZYTOW
                         # 50% SWOJEJ DLUGOCI OBEJMOWAL AMPLIKON O NISKIM POKRYCIU A DRUGI ODCZYT Z PARY
                         # OBEJMOWAL CO NAJMNIEJ 10% SWOJEJ DLUGOSCI TAKI AMPLIKON
 
-                        if  (common_positions_left_pair >= 0.5 and common_positions_right_pair >= 0.1) \
-                                or (common_positions_right_pair >= 0.5 and common_positions_left_pair >= 0.1) :
+                        if (common_positions_left_pair >= 0.5 and common_positions_right_pair >= 0.1) \
+                                or (common_positions_right_pair >= 0.5 and common_positions_left_pair >= 0.1):
                             # co najmniej 50 % overalpu danego read z amplikonem
                             # zmienna empty posluzy nam nizej by nie robic niepotrzebnych krokow dla pustych bam-ow
                             empty = False
@@ -356,7 +354,7 @@ def write_reads_two_amplicons(initial_bam, final_bam, statystyki, primer_left_ou
                                     my_bam_out.write(pair1)
                                     my_bam_out.write(pair2)
                                     done = True
-                                    amplikon_ilosc = update_slownik_pokrycia(amplikon_ilosc,left_pair.reference_start, left_pair.reference_end,  right_pair.reference_start, right_pair.reference_end)
+                                    amplikon_ilosc = update_slownik_pokrycia(amplikon_ilosc, left_pair.reference_start, left_pair.reference_end, right_pair.reference_start, right_pair.reference_end)
                                     f.write(f"{pair1.qname}\t{left_pair.reference_start}\t{right_pair.reference_end}\ttwo_amplicons_{common_positions_left_pair}_{common_positions_right_pair}\n")
                                     uzyte[pair1.qname] = 0
                         else:
@@ -366,8 +364,8 @@ def write_reads_two_amplicons(initial_bam, final_bam, statystyki, primer_left_ou
                             and end_amplikon_R > right_pair.reference_end \
                             and not done \
                             and np.all([x > cap for x in amplikon_ilosc.values()]):
-                            f.write(f"{pair1.qname}\t{left_pair.reference_start}\t{right_pair.reference_end}\t{'two_amplicons_above_cap'}\n")
-                            done = True
+                        f.write(f"{pair1.qname}\t{left_pair.reference_start}\t{right_pair.reference_end}\t{'two_amplicons_above_cap'}\n")
+                        done = True
 
     my_bam_out.close()
 
@@ -403,12 +401,12 @@ def write_reads_two_amplicons(initial_bam, final_bam, statystyki, primer_left_ou
     pysam.index(f"{final_bam_sort}_sorted_ivar_sorted.bam")
     lista_to_merge.append(f"{final_bam_sort}_sorted_ivar_sorted.bam")
 
-    #usuwanie plikow posrednich
+    # usuwanie plikow posrednich
     os.remove(amplikon_bed)
 
     os.remove(final_bam)
-    os.remove( f"{final_bam_sort}_sorted.bam")
-    os.remove( f"{final_bam_sort}_sorted.bam.bai")
+    os.remove(f"{final_bam_sort}_sorted.bam")
+    os.remove(f"{final_bam_sort}_sorted.bam.bai")
     os.remove(f"{final_bam_sort}_sorted_ivar.bam")
 
     return amplikon_ilosc, lista_to_merge, uzyte
@@ -442,7 +440,7 @@ def get_inneramplicon_reads(reads_forward, reads_reverese, reads_pass, reads_rej
     all_reads_reverse = pysam.AlignmentFile(reads_reverese, 'rb', require_index=False)
 
     pass_reads = pysam.AlignmentFile(f'{reads_pass}', 'wb', template=all_reads_forward)
-    reject_reads = pysam.AlignmentFile(f'{reads_reject}','wb', template=all_reads_forward)
+    reject_reads = pysam.AlignmentFile(f'{reads_reject}', 'wb', template=all_reads_forward)
 
     # jako ze tylko pozycje ready forward sa randomizowane, a potrzebujemy readow reverese,
     # aby sie do nich dostac tworzymy slownik readow reverse z kluczem odpowiadajacym nazwie odczytu
@@ -536,10 +534,11 @@ def get_inneramplicon_reads(reads_forward, reads_reverese, reads_pass, reads_rej
     pysam.index(reject_sorted_name)
     return slownik_pokrycia, uzycie_left, uzycie_right, pass_sorted_name, reject_sorted_name
 
+
 if __name__ == '__main__':
     initial_bam = sys.argv[1]
     primer_bed = sys.argv[2]
-    bed_offset = int(sys.argv[3]) # uwaga ivar nie poradzi sobie jesli damy cos innego niz 0
+    bed_offset = int(sys.argv[3])  # uwaga ivar nie poradzi sobie jesli damy cos innego niz 0
     min_length = int(sys.argv[4])
     min_mapq = int(sys.argv[5])
     window_threshold = int(sys.argv[6])
@@ -552,7 +551,7 @@ if __name__ == '__main__':
     # ivar nie poradzi sobie z poprawnym maskowanie przy bad_offset innym niz 0 wiec NA SZTYWNO ustawiam ta wartosc
     slownik_amplikonow_outer, slownik_amplikonow_inner, \
         slownik_amplikonow_uzycie_left_primer, \
-        slownik_amplikonow_uzycie_right_primer, name_ref = read_amplicon_scheme_RSV(bed=primer_bed, bed_offset= 0)
+        slownik_amplikonow_uzycie_right_primer, name_ref = read_amplicon_scheme_RSV(bed=primer_bed, bed_offset=0)
 
     # filtrowanie odczytow i rozdzielenie na ready forward i reverese
     filter_reads(initial_bam=initial_bam,
@@ -567,7 +566,7 @@ if __name__ == '__main__':
 
     # stworzenie pustego slownika z uzyciem amplikonow w oknach
     slownik_pokrycia = get_empty_amplikon_coverage_in_windows(slownik_amplikonow=slownik_amplikonow_outer,
-                                                              szerokosc_okna = window_threshold)
+                                                              szerokosc_okna=window_threshold)
 
     # Step 1 uzupelnianie pokrycia odczytami mapujacymi sie tylko na jeden konkretny amplikon. Odczyt musi byc
     # miedzy poczatkiem primeru Lewego (zamkniety) i koncem primeru prawego (otwarty)
@@ -582,13 +581,12 @@ if __name__ == '__main__':
                                 reads_pass=first_pass_name,
                                 reads_reject=first_reject_name,
                                 slownik_pokrycia=slownik_pokrycia,
-                                slownik_amplikonow_outer= slownik_amplikonow_outer,
-                                slownik_amplikonow_inner = slownik_amplikonow_inner,
-                                uzycie_left = slownik_amplikonow_uzycie_left_primer,
+                                slownik_amplikonow_outer=slownik_amplikonow_outer,
+                                slownik_amplikonow_inner=slownik_amplikonow_inner,
+                                uzycie_left=slownik_amplikonow_uzycie_left_primer,
                                 uzycie_right=slownik_amplikonow_uzycie_right_primer,
-                                cap = cap,
+                                cap=cap,
                                 statystyki=statystyki)
-
 
     # Drugi krok, odsianie odczytow ktore mapuja sie przede wszystkim na "dobry mplikon" a ktore "przestrzeliły"
     # jego granice o max 10 bp. Jest to bardzo empiryczny threshold. Przestrzelony amplikon musi miec pokrycie powyzej
@@ -596,7 +594,7 @@ if __name__ == '__main__':
     # to ampliko o dobrym uzyciu Nie byly rozwazane w kroku trzeciem
 
     # input kroku
-    #first_reject_sorted_bam = pysam.AlignmentFile(first_reject_sorted_name, 'rb', require_index=True)
+    # first_reject_sorted_bam = pysam.AlignmentFile(first_reject_sorted_name, 'rb', require_index=True)
     # Dodatkowe uzywane zmienne globalne dla tego kroku
     # 1. slownik_amplikonow_outer
     # 2. slownik_pokrycia
@@ -662,7 +660,6 @@ if __name__ == '__main__':
 
     first_reject_sorted_bam = pysam.AlignmentFile(first_reject_sorted_name, 'rb', require_index=True)
 
-
     second_pass_sorted_name = f'second_pass_sorted.bam'
 
     pysam.sort("-o", second_pass_sorted_name, first_reject_sorted_name)
@@ -677,16 +674,15 @@ if __name__ == '__main__':
     to_merge = []
     # ten slownik trzyma nazwy pary odczytow ktore zostaly uzyte jako powstale z fuzji. Dzieki temu nie dodamy
     # danej pary odczytow wiecej niz raz
-    uzyte_odczyty={}
+    uzyte_odczyty = {}
 
     empirical_cap = 100
-
 
     # iterujemy po slowniku pokrycia do analizy wejda tylko takie amplikony, ktorych co najmniej jedno
     # okno z zakresu amplikonu ma pokrycie ponizej cap
     for klucz, wartosc in slownik_pokrycia.items():
 
-        #amplikon_pokrycie = np.mean(list(wartosc.values()))
+        # amplikon_pokrycie = np.mean(list(wartosc.values()))
         if np.any(np.array(list(wartosc.values())) < empirical_cap):
             # procesujemy jesli dowolne okno w amplikonie ma pokrycie mniejsze niz cap
             # readu poza mapowaniem na amplikon musi mapowac sie na okno w tym amplikonie
@@ -703,7 +699,7 @@ if __name__ == '__main__':
                 statystyki.write(f'W amplikon {klucz} pokrycie w oknach wynioslo {tekst} '
                                  f'i jest amplikon po prawej\n')
 
-                #slownik_pokycia_fuzja = {**slownik_pokrycia[klucz], **slownik_pokrycia[klucz + 2]}
+                # slownik_pokycia_fuzja = {**slownik_pokrycia[klucz], **slownik_pokrycia[klucz + 2]}
 
                 slownik_pokrycia[klucz], to_merge, uzyte_odczyty = write_reads_two_amplicons(
                     initial_bam=initial_bam,
@@ -739,7 +735,7 @@ if __name__ == '__main__':
                 statystyki_two_amplicons = f'Statystyki_two_amplicons_{klucz}_right.txt'
                 amplikon_bed = f'to_ivar_tmp_{klucz}_right.bed'
 
-                #slownik_pokycia_fuzja = {**slownik_pokrycia[klucz - 2 ] , **slownik_pokrycia[klucz]}
+                # slownik_pokycia_fuzja = {**slownik_pokrycia[klucz - 2 ] , **slownik_pokrycia[klucz]}
 
                 slownik_pokrycia[klucz], to_merge, uzyte_odczyty = write_reads_two_amplicons(
                     initial_bam=initial_bam,
@@ -761,8 +757,6 @@ if __name__ == '__main__':
                 tekst = '\t'.join(map(str, slownik_pokrycia[klucz]))
                 statystyki.write(f'W amplikon {klucz} pokrycie wzroslo do {tekst} '
                                  f'po fuzji z amplikonem - 2\n')
-
-
 
     # laczenie semgentow jesli byly bam-y zawierajace odczyty z fuzji amplikonow
     if (len(to_merge) > 0):
