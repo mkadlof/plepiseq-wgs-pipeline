@@ -16,9 +16,9 @@ process coinfection_analysis {
 
     predict_contamination_illumina.py ${detected_variants_varscan_contamination_txt} \
                                       ${sampleId} \
-                                      /home/SARS-CoV2/contaminations/ESIB_EQA_2023.SARS2.09_contaminations.txt \
-                                      /home/SARS-CoV2/contaminations/ESIB_EQA_2023.SARS2.17_contaminations.txt \
-                                      /home/SARS-CoV2/contaminations/ESIB_EQA_2023.SARS2.32_contaminations.txt
+                                      /home/data/contaminations/ESIB_EQA_2023.SARS2.09_contaminations.txt \
+                                      /home/data/contaminations/ESIB_EQA_2023.SARS2.17_contaminations.txt \
+                                      /home/data/contaminations/ESIB_EQA_2023.SARS2.32_contaminations.txt
 
     """
 }

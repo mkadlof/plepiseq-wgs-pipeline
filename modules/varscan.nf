@@ -37,7 +37,7 @@ process varScan {
                    detected_variants_varscan.vcf.gz | \
                        bcftools norm --check-ref w \
                                      --multiallelics -indels \
-                                     --fasta-ref ${reference_fasta} | \
+                                     --fasta-ref \${GENOME_FASTA} | \
                                            bcftools filter \
                                                     --include "QUAL >= \${qual} && AF >= ${params.lower_ambig} && DP >= ${params.min_cov}" > detected_variants_varscan_final.vcf
 

@@ -25,7 +25,7 @@ process freeBayes {
                       --fasta-ref \${GENOME_FASTA} | \
                           bcftools norm --check-ref w \
                                         --multiallelics -indels \
-                                        --fasta-ref ${reference_fasta} > detected_variants_freebayes_fix.vcf
+                                        --fasta-ref \${GENOME_FASTA} > detected_variants_freebayes_fix.vcf
     
     qual=`echo ${params.pval} | awk '{print int(10*-log(\$1)/log(10))}'`
     

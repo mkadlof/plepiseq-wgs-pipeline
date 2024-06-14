@@ -6,6 +6,7 @@ results/
 .nextflow.log*
 work/
 *.html
+trace-*.txt
 
 # pyenv environment
 .python-version
