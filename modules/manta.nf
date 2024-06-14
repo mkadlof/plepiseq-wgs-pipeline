@@ -1,5 +1,5 @@
 process manta {
-    tag "manta:\t$sampleId"
+    tag "manta:$sampleId"
     publishDir "${params.results_dir}/${sampleId}/", mode: 'copy'
     container 'nf_illumina_sars-3.0-manta:latest'
 
@@ -11,8 +11,6 @@ process manta {
 
     script:
     """
-    GENOME_ID="MN908947.3"
-    GENOME_FASTA="/home/data/genome/sarscov2.fasta"
     ILE_ODCZYTOW=`samtools view ${bam_file} | wc -l`
     if [  \${ILE_ODCZYTOW} -lt 1000 ]; then
         # pusty bam, nie puszczamy manty, po prostu tworzymy kopie plikow z poprawionymi nazwami

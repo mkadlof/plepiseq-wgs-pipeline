@@ -33,7 +33,6 @@ params.results_dir = "./results"
 params.modules = "/absolute/path/to/directory/with/modules"
 
 // Old parameter not settable anymore by a shell wrapper
-params.ref_genome="/home/data/genome/sarscov2.fasta"
 params.primers="/home/data/primers/${params.primers_id}/nCoV-2019.scheme.bed"
 params.pairs="/home/data/primers/${params.primers_id}/pairs.tsv"
 params.adapters="/home/data/adapters/${params.adapters_id}.fa"
@@ -87,7 +86,7 @@ workflow{
     masking(filtering.out[0], params.primers, params.pairs)
     combined = filtering.out[1].join(masking.out)
     merging(combined)
-    picard(bwa.out,  params.primers, params.pairs)
+    picard(bwa.out)
     indelQual(merging.out)
     wgsMetrics(indelQual.out)
     lowCov(indelQual.out)

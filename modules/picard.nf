@@ -3,8 +3,6 @@ process picard {
 
     input:
     tuple val(sampleId), path(bam), path(bai)
-    val(primers)
-    val(pairs)
 
     output:
     tuple val(sampleId), path('downsample.bam'), path('downsample.bam.bai')
