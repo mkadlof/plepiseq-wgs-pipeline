@@ -2,7 +2,6 @@ FROM centos:7.9.2009 as builder-base
 
 LABEL maintainer="Michal Lazniewski <mlazniewski@pzh.gov.pl>"
 
-## Update i instalacja niezbednych paczek
 RUN yum install -y epel-release
 RUN yum install -y tar bzip2 make gcc gcc-c++ libstdc++-static zlib-devel vim which wget python-devel python2-pip xz-devel bzip2-devel libcurl-devel ncurses-devel
 ## END
@@ -73,7 +72,6 @@ RUN rpm -Uvh mafft-7.520-gcc_fc6.x86_64.rpm && \
 ## Kopiowanie wymaganych plikow
 RUN mkdir -p /SARS-CoV2/ 
 COPY data/sarscov2/genome /SARS-CoV2/genome
-#COPY scripts /SARS-CoV2/scripts
 WORKDIR /
 
 COPY --from=builder-manta /opt/docker/manta /opt/docker/manta
@@ -89,5 +87,4 @@ ENV GENOME_ID="MN908947.3"
 ENV GENOME_FASTA="/home/data/sarscov2/genome/sarscov2.fasta"
 ## END
 
-#ENTRYPOINT ["/bin/bash", "/SARS-CoV2/scripts/master_script.sh"]
 CMD ["/bin/bash"]

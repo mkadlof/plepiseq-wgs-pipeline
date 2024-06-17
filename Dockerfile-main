@@ -455,7 +455,7 @@ COPY --from=builder-nextclade /opt/nextclade /opt/nextclade
 COPY --from=builder-kraken2 /opt/kraken2 /opt/kraken2
 COPY --from=modeller /opt/modeller /opt/modeller
 
-COPY data/sarscov2/ /home/data/sarscov2
+COPY data/ /home/data/
 COPY bin /home/bin
 
 ENV GENOME_ID="MN908947.3"

@@ -1,0 +1,11 @@
+EPI_ISL_14874535 
+MP miala brakujace frageny na 3' i 5' (mial tylko cds brakowalo primerow i koncowek do ATG prowadzaych). Poprawilem recznie na podstawie innych swnskich H3N2v
+po EQA2024 caly segment MP jest wziety z 
+EPI_ISL_18005788
+wiec genom jest hybryda
+podobnie segment NP tez jest z EPI_ISL_18005788
+w przypadku MP musialem dodac tylko primery, NP byl caly ok laczeni z primerami
+
+klastrowanie dalej jednak pokazuje duza zbieznosc MP i NP do H1N1 kladu 6B.1 czyli referencji dla pandemicznych H1N1pdm09 
+
+
