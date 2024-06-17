@@ -4,9 +4,9 @@ doc
 results
 tmp
 work
-data/kraken
-data/nextclade
-data/pangolin
+data/external_databases/kraken
+data/external_databases/nextclade
+data/external_databases/pangolin
 .gitignore
 .nextflow.log
 .python-version

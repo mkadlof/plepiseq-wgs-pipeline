@@ -66,13 +66,13 @@ RUN yum install -y epel-release
 RUN yum install -y tar python2-pip
 
 WORKDIR /opt/docker
-ADD third-party/mafft-7.520-gcc_fc6.x86_64.rpm /opt/docker
+ADD third-party/mafft/mafft-7.520-gcc_fc6.x86_64.rpm /opt/docker
 RUN rpm -Uvh mafft-7.520-gcc_fc6.x86_64.rpm && \
     rm -f /opt/docker/mafft-7.520-gcc_fc6.x86_64.rpm
 
 ## Kopiowanie wymaganych plikow
 RUN mkdir -p /SARS-CoV2/ 
-COPY data/genome /SARS-CoV2/genome
+COPY data/sarscov2/genome /SARS-CoV2/genome
 #COPY scripts /SARS-CoV2/scripts
 WORKDIR /
 
@@ -81,12 +81,12 @@ COPY --from=builder-htslib /opt/docker/htslib /opt/docker/htslib
 COPY --from=builder-bcftools /opt/docker/bcftools /opt/docker/bcftools
 COPY --from=builder-samtools /opt/docker/samtools /opt/docker/samtools
 COPY --from=builder-python-packages /usr/lib64/python2.7/site-packages /usr/lib64/python2.7/site-packages/
-COPY data/genome/SarsCov2/ /home/data/genome
+COPY data/sarscov2/genome/SarsCov2/ /home/data/sarscov2/genome
 
 ENV PATH="/opt/docker/manta/bin:/opt/docker/htslib/bin:/opt/docker/bcftools/bin:/opt/docker/samtools/bin:$PATH"
 ENV LD_LIBRARY_PATH="/opt/docker/manta/lib:/opt/docker/htslib/lib:/opt/docker/bcftools/lib:/opt/docker/samtools/lib:$LD_LIBRARY_PATH"
 ENV GENOME_ID="MN908947.3"
-ENV GENOME_FASTA="/home/data/genome/sarscov2.fasta"
+ENV GENOME_FASTA="/home/data/sarscov2/genome/sarscov2.fasta"
 ## END
 
 #ENTRYPOINT ["/bin/bash", "/SARS-CoV2/scripts/master_script.sh"]

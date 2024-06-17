@@ -33,9 +33,9 @@ params.results_dir = "./results"
 params.modules = "/absolute/path/to/directory/with/modules"
 
 // Old parameter not settable anymore by a shell wrapper
-params.primers="/home/data/primers/${params.primers_id}/nCoV-2019.scheme.bed"
-params.pairs="/home/data/primers/${params.primers_id}/pairs.tsv"
-params.adapters="/home/data/adapters/${params.adapters_id}.fa"
+params.primers="/home/data/sarscov2/primers/${params.primers_id}/nCoV-2019.scheme.bed"
+params.pairs="/home/data/sarscov2/primers/${params.primers_id}/pairs.tsv"
+params.adapters="/home/data/sarscov2/adapters/${params.adapters_id}.fa"
 
 params.ref_genome_id="MN908947.3"
 

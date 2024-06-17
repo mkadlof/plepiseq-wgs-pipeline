@@ -11,7 +11,7 @@ process vcf_for_fasta {
     script:
     """
     N=1 # maksymalna przerwa miedzy mutacjami aby je polaczyc w jeden ciag
-    vcf_input="/home/data/vcf_template/vcf_template.vcf.gz" # sciezka do pliku vcf, paczka vcf z pythona wymaga pliku vcf aby na podstawie tego schematy samemu tworzyc plik output-owy
+    vcf_input="/home/data/sarscov2/vcf_template/vcf_template.vcf.gz" # sciezka do pliku vcf, paczka vcf z pythona wymaga pliku vcf aby na podstawie tego schematy samemu tworzyc plik output-owy
 
     # plik ten jest częścią repozytorium w katalogu
     vcf_output="consensus.vcf" # nazwa pliku vcf dla sekwencji konsensusowej

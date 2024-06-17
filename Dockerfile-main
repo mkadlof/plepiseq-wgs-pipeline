@@ -33,30 +33,35 @@ ENV PATH=/$VIRTUAL_ENV/bin:$PATH:usr/local/bin:/usr/local/sbin:/usr/local/bin:/u
 
 # We install some basic tools, build tools and libraries
 RUN apt update && \
-    apt install -y --no-install-recommends vim \
-                                           unzip \
-                                           bc \
-                                           less \
-                                           tree \
-                                           ncdu \
-                                           parallel  \
-                                           curl && \
-    apt install -y --no-install-recommends git \
-                                           build-essential \
-                                           cmake \
-                                           autoconf \
-                                           meson \
-                                           ninja-build \
-                                           autotools-dev && \
-    apt install -y --no-install-recommends libncurses5-dev \
-                                           libbz2-dev \
-                                           liblzma-dev \
-                                           libcurl4-gnutls-dev \
-                                           libgsl-dev \
-                                           libvcflib-tools \
-                                           libvcflib-dev \
-                                           libseqlib-dev \
-                                           zlib1g-dev
+    apt install --yes --no-install-recommends autoconf \
+                                              automake \
+                                              autotools-dev \
+                                              bc \
+                                              build-essential \
+                                              ca-certificates \
+                                              cmake \
+                                              curl \
+                                              git \
+                                              lbzip2 \
+                                              less \
+                                              libbz2-dev \
+                                              libcurl4-gnutls-dev \
+                                              libgsl-dev \
+                                              liblzma-dev \
+                                              libncurses5-dev \
+                                              libseqlib-dev \
+                                              libtool \
+                                              libvcflib-dev \
+                                              libvcflib-tools \
+                                              meson \
+                                              ncdu \
+                                              ninja-build \
+                                              parallel  \
+                                              pkg-config \
+                                              tree \
+                                              unzip \
+                                              vim \
+                                              zlib1g-dev
 
 # Here we create a new python virtual environment. We can later just copy it to production container
 # It is "activated" by adding it to PATH
@@ -71,7 +76,7 @@ RUN curl -fsSL "https://github.com/samtools/samtools/releases/download/${SAMTOOL
     tar -xf samtools-${SAMTOOLS_VERSION}.tar.bz2 && \
     rm samtools-${SAMTOOLS_VERSION}.tar.bz2
 WORKDIR /downloads/samtools-${SAMTOOLS_VERSION}
-RUN ./configure --prefix=/opt/samtools && \
+RUN ./configure --prefix=/opt/samtools --without-curses --disable-bz2 --disable-lzma && \
     make -j `nproc` && \
     make -j `nproc` install
 ENV PATH=/opt/samtools/bin:${PATH}
@@ -84,11 +89,10 @@ RUN curl -fsSL "https://github.com/samtools/bcftools/releases/download/${BCFTOOL
     tar -xf "bcftools-${BCFTOOLS_VERSION}.tar.bz2" && \
     rm "bcftools-${BCFTOOLS_VERSION}.tar.bz2"
 WORKDIR /downloads/bcftools-${BCFTOOLS_VERSION}
-RUN ./configure --prefix=/opt/bcftools && \
+RUN ./configure --prefix=/opt/bcftools --disable-bz2 --disable-lzma && \
     make -j `nproc` && \
     make -j `nproc` install
 ENV PATH=/opt/bcftools/bin:${PATH}
-
 
 # builder-htslib
 FROM builder-base as builder-htslib
@@ -98,8 +102,8 @@ RUN curl -fsSL "https://github.com/samtools/htslib/releases/download/${HTSLIB_VE
     tar -xf htslib-${HTSLIB_VERSION}.tar.bz2 && \
     rm htslib-${HTSLIB_VERSION}.tar.bz2
 WORKDIR /downloads/htslib-${HTSLIB_VERSION}
-RUN ./configure --prefix="/opt/htslib"
-RUN make -j `nproc` && \
+RUN ./configure --prefix="/opt/htslib" --disable-bz2 --disable-lzma && \
+    make -j `nproc` && \
     make -j `nproc` install
 ENV PATH=/opt/htslib/bin:${PATH}
 
@@ -111,10 +115,7 @@ RUN curl -fsSL "https://github.com/arq5x/bedtools2/releases/download/v${BEDTOOLS
     tar -zxf bedtools-${BEDTOOLS_VERSION}.tar.gz && \
     rm bedtools-${BEDTOOLS_VERSION}.tar.gz
 WORKDIR /downloads/bedtools2
-RUN make -j `nproc` && \
-    mkdir -p /opt/bedtools2/ && \
-    cp -r /downloads/bedtools2/bin /opt/bedtools2/bin
-ENV PATH=/opt/bedtools2/bin:${PATH}
+RUN make -j `nproc`
 
 # builder-ivar
 FROM builder-htslib as builder-ivar
@@ -139,7 +140,6 @@ WORKDIR /opt/varscan
 RUN curl -fsSL "https://github.com/dkoboldt/varscan/releases/download/v${VARSCAN_VERSION}/VarScan.v${VARSCAN_VERSION}.jar" -o "VarScan.v${VARSCAN_VERSION}.jar" && \
     ln -s VarScan.v${VARSCAN_VERSION}.jar varscan.jar
 
-
 # builder-lofreq
 FROM builder-base as builder-lofreq
 # TODO: git is always downloading latest version. We should use specific version, tag or commit.
@@ -157,7 +157,7 @@ ENV PATH="/opt/lofreq/bin:$PATH"
 FROM builder-base as builder-vcftools
 # TODO: git is always downloading latest version. We should use specific version, tag or commit.
 WORKDIR /downloads/vcftools
-RUN git clone https://github.com/vcftools/vcftools.git /downloads/vcftools && \
+RUN git clone --depth 1 https://github.com/vcftools/vcftools.git /downloads/vcftools && \
     ./autogen.sh && \
     ./configure --prefix=/opt/vcftools && \
     make -j `nproc` && \
@@ -178,15 +178,18 @@ ENV PATH="/opt/freebayes/bin:$PATH"
 FROM builder-base as builder-snpeff
 WORKDIR /opt
 ADD third-party/snpEff.tar.gz /opt
-COPY data/snpEff /opt/snpEff
+COPY data/sarscov2/snpEff /opt/snpEff
 
-# builder-python-stage1-pangolin
-FROM builder-base as builder-python-stage1-pangolin
+# builder-python
+# Here goes all packages installed as python packages.
+# - Pangolin
+# - PycoQC
+FROM builder-base as builder-python
 ARG PANGOLIN_VERSION
 COPY requirements.txt /
 RUN pip install -r /requirements.txt
 WORKDIR /downloads
-RUN wget https://github.com/cov-lineages/pangolin/archive/refs/tags/v${PANGOLIN_VERSION}.tar.gz  && \
+RUN curl -fsSL https://github.com/cov-lineages/pangolin/archive/refs/tags/v${PANGOLIN_VERSION}.tar.gz -o v${PANGOLIN_VERSION}.tar.gz && \
     tar -zxvf v${PANGOLIN_VERSION}.tar.gz && \
     rm v${PANGOLIN_VERSION}.tar.gz
 WORKDIR /downloads/pangolin-${PANGOLIN_VERSION}
@@ -305,13 +308,6 @@ ARG USHER_VERSION
 ARG TBB_VERSION
 COPY --from=builder-isa-l /opt/isa-l /opt/isa-l
 WORKDIR /downloads
-#RUN apt -y --no-install-recommends install libprotoc-dev \
-#                                           libopenmpi-dev \
-#                                           libboost-dev \
-#                                           libboost-program-options-dev \
-#                                           libboost-iostreams-dev \
-#                                           libboost-filesystem-dev \
-#                                           libboost-date-time-dev
 RUN git clone --depth 1 --branch v${USHER_VERSION} https://github.com/yatisht/usher.git && \
     cd usher && \
     mkdir build
@@ -376,8 +372,6 @@ RUN apt -y --no-install-recommends install gfortran-12 \
                                           openmpi-bin \
                                           openmpi-common \
                                           protobuf-compiler
-
-
 RUN curl -fsSL "https://github.com/oneapi-src/oneTBB/archive/${TBB_VERSION}.tar.gz" -o "${TBB_VERSION}.tar.gz" && \
     tar -zxf ${TBB_VERSION}.tar.gz && \
     rm ${TBB_VERSION}.tar.gz && \
@@ -398,15 +392,14 @@ RUN git clone --depth 1 --branch ${KRAKEN2_VERSION} https://github.com/DerrickWo
 WORKDIR /downloads/kraken2
 RUN mkdir -p /opt/kraken2 && \
     ./install_kraken2.sh /opt/kraken2/bin
-CMD bash
 
 # builder-modeller
 FROM builder-base as modeller
 ADD third-party/modeller/modeller.tar.gz /opt
 ADD third-party/modeller/config.py /opt/modeller/modlib/modeller/config.py
 
-# production
-FROM python:3.11.8-slim-bookworm AS production
+# main
+FROM python:3.11.8-slim-bookworm AS main
 
 LABEL maintainer="Michal Lazniewski <mlazniewski@pzh.gov.pl>"
 LABEL maintainer="Michał Kadlof <mkadlof@pzh.gov.pl>"
@@ -414,40 +407,40 @@ LABEL maintainer="Michał Kadlof <mkadlof@pzh.gov.pl>"
 RUN echo 'alias ls="ls --color --group-directories-first"' >> /root/.bashrc && \
     echo "PS1='\[\033[36m\][\[\033[m\]\[\033[34m\]\[\e[1m \u@\h \e[0m\] \[\033[32m\]\W\[\033[m\]\[\033[36m\]]\[\033[m\]# '" >> /root/.bashrc
 
-ENV PATH="/opt/modeller/bin:/opt/kraken2/bin:/opt/usher/bin:/opt/blat/bin:/opt/gofasta/bin:/opt/minimap2/bin:/opt/bwa/bin:/opt/FastQC:/opt/nextclade/bin:/opt/freebayes/bin:/opt/vcftools/bin:/opt/lofreq/bin:/opt/ivar/bin:/opt/bedtools2/bin:/opt/htslib/bin:/opt/bcftools/bin:/opt/samtools/bin:/opt/venv/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ENV LD_LIBRARY_PATH="/opt/htslib/lib:/opt/tbb/lib:/opt/isa-l/lib:${LD_LIBRARY_PATH}"
-ENV PYTHONPATH="/home/external_databases/pangolin"
-
 RUN apt update && \
-    apt install -y --no-install-recommends bc  \
-                                           openjdk-17-jre-headless \
-                                           libdeflate-dev \
+    apt install -y --no-install-recommends bc \
+                                           libboost-filesystem1.74.0 \
+                                           libboost-iostreams1.74.0 \
+                                           libboost-program-options1.74.0 \
                                            libcurl3-gnutls\
                                            libcurl4 \
-                                           mafft \
-                                           libboost-program-options1.74.0 \
-                                           libboost-iostreams1.74.0 \
-                                           libboost-filesystem1.74.0 \
-                                           libprotobuf32 \
-                                           libgsl27 \
-                                           procps \
+                                           libdeflate-dev \
                                            libgomp1 \
-                                           seqtk \
-                                           muscle3
+                                           libgsl27 \
+                                           libprotobuf32 \
+                                           mafft \
+                                           minimap2 \
+                                           muscle3 \
+                                           openjdk-17-jre-headless \
+                                           procps \
+                                           seqtk
+
+ADD third-party/mafft/mafft_7.520-1_amd64.deb /
+RUN dpkg -i mafft_7.520-1_amd64.deb && \
+    rm -f /mafft_7.520-1_amd64.deb
 
 COPY --from=builder-base /opt /opt
+COPY --from=builder-python /opt/venv /opt/venv
 COPY --from=builder-samtools /opt/samtools /opt/samtools
 COPY --from=builder-bcftools /opt/bcftools /opt/bcftools
 COPY --from=builder-htslib /opt/htslib /opt/htslib
-COPY --from=builder-bedtools /opt/bedtools2 /opt/bedtools2
+COPY --from=builder-bedtools /downloads/bedtools2 /opt/bedtools
 COPY --from=builder-ivar /opt/ivar /opt/ivar
 COPY --from=builder-varscan /opt/varscan /opt/varscan
 COPY --from=builder-lofreq /opt/lofreq /opt/lofreq
 COPY --from=builder-vcftools /opt/vcftools /opt/vcftools
 COPY --from=builder-freebayes /opt/freebayes /opt/freebayes
 COPY --from=builder-snpeff /opt/snpEff /opt/snpEff
-COPY --from=builder-python-stage1-pangolin /opt/venv/ /opt/venv
-COPY --from=builder-nextclade /opt/nextclade /opt/nextclade
 COPY --from=builder-fastqc /opt/FastQC /opt/FastQC
 COPY --from=builder-trimmomatic /opt/trimmomatic /opt/trimmomatic
 COPY --from=builder-bwa /opt/bwa /opt/bwa
@@ -458,21 +451,39 @@ COPY --from=builder-faToVcf /opt/blat /opt/blat
 # Usher builds with several binaries, but pelines use only a one. We copy only that one.
 COPY --from=builder-usher /opt/usher/bin/usher /opt/usher/bin/usher
 COPY --from=builder-usher /opt/tbb /opt/tbb
+COPY --from=builder-nextclade /opt/nextclade /opt/nextclade
 COPY --from=builder-kraken2 /opt/kraken2 /opt/kraken2
 COPY --from=modeller /opt/modeller /opt/modeller
 
-COPY data/contaminations /home/data/contaminations
-COPY data/vcf_template /home/data/vcf_template
-COPY data/modeller /home/data/modeller
-
-COPY data/genome/SarsCov2/ /home/data/genome
-COPY data/adapters /home/data/adapters
-COPY data/primers /home/data/primers
-
+COPY data/sarscov2/ /home/data/sarscov2
 COPY bin /home/bin
-ENV PATH=$PATH:/home/bin
+
 ENV GENOME_ID="MN908947.3"
-ENV GENOME_FASTA="/home/data/genome/sarscov2.fasta"
+ENV GENOME_FASTA="/home/data/sarscov2/genome/sarscov2.fasta"
+ENV LD_LIBRARY_PATH="/opt/htslib/lib:/opt/tbb/lib:/opt/isa-l/lib:${LD_LIBRARY_PATH}"
+ENV PYTHONPATH="/home/external_databases/pangolin"
+ENV PATH /home/bin/sarscov2:\
+/home/bin/infl:\
+/opt/modeller/bin:\
+/opt/kraken2/bin:\
+/opt/usher/bin:\
+/opt/blat/bin:\
+/opt/gofasta/bin:\
+/opt/minimap2/bin:\
+/opt/bwa/bin:\
+/opt/FastQC:\
+/opt/nextclade/bin:\
+/opt/freebayes/bin:\
+/opt/vcftools/bin:\
+/opt/lofreq/bin:\
+/opt/ivar/bin:\
+/opt/bedtools/bin:\
+/opt/htslib/bin:\
+/opt/bcftools/bin:\
+/opt/samtools/bin:\
+/opt/venv/bin:\
+/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 
 WORKDIR /home
 
@@ -489,8 +500,8 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists/* && \
     pip install --no-cache-dir boto3==1.34.75
 
-ADD bin/update.sh /home/update.sh
-ADD bin/kraken_updater.py /home/kraken_updater.py
+ADD bin/sarscov2/update.sh /home/update.sh
+ADD bin/sarscov2/kraken_updater.py /home/kraken_updater.py
 WORKDIR /home/pangolin
 WORKDIR /home/nextclade
 WORKDIR /home/kraken

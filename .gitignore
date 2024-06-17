@@ -28,10 +28,10 @@ trace-*.txt
 
 
 # external databases
-data/pangolin
-data/nextclade
-data/kraken
-data/freyja
+data/external_databases/pangolin
+data/external_databases/nextclade
+data/external_databases/kraken
+data/sarscov2/freyja
 
 # Modeller
 # file with key
