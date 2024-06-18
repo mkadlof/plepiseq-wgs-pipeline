@@ -30,7 +30,7 @@ params.adapters_id="TruSeq3-PE-2" // To podaje user ale jest default
 params.results_dir = "./results"
 
 // Directory with modules, maybe move the .nf file to the main script to remove one settable parameter ? MUST be indicated by user
-params.modules = "/absolute/path/to/directory/with/modules"
+params.modules = "/absolute/path/to/directory/with/modules/sarscov2"
 
 // Old parameter not settable anymore by a shell wrapper
 params.primers="/home/data/sarscov2/primers/${params.primers_id}/nCoV-2019.scheme.bed"

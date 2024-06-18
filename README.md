@@ -6,7 +6,7 @@ I has also integrated SV module from [pzh_pipeline_sars_illumina_SV](https://git
 
 ### Pipeline visualisation
 
-![flowchart](flowchart.png "overview of the pipeline")
+![flowchart](flowchart-sars.png "overview of the pipeline")
 
 ### Installation and usage
 

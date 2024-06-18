@@ -39,11 +39,12 @@ process infl_ref_genome_map {
         echo \${GENOMES[\${max_index}]}
     }
 
-    variant="UNK"
+    variant="${params.variant}"
 
     KNOWN_VARIANTS='H1N1 H3N2 H4N6 H5N2 H5N1 H5N6 H5N8 H6N1 H7N9 H9N2 Yamagata Victoria UNK'
-    ALL_GENOMES=(H1N1 H1N1_swine H1N1_6b1a5a2 H1N1_6b1a5a2a1 H3N2_3c2a1b1a H3N2_3c2a1b2a2 H3N2_3c2a1b2a2a H3N2_3C2a1b2a2a3a H3N2_v H4N6 H5N1_2212 H5N1_2321a H5N1_2321c H5N1_2344b H5N1_EA H5N2 H5N5_2344b H5N6_2344b H5N6_2344h H5N8_2344b H6N1 H7N9 H7N9_old H9N2 Yamagata Victoria)
+    ALL_GENOMES=(`ls /home/data/infl/genomes`)
     ALL_SEGMENTS=(PB2 PB1 PA HA NP NA MP NS)
+    echo "\${ALL_GENOMES[@]}"
 
     echo -e "id \${ALL_SEGMENTS[@]}" | tr " " "\t" >> subtype_counts_each_segment.txt
     echo -e "id \${ALL_SEGMENTS[@]}" | tr " " "\t" >> subtype_scores_each_segment.txt
