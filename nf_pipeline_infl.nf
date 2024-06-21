@@ -1,8 +1,10 @@
 // Programs parameters can be modified by a shell wrapper
 params.threads = 12
 params.variant = "UNK"
+params.min_cov = 20
 
-include { infl_ref_genome_map } from "${params.modules}/infl/infl_ref_genome_map.nf"
+include { detect_subtype } from "${params.modules}/infl/detect_subtype.nf"
+include { reassortment } from "${params.modules}/infl/reassortment.nf"
 
 
 workflow{
@@ -10,5 +12,6 @@ workflow{
     reads = Channel.fromFilePairs(params.reads)
 
     // Processes
-    infl_ref_genome_map(reads)
+    detect_subtype(reads)
+    reassortment(detect_subtype.out)
 }

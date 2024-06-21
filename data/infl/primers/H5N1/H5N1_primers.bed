@@ -1,0 +1,16 @@
+chr1_PB2	0	0	chr1_LEFT	1	+
+chr1_PB2	2281	2281	chr1_RIGHT	1	-
+chr2_PB1	0	0	chr2_LEFT	1	+
+chr2_PB1	2275	2275	chr2_RIGHT	1	-
+chr3_PA	0	0	chr3_LEFT	1	+
+chr3_PA	2152	2152	chr3_RIGHT	1	-
+chr4_HA	0	0	chr4_LEFT	1	+
+chr4_HA	1705	1705	chr4_RIGHT	1	-
+chr5_NP	0	0	chr5_LEFT	1	+
+chr5_NP	1498	1498	chr5_RIGHT	1	-
+chr6_NA	0	0	chr6_LEFT	1	+
+chr6_NA	1351	1351	chr6_RIGHT	1	-
+chr7_MP	0	0	chr7_LEFT	1	+
+chr7_MP	983	983	chr7_RIGHT	1	-
+chr8_NS	0	0	chr8_LEFT	1	+
+chr8_NS	824	824	chr8_RIGHT	1	-
