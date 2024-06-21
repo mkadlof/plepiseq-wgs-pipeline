@@ -11,7 +11,7 @@ params.pval = 0.05
 params.lower_ambig = 0.45
 params.upper_ambig = 0.55
 params.window_size = 50 // Window size in which we equalize the coverage
-params.mapping_quality = 30
+params.min_mapq = 30
 
 
 // Specifying location of reads and primers and necessary databases, MUST be selected by a user

@@ -2,7 +2,9 @@
 params.memory = 2024
 params.quality_initial = 5
 params.length = 90
+params.max_depth = 600
 params.min_cov = 20
+params.min_mapq = 30
 params.variant = "UNK"
 
 // Specifying location of reads and primers and necessary databases, MUST be selected by a user
@@ -23,6 +25,7 @@ include { bwa } from "${params.modules}/common/bwa.nf"
 include { fastqc as fastqc_1 } from "${params.modules}/common/fastqc.nf"
 include { fastqc as fastqc_2 } from "${params.modules}/common/fastqc.nf"
 include { trimmomatic } from "${params.modules}/common/trimmomatic.nf"
+include { filtering } from "${params.modules}/infl/filtering.nf"
 
 workflow{
     // Channels
@@ -34,5 +37,6 @@ workflow{
     bwa(trimmomatic.out[0])
     fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
     detect_subtype(reads)
-    reassortment(detect_subtype.out)
+    reassortment(detect_subtype.out[0])
+    filtering(bwa.out, reassortment.out)
 }

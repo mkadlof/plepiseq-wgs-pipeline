@@ -3,10 +3,11 @@ process reassortment {
     maxForks 5
 
     input:
-    tuple val(sampleId), path('subtype_scores_each_segment.txt'), path('subtype_counts_each_segment.txt'), env("REF_GENOME_ID"), env("PRIMERS"), env("REF_GENOME_FASTA")
+    tuple val(sampleId), path('subtype_scores_each_segment.txt'), path('subtype_counts_each_segment.txt'), env("REF_GENOME_ID")
 
     output:
-    tuple val(sampleId), path('hybrid_genome.fasta'), path('hybrid_primers.bed')
+    tuple val(sampleId), path('hybrid_genome.fasta')
+    tuple val(sampleId), path('hybrid_primers.bed')
 
     script:
     """
@@ -134,8 +135,8 @@ process reassortment {
     echo \${FOUND_SUBTYPES_COUNTS[@]} >> intermediate.txt
 
     # That will mess up viewing in IGV...
-    REFERENCE_GENOME_FASTA=" hybrid_genome.fasta"
+    REFERENCE_GENOME_FASTA="hybrid_genome.fasta"
     bwa index \${REFERENCE_GENOME_FASTA}
-    primers="hybrid_primers.bed"
+    PRIMERS="hybrid_primers.bed"
     """
 }

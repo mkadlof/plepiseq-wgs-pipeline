@@ -6,7 +6,7 @@ process detect_subtype {
     tuple val(sampleId), path(reads)
 
     output:
-    tuple val(sampleId), path("subtype_counts_each_segment.txt"), path("subtype_scores_each_segment.txt"), env(REF_GENOME_ID), env(PRIMERS), env(REF_GENOME_FASTA)
+    tuple val(sampleId), path("subtype_counts_each_segment.txt"), path("subtype_scores_each_segment.txt"), env(REF_GENOME_ID)
 
     script:
     """

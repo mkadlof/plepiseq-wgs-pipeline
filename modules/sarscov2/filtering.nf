@@ -15,7 +15,7 @@ process filtering {
     bed_offset=0
     length=`echo "${params.length} - 20" | bc -l`
     equal_depth=`echo "${params.max_depth} / 2" | bc -l | awk '{print int(\$0)}'` 
-    simple_filter_illumina_one_segment.py ${bam} ${primers} \${bed_offset} \${length} ${params.mapping_quality} ${params.window_size} \${equal_depth}
+    simple_filter_illumina_one_segment.py ${bam} ${primers} \${bed_offset} \${length} ${params.min_mapq} ${params.window_size} \${equal_depth}
     samtools index first_pass_sorted.bam
     
     if [ -e two_amplicons_sorted.bam ]; then

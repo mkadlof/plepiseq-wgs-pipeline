@@ -12,7 +12,7 @@ process wgsMetrics {
     """
     java -jar /opt/picard/picard.jar CollectWgsMetrics --REFERENCE_SEQUENCE \${GENOME_FASTA} \
                                                    --MINIMUM_BASE_QUALITY ${params.quality_initial} \
-                                                   --MINIMUM_MAPPING_QUALITY ${params.mapping_quality} \
+                                                   --MINIMUM_MAPPING_QUALITY ${params.min_mapq} \
                                                    --INPUT ${bam} \
                                                    --OUTPUT picard_statistics.txt
     """

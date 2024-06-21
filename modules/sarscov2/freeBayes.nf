@@ -12,7 +12,7 @@ process freeBayes {
     """
     freebayes --limit-coverage ${params.max_depth} \
               --min-coverage ${params.min_cov} \
-              --min-mapping-quality ${params.mapping_quality} \
+              --min-mapping-quality ${params.min_mapq} \
               --min-base-quality ${params.quality_snp} \
               --use-mapping-quality \
               --fasta-reference \${GENOME_FASTA} \
