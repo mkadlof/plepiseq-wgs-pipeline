@@ -6,7 +6,7 @@ process reassortment {
     tuple val(sampleId), path('subtype_scores_each_segment.txt'), path('subtype_counts_each_segment.txt'), env("REF_GENOME_ID"), env("PRIMERS"), env("REF_GENOME_FASTA")
 
     output:
-    tuple val(sampleId), path('intermediate.txt'), path('hybrid_genome.fasta'), path('hybrid_primers.bed')
+    tuple val(sampleId), path('hybrid_genome.fasta'), path('hybrid_primers.bed')
 
     script:
     """
