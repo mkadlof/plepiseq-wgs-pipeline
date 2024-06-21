@@ -40,7 +40,7 @@ params.adapters="/home/data/common/adapters/${params.adapters_id}.fa"
 params.ref_genome_id="MN908947.3"
 
 include { kraken2 } from "${params.modules}/sarscov2/kraken2.nf"
-include { bwa } from "${params.modules}/sarscov2/bwa.nf"
+include { bwa } from "${params.modules}/common/bwa.nf"
 include { dehumanization } from "${params.modules}/sarscov2/dehumanization.nf"
 include { fastqc as fastqc_1 } from "${params.modules}/common/fastqc.nf"
 include { fastqc as fastqc_2 } from "${params.modules}/common/fastqc.nf"

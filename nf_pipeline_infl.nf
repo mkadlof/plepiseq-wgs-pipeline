@@ -19,7 +19,9 @@ params.adapters="/home/data/common/adapters/${params.adapters_id}.fa"
 
 include { detect_subtype } from "${params.modules}/infl/detect_subtype.nf"
 include { reassortment } from "${params.modules}/infl/reassortment.nf"
+include { bwa } from "${params.modules}/common/bwa.nf"
 include { fastqc as fastqc_1 } from "${params.modules}/common/fastqc.nf"
+include { fastqc as fastqc_2 } from "${params.modules}/common/fastqc.nf"
 include { trimmomatic } from "${params.modules}/common/trimmomatic.nf"
 
 workflow{
@@ -29,6 +31,8 @@ workflow{
     // Processes
     fastqc_1(reads, "initialfastq")
     trimmomatic(reads, params.adapters)
+    bwa(trimmomatic.out[0])
+    fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
     detect_subtype(reads)
     reassortment(detect_subtype.out)
 }
