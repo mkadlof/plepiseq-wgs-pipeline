@@ -35,7 +35,7 @@ params.modules = "/absolute/path/to/directory/with/modules"
 // Old parameter not settable anymore by a shell wrapper
 params.primers="/home/data/sarscov2/primers/${params.primers_id}/nCoV-2019.scheme.bed"
 params.pairs="/home/data/sarscov2/primers/${params.primers_id}/pairs.tsv"
-params.adapters="/home/data/sarscov2/adapters/${params.adapters_id}.fa"
+params.adapters="/home/data/common/adapters/${params.adapters_id}.fa"
 
 params.ref_genome_id="MN908947.3"
 
@@ -44,7 +44,7 @@ include { bwa } from "${params.modules}/sarscov2/bwa.nf"
 include { dehumanization } from "${params.modules}/sarscov2/dehumanization.nf"
 include { fastqc as fastqc_1 } from "${params.modules}/common/fastqc.nf"
 include { fastqc as fastqc_2 } from "${params.modules}/common/fastqc.nf"
-include { trimmomatic } from "${params.modules}/sarscov2/trimmomatic.nf"
+include { trimmomatic } from "${params.modules}/common/trimmomatic.nf"
 include { filtering } from "${params.modules}/sarscov2/filtering.nf"
 include { masking } from "${params.modules}/sarscov2/masking.nf"
 include { merging } from "${params.modules}/sarscov2/merging.nf"
