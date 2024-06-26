@@ -4,6 +4,7 @@ process varScan {
 
     input:
     tuple val(sampleId), path(bam), path(bai)
+    tuple val(sampleId2), path(ref_genome)
 
     output:
     tuple val(sampleId), path('varscan.fa')
@@ -11,7 +12,7 @@ process varScan {
     script:
     """
     samtools mpileup -B --max-depth ${params.max_depth} \
-                 --fasta-ref \${GENOME_FASTA} \
+                 --fasta-ref ${ref_genome} \
                  --min-BQ ${params.quality_snp} \
                  ${bam} >> ${bam}.mpileup
 
@@ -33,17 +34,17 @@ process varScan {
 
     bcftools norm --check-ref w \
                   --rm-dup all \
-                  --fasta-ref \${GENOME_FASTA} \
+                  --fasta-ref ${ref_genome} \
                    detected_variants_varscan.vcf.gz | \
                        bcftools norm --check-ref w \
                                      --multiallelics -indels \
-                                     --fasta-ref \${GENOME_FASTA} | \
+                                     --fasta-ref ${ref_genome} | \
                                            bcftools filter \
                                                     --include "QUAL >= \${qual} && AF >= ${params.lower_ambig} && DP >= ${params.min_cov}" > detected_variants_varscan_final.vcf
 
     bgzip --force detected_variants_varscan_final.vcf
     tabix detected_variants_varscan_final.vcf.gz
 
-    cat \${GENOME_FASTA} | bcftools consensus --mark-del X --samples - detected_variants_varscan_final.vcf.gz > varscan.fa
+    cat ${ref_genome} | bcftools consensus --mark-del X --samples - detected_variants_varscan_final.vcf.gz > varscan.fa
     """
 }

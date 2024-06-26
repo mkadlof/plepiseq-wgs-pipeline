@@ -5,6 +5,7 @@ process freyja {
 
     input:
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai')
+    tuple val(sampleId2), path(ref_genome)
 
     output:
     tuple val(sampleId), path('coinfections.tsv')
@@ -19,7 +20,7 @@ process freyja {
         exit 0
     else
         mkdir variants_files depth_files demix_files
-        freyja variants mapped_reads.bam --variants variants_files/test.variants.tsv --depths depth_files/test.depth --ref \${GENOME_FASTA}
+        freyja variants mapped_reads.bam --variants variants_files/test.variants.tsv --depths depth_files/test.depth --ref ${ref_genome}
         freyja demix variants_files/test.variants.tsv depth_files/test.depth --output demix_files/test.output --confirmedonly --barcodes  /home/external_databases/freyja/usher_barcodes.csv
         freyja aggregate demix_files/ --output coinfections.tsv
     fi

@@ -455,11 +455,8 @@ COPY --from=builder-nextclade /opt/nextclade /opt/nextclade
 COPY --from=builder-kraken2 /opt/kraken2 /opt/kraken2
 COPY --from=modeller /opt/modeller /opt/modeller
 
-COPY data/ /home/data/
 COPY bin /home/bin
 
-ENV GENOME_ID="MN908947.3"
-ENV GENOME_FASTA="/home/data/sarscov2/genome/sarscov2.fasta"
 ENV LD_LIBRARY_PATH="/opt/htslib/lib:/opt/tbb/lib:/opt/isa-l/lib:${LD_LIBRARY_PATH}"
 ENV PYTHONPATH="/home/external_databases/pangolin"
 ENV PATH /home/bin/sarscov2:\

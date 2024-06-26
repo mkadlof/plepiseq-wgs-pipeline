@@ -4,6 +4,7 @@ process simpleStats {
 
     input:
     tuple val(sampleId), path(consensus_masked_fa), path(picard_statistics_txt)
+    val(primers)
 
     output:
     tuple val(sampleId), path('consensus_masked_N_summary.txt'), path('picard_summary.txt'), path('primers_poor_stretch.txt'), path('primers_poor.txt')
@@ -20,8 +21,8 @@ process simpleStats {
     
     # użycie primerów
     touch log.txt
-    MES1=`primer_usage_sum.py ${params.primers} log.txt 40 | head -1`
-    MES2=`primer_usage_sum.py ${params.primers} log.txt 40 | head -2 | tail -1`
+    MES1=`primer_usage_sum.py ${primers} log.txt 40 | head -1`
+    MES2=`primer_usage_sum.py ${primers} log.txt 40 | head -2 | tail -1`
     
     echo -e "\${MES1}" > primers_poor_stretch.txt
     echo -e "\${MES2}" > primers_poor.txt

@@ -7,9 +7,7 @@ process filtering {
     tuple val(sampleId), path(primers)
 
     output:
-//     tuple val(sampleId), path('first_pass_sorted.bam'), path('first_pass_sorted.bam.bai')
-//     tuple val(sampleId), path('two_amplicons_sorted.bam')
-//     tuple val(sampleId), path('Statystyki.txt')
+    tuple val(sampleId), path('to_clip_sorted.bam'), path('to_clip_sorted.bam.bai')
 
     script:
     """

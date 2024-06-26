@@ -3,10 +3,11 @@ process coinfection_analysis {
     publishDir "${params.results_dir}/${sampleId}/", mode: 'copy'
 
     input:
-    tuple val(sampleId), path(detected_variants_varscan_contamination_txt)
+    tuple val(sampleId), path(detected_variants_varscan_coinfection_txt)
+    path(coinfections)
 
     output:
-    tuple val(sampleId), path("${sampleId}_alternative_alleles_frequencies.png"), path("${sampleId}_contamination_summary.txt")
+    tuple val(sampleId), path("${sampleId}_alternative_alleles_frequencies.png"), path("${sampleId}_coinfection_summary.txt")
 
     script:
     """
@@ -14,11 +15,11 @@ process coinfection_analysis {
     # The new version of the script allows specifying any number of samples that are known to be
     # coinfected. Simply add additional files.
 
-    predict_contamination_illumina.py ${detected_variants_varscan_contamination_txt} \
-                                      ${sampleId} \
-                                      /home/data/sarscov2/contaminations/ESIB_EQA_2023.SARS2.09_contaminations.txt \
-                                      /home/data/sarscov2/contaminations/ESIB_EQA_2023.SARS2.17_contaminations.txt \
-                                      /home/data/sarscov2/contaminations/ESIB_EQA_2023.SARS2.32_contaminations.txt
+    predict_coinfection_illumina.py ${detected_variants_varscan_coinfection_txt} \
+                                    ${sampleId} \
+                                    ${coinfections}/ESIB_EQA_2023.SARS2.09_coinfections.txt \
+                                    ${coinfections}/ESIB_EQA_2023.SARS2.17_coinfections.txt \
+                                    ${coinfections}/ESIB_EQA_2023.SARS2.32_coinfections.txt
 
     """
 }

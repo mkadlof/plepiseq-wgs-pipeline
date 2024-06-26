@@ -47,18 +47,18 @@ for known_sample in list_of_coinfected_samples:
 pval_list = np.array(pval_list)
 text = "\t".join(map(str, pval_list))
 
-with open(f'{title}_contamination_summary.txt', 'w') as f:
+with open(f'{title}_coinfection_summary.txt', 'w') as f:
     if len(data_sample_fortest) < 10:
-        f.write(f'{title} is not contaminated with other SARS-CoV-2 material, less than 10 mixed sites \n')
+        f.write(f'{title} is not coinfected with other SARS-CoV-2 material, less than 10 mixed sites \n')
     else:
         if np.all(pval_list < 0.1):
 
-            f.write(f'{title} is not contaminated with other SARS-CoV-2 material. '
+            f.write(f'{title} is not coinfected with other SARS-CoV-2 material. '
                     f'P-values to known co-infected samples are {text}\n')
         elif np.all(pval_list > 0.1):
-            f.write(f'{title} is contaminated with other SARS-CoV-2 material. '
+            f.write(f'{title} is coinfected with other SARS-CoV-2 material. '
                     f'P-values to known co-infected samples are {text}\n')
         elif np.any(pval_list > 0.1):
-            f.write(f'{title} might be contaminated with other SARS-CoV-2 material it shows similarity to at least one '
-                    f'sample that was previously classified as co-infexted. P-values to known co-infected '
+            f.write(f'{title} might be coinfected with other SARS-CoV-2 material it shows similarity to at least one '
+                    f'sample that was previously classified as co-infected. P-values to known co-infected '
                     f'samples are {text}\n')

@@ -4,6 +4,7 @@ process freeBayes {
 
     input:
     tuple val(sampleId), path(bam), path(bai)
+    tuple val(sampleId2), path(ref_genome)
 
     output:
     tuple val(sampleId), path('freebayes.fa')
@@ -15,17 +16,17 @@ process freeBayes {
               --min-mapping-quality ${params.min_mapq} \
               --min-base-quality ${params.quality_snp} \
               --use-mapping-quality \
-              --fasta-reference \${GENOME_FASTA} \
+              --fasta-reference ${ref_genome} \
               --ploidy 1 \
               ${bam} > detected_variants_freebayes.vcf
 
     cat detected_variants_freebayes.vcf | \
         bcftools norm --check-ref w \
                       --rm-dup all \
-                      --fasta-ref \${GENOME_FASTA} | \
+                      --fasta-ref ${ref_genome} | \
                           bcftools norm --check-ref w \
                                         --multiallelics -indels \
-                                        --fasta-ref \${GENOME_FASTA} > detected_variants_freebayes_fix.vcf
+                                        --fasta-ref ${ref_genome} > detected_variants_freebayes_fix.vcf
     
     qual=`echo ${params.pval} | awk '{print int(10*-log(\$1)/log(10))}'`
     
@@ -48,7 +49,7 @@ process freeBayes {
                         bcftools sort --output-type z > detected_variants_freebayes_final.vcf.gz
     tabix detected_variants_freebayes_final.vcf.gz
 
-    cat \${GENOME_FASTA} | \
+    cat ${ref_genome} | \
             bcftools consensus --mark-del X --samples - \
                                detected_variants_freebayes_final.vcf.gz > freebayes.fa
     """

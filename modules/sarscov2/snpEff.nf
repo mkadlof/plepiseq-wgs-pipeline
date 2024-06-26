@@ -4,6 +4,7 @@ process snpEff {
 
     input:
     tuple val(sampleId), path(consensus_vcf_gz), path(consensus_vcf_gz_tbi), path('forvariants.bam'), path('forvariants.bam.bai')
+    tuple val(sampleId2), path(ref_genome)
 
     output:
     tuple val(sampleId), path('detected_variants_consensus_annotated.vcf.gz'), path('detected_variants_consensus_annotated.txt')
@@ -15,10 +16,10 @@ process snpEff {
     zcat consensus.vcf.gz | grep MN | grep -v contig | awk '{print \$1, \$2-1, \$2}' | tr " " "\t" >> tmp.bed
 
     ### freebayes for predefined regions
-    freebayes -t tmp.bed --fasta-reference \${GENOME_FASTA} --min-coverage 1 --min-mapping-quality 1 --min-base-quality 1 --ploidy 1 forvariants.bam >> freebayes_consesus_only.vcf
+    freebayes -t tmp.bed --fasta-reference ${ref_genome} --min-coverage 1 --min-mapping-quality 1 --min-base-quality 1 --ploidy 1 forvariants.bam >> freebayes_consesus_only.vcf
 
     ### running SNPeff
-    java -jar /opt/snpEff/snpEff.jar ann -noStats \${GENOME_ID} \
+    java -jar /opt/snpEff/snpEff.jar ann -noStats ${params.ref_genome_id} \
          ${consensus_vcf_gz} > detected_variants_consensus_annotated.vcf
 
     bgzip --force detected_variants_consensus_annotated.vcf

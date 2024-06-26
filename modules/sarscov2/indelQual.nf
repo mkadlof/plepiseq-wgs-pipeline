@@ -4,13 +4,14 @@ process indelQual {
 
     input:
     tuple val(sampleId), path(bam), path(bai)
+    tuple val(sampleId2), path(ref_genome)
 
     output:
     tuple val(sampleId), path('forvariants.bam'), path('forvariants.bam.bai')
 
     script:
     """
-    lofreq indelqual --ref \${GENOME_FASTA} \
+    lofreq indelqual --ref ${ref_genome} \
                      --out forvariants.bam \
                      --dindel ${bam}
     samtools sort -@ ${params.threads} \

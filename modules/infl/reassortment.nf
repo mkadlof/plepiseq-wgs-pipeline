@@ -4,9 +4,11 @@ process reassortment {
 
     input:
     tuple val(sampleId), path('subtype_scores_each_segment.txt'), path('subtype_counts_each_segment.txt'), env("REF_GENOME_ID")
+    path(genomes)
+    path(primers)
 
     output:
-    tuple val(sampleId), path('hybrid_genome.fasta')
+    tuple val(sampleId), path('hybrid_genome.fasta*')
     tuple val(sampleId), path('hybrid_primers.bed')
 
     script:
@@ -26,10 +28,10 @@ process reassortment {
         done
     }
 
-    ALL_GENOMES=(`ls /home/data/infl/genomes`)
+    ALL_GENOMES=(`ls ${genomes}`)
     ALL_SEGMENTS=(PB2 PB1 PA HA NP NA MP NS)
 
-    cat /home/data/infl/genomes/\${REF_GENOME_ID}/\${REF_GENOME_ID}.fasta | \
+    cat ${genomes}/\${REF_GENOME_ID}/\${REF_GENOME_ID}.fasta | \
         awk -v ID=\${REF_GENOME_ID} '{if (substr(\$0, 1, 1)==">") {filename=(ID"_"substr(\$0,2) ".fasta"); print \$0"_"ID >> filename } else {print toupper(\$0)  >> filename}}'
 
     # For each segment, we analyze the file subtype_scores_each_segment.txt with a matrix where the
@@ -77,10 +79,10 @@ process reassortment {
             # Creating a "hybrid" for the genome and BED with primers. We do this N times because
             # if any other segment is not a reassortment, the FASTA files will "grow" with copies
             # of the same sequence.
-            cat /home/data/infl/genomes/\${REF_GENOME_ID}/\${REF_GENOME_ID}.fasta | \
+            cat ${genomes}/\${REF_GENOME_ID}/\${REF_GENOME_ID}.fasta | \
                 awk -v ID=\${REF_GENOME_ID} '{if (substr(\$0, 1, 1)==">") {filename=("regular_"ID"_"substr(\$0,2) ".fasta");  print \$0 >> filename } else {print toupper(\$0)  >> filename}}'
             cat regular_\${REF_GENOME_ID}_chr?_\${segment}.fasta >> hybrid_genome.fasta
-            cat /home/data/infl/primers/\${REF_GENOME_ID}/\${REF_GENOME_ID}_primers.bed | \
+            cat ${primers}/\${REF_GENOME_ID}/\${REF_GENOME_ID}_primers.bed | \
                 grep \${segment} >> hybrid_primers.bed
             rm regular_\${REF_GENOME_ID}_chr*
         else
@@ -89,11 +91,11 @@ process reassortment {
             FOUND_SUBTYPES_SCORE_RATIO+=(\$RATIO)
             # I calculate the similarity between the segment sequence from the expected subtype
             # and the found one
-            cat  /home/data/infl/genomes/\${SEGMENT_best}/\${SEGMENT_best}.fasta | \
+            cat ${genomes}/\${SEGMENT_best}/\${SEGMENT_best}.fasta | \
                 awk -v ID=\${SEGMENT_best} '{if (substr(\$0, 1, 1)==">") {filename=(ID"_"substr(\$0,2) ".fasta");  print \$0"_"ID >> filename } else {print toupper(\$0) >> filename}}'
 
             # And also a "regular" FASTA for the hybrid
-            cat /home/data/infl/genomes/\${SEGMENT_best}/\${SEGMENT_best}.fasta | \
+            cat ${genomes}/\${SEGMENT_best}/\${SEGMENT_best}.fasta | \
                 awk -v ID=\${SEGMENT_best} '{if (substr(\$0, 1, 1)==">") {filename=("regular_"ID"_"substr(\$0,2) ".fasta");  print \$0 >> filename } else {print toupper(\$0) >> filename}}'
 
             cat \${REF_GENOME_ID}_chr?_\${segment}.fasta \${SEGMENT_best}_chr?_\${segment}.fasta >> tmp.fa
@@ -115,10 +117,10 @@ process reassortment {
                     grep \${segment} >> hybrid_primers.bed
             else
                 # The regular FASTA goes into the hybrid.
-                cat /home/data/infl/genomes/\${REF_GENOME_ID}/\${REF_GENOME_ID}.fasta | \
+                cat ${genomes}/\${REF_GENOME_ID}/\${REF_GENOME_ID}.fasta | \
                     awk -v ID=\${REF_GENOME_ID} '{if (substr(\$0, 1, 1)==">") {filename=("regular_"ID"_"substr(\$0,2) ".fasta");  print \$0 >> filename } else {print toupper(\$0)  >> filename}}'
                 cat regular_\${REF_GENOME_ID}_chr?_\${segment}.fasta >> hybrid_genome.fasta
-                cat /home/data/infl/primers/\${REF_GENOME_ID}/\${REF_GENOME_ID}_primers.bed | \
+                cat ${primers}/\${REF_GENOME_ID}/\${REF_GENOME_ID}_primers.bed | \
                     grep \${segment} >>  hybrid_primers.bed
                 rm regular_\${REF_GENOME_ID}_*
             fi

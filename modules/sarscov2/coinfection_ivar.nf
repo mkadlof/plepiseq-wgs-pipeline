@@ -2,8 +2,9 @@ process coinfection_ivar {
     tag "coinfection_ivar:${sampleId}"
 
     input:
-    tuple val(sampleId), path(mapped_reads),  path(mapped_reads_bai)
-    val(primers)
+    tuple val(sampleId), path(mapped_reads), path(mapped_reads_bai)
+    tuple val(sampleId2), path(ref_genome)
+    tuple val(sampleId3), path(primers)
 
     output:
     tuple val(sampleId), path('for_contamination_sorted.bam'), path('for_contamination_sorted.bam.bai')
@@ -21,7 +22,7 @@ process coinfection_ivar {
     samtools sort -@ ${params.threads} -o for_contamination_sorted.bam for_contamination.bam
     samtools index for_contamination_sorted.bam
     samtools mpileup -B --max-depth 20000 \
-                 --fasta-ref \${GENOME_FASTA} \
+                 --fasta-ref ${ref_genome} \
                  --min-BQ ${params.quality_snp} \
                  for_contamination_sorted.bam >> for_contamination.mpileup
     """

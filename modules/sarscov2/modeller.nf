@@ -4,6 +4,7 @@ process modeller {
 
     input:
     tuple val(sampleId), path(target_fasta)
+    val(modeller_data)
 
     output:
     tuple val(sampleId), path('alignment.pir'), path("${sampleId}_spike.pdb")
@@ -11,7 +12,7 @@ process modeller {
     script:
     """
     if [ -s ${target_fasta} ] ; then
-        cp /home/data/sarscov2/modeller/7dwz.pdb .
+        cp ${modeller_data}/7dwz.pdb .
         modpy.sh modeller_create_alignment.py ${target_fasta}
         modpy.sh modeller_build_model.py alignment.pir
         cp target.B99990001.pdb ${sampleId}_spike.pdb 
