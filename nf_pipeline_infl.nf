@@ -30,6 +30,8 @@ include { trimmomatic } from "${params.modules}/common/trimmomatic.nf"
 include { filtering } from "${params.modules}/infl/filtering.nf"
 include { masking } from "${params.modules}/common/masking.nf"
 include { picard } from "${params.modules}/common/picard.nf"
+include { sort_and_index } from "${params.modules}/infl/sort_and_index.nf"
+include { indelQual } from "${params.modules}/common/indelQual.nf"
 
 workflow{
     // Channels
@@ -38,13 +40,14 @@ workflow{
     primers = Channel.fromPath("${projectDir}/data/infl/primers/")
     pairs = Channel.fromPath("${projectDir}/data/infl/primers/pairs.tsv").first()
 
-
     // Processes
     fastqc_1(reads, "initialfastq")
     trimmomatic(reads, adapters)
     fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
     detect_subtype(reads, genomes)
     reassortment(detect_subtype.out[0], genomes, primers)
+    // For convenience we name the output with the hybrid genome as ref_genome
+    ref_genome = reassortment.out[0].map{ sampleId, files -> [sampleId, files[0]]}
     bwa(trimmomatic.out[0].join(reassortment.out[0]))
     c1 = bwa.out.join(reassortment.out[0]).join(reassortment.out[1])
     filtering(c1)
@@ -54,4 +57,6 @@ workflow{
 
     masking(filtering.out, primers_and_pairs)
     picard(bwa.out)
+    sort_and_index(masking.out)
+    indelQual(sort_and_index.out, ref_genome)
 }
