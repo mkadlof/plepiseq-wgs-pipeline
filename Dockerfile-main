@@ -459,7 +459,8 @@ COPY bin /home/bin
 
 ENV LD_LIBRARY_PATH="/opt/htslib/lib:/opt/tbb/lib:/opt/isa-l/lib:${LD_LIBRARY_PATH}"
 ENV PYTHONPATH="/home/external_databases/pangolin"
-ENV PATH /home/bin/sarscov2:\
+ENV PATH /home/bin/common:\
+/home/bin/sarscov2:\
 /home/bin/infl:\
 /opt/modeller/bin:\
 /opt/kraken2/bin:\

@@ -4,8 +4,9 @@
 Simple script ot report number of N's in fasta sequence
 """
 
-from Bio import SeqIO
 import sys
+
+from Bio import SeqIO
 
 record = SeqIO.parse(sys.argv[1], "fasta")
 out = sys.argv[2]
@@ -17,7 +18,6 @@ with open(out, 'w') as f:
         slownik = {}  # tutaj trzymamy ako klucz gdzie zaczyna sie ciag N i jaka ma dlugosc
         previous = 'A'
         ciag = 0
-
         for element in str(r.seq).upper():
             if element == 'N':
                 i += 1  # zwykle liczenie N
@@ -33,7 +33,7 @@ with open(out, 'w') as f:
                     # konczymy ciag
                     slownik[pos_ciag] = ciag
                 else:
-                    # nic nie robie 
+                    # nic nie robie
                     pass
             previous = element
             pos += 1
@@ -41,5 +41,9 @@ with open(out, 'w') as f:
         if previous == 'N':
             slownik[pos_ciag] = ciag
 
+
         dlugosc = len(str(r.seq))
-        f.write(f'Total length of a sequence {r.id} is {len(str(r.seq))}; total numer of "N" is {i} ({i / dlugosc * 100}%); longest stretch of "N" starts at {sorted(slownik.items(), key=lambda x: x[1], reverse=True)[0][0]} and its length is {sorted(slownik.items(), key=lambda x: x[1], reverse=True)[0][1]}\n')
+        if slownik:
+            f.write(f'Total length of a sequence {r.id} is {len(str(r.seq))}; total numer of "N" is {i} ({i / dlugosc * 100}%); longest stretch of "N" starts at {sorted(slownik.items(), key=lambda x: x[1], reverse=True)[0][0]} and its length is {sorted(slownik.items(), key=lambda x: x[1], reverse=True)[0][1]}\n')
+        else:
+            f.write(f"None N's in {r.id} found.\n")

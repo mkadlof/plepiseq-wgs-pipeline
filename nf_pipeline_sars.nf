@@ -48,8 +48,8 @@ include { merging } from "${params.modules}/sarscov2/merging.nf"
 include { picard } from "${params.modules}/common/picard.nf"
 include { manta } from "${params.modules}/sarscov2/manta.nf"
 include { indelQual } from "${params.modules}/common/indelQual.nf"
-include { wgsMetrics } from "${params.modules}/sarscov2/wgsMetrics.nf"
-include { lowCov } from "${params.modules}/sarscov2/lowCov.nf"
+include { wgsMetrics } from "${params.modules}/common/wgsMetrics.nf"
+include { lowCov } from "${params.modules}/common/lowCov.nf"
 include { varScan } from "${params.modules}/sarscov2/varscan.nf"
 include { freeBayes } from "${params.modules}/sarscov2/freeBayes.nf"
 include { lofreq } from "${params.modules}/sarscov2/lofreq.nf"
@@ -90,6 +90,7 @@ workflow{
     .combine(reads).map { _, primers_and_pairs, sampleId, reads ->
         return [sampleId, primers_and_pairs]
     }
+    primers = primers_and_pairs.map{ sampleId, files -> [sampleId, files[0]] }
 
     // Processes
     fastqc_1(reads, "initialfastq")
@@ -99,10 +100,10 @@ workflow{
     bwa(j)
     dehumanization(bwa.out, trimmomatic.out[1])
     fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
-    filtering(bwa.out, primers_and_pairs.map{sampleId, files -> [sampleId, files[0]]})
+    filtering(bwa.out, primers)
     masking(filtering.out[0], primers_and_pairs)
-    combined = filtering.out[1].join(masking.out)
-    merging(combined)
+    c1 = filtering.out[1].join(masking.out)
+    merging(c1)
     picard(bwa.out)
     indelQual(merging.out, ref_genome)
     wgsMetrics(indelQual.out, ref_genome)
@@ -110,8 +111,8 @@ workflow{
     varScan(indelQual.out, ref_genome)
     freeBayes(indelQual.out, ref_genome)
     lofreq(indelQual.out, ref_genome_with_index)
-    c1 = varScan.out.join(freeBayes.out).join(lofreq.out)
-    consensus(c1)
+    c2 = varScan.out.join(freeBayes.out).join(lofreq.out)
+    consensus(c2)
     vcf_for_fasta(consensus.out, ref_genome, vcf_template)
     consensusMasking(consensus.out.join(lowCov.out[1]))
     manta(picard.out.join(consensusMasking.out))
@@ -119,10 +120,10 @@ workflow{
     modeller(nextclade.out[1], modeller_data)
     pangolin(manta.out)
     snpEff(vcf_for_fasta.out.join(indelQual.out), ref_genome)
-    simpleStats(manta.out.join(wgsMetrics.out), primers_and_pairs.map{sampleId, files -> [sampleId, files[0]]})
+    simpleStats(manta.out.join(wgsMetrics.out), primers)
 
     // Coinfection line
-    coinfection_ivar(bwa.out, ref_genome, primers_and_pairs.map{sampleId, files -> [sampleId, files[0]]})
+    coinfection_ivar(bwa.out, ref_genome, primers)
     freyja(coinfection_ivar.out[0], ref_genome)
     coinfection_varscan(coinfection_ivar.out[1])
     coinfection_analysis(coinfection_varscan.out, coinfections)
