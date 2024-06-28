@@ -3,8 +3,7 @@ process masking {
 
     input:
     tuple val(sampleId1), path(bam), path(bai)
-    tuple val(sampleId2), path(primers)
-    tuple val(sampleId3), path(pairs)
+    tuple val(sampleId2), path(primers_and_pairs)
 
     output:
     tuple val(sampleId1), path('ivar_trimmed_all.bam')
@@ -13,9 +12,9 @@ process masking {
     """
     length=`echo "${params.length} - 40" | bc -l`
     ivar trim -i ${bam} \
-             -b ${primers} \
+             -b ${primers_and_pairs[0]} \
              -m \${length} \
-             -f ${pairs} \
+             -f ${primers_and_pairs[1]} \
              -q ${params.quality_initial} \
              -e \
              -p ivar_trimmed_all

@@ -121,7 +121,7 @@ process reassortment {
                     awk -v ID=\${REF_GENOME_ID} '{if (substr(\$0, 1, 1)==">") {filename=("regular_"ID"_"substr(\$0,2) ".fasta");  print \$0 >> filename } else {print toupper(\$0)  >> filename}}'
                 cat regular_\${REF_GENOME_ID}_chr?_\${segment}.fasta >> hybrid_genome.fasta
                 cat ${primers}/\${REF_GENOME_ID}/\${REF_GENOME_ID}_primers.bed | \
-                    grep \${segment} >>  hybrid_primers.bed
+                    grep \${segment} >> hybrid_primers.bed
                 rm regular_\${REF_GENOME_ID}_*
             fi
             rm tmp.fa

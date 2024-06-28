@@ -45,7 +45,7 @@ include { trimmomatic } from "${params.modules}/common/trimmomatic.nf"
 include { filtering } from "${params.modules}/sarscov2/filtering.nf"
 include { masking } from "${params.modules}/common/masking.nf"
 include { merging } from "${params.modules}/sarscov2/merging.nf"
-include { picard } from "${params.modules}/sarscov2/picard.nf"
+include { picard } from "${params.modules}/common/picard.nf"
 include { manta } from "${params.modules}/sarscov2/manta.nf"
 include { indelQual } from "${params.modules}/sarscov2/indelQual.nf"
 include { wgsMetrics } from "${params.modules}/sarscov2/wgsMetrics.nf"
@@ -73,21 +73,34 @@ workflow{
     reads = Channel.fromFilePairs(params.reads)
     ref_genome = Channel.fromFilePairs("${projectDir}/data/sarscov2/genome/*sarscov2.fasta", size: -1).collect().sort()
     ref_genome_with_index = Channel.fromFilePairs("${projectDir}/data/sarscov2/genome/*sarscov2.fasta{,.amb,.ann,.bwt,.fai,.pac,.sa}", size: -1).collect().sort()
-    primers = Channel.fromFilePairs("${projectDir}/data/sarscov2/primers/${params.primers_id}/nCoV-2019.scheme.bed").first()
-    pairs = Channel.fromFilePairs("${projectDir}/data/sarscov2/primers/${params.primers_id}/pairs.tsv").first()
+    primers_and_pairs = Channel.fromFilePairs("${projectDir}/data/sarscov2/primers/${params.primers_id}/*{nCoV-2019.scheme.bed,pairs.tsv}").collect()
     coinfections = Channel.fromPath("${projectDir}/data/sarscov2/coinfections/").first()
     vcf_template = Channel.fromPath("${projectDir}/data/sarscov2/vcf_template/").first()
     modeller_data = Channel.fromPath("${projectDir}/data/sarscov2/modeller/").first()
+
+    // The following construct is needed to add the sampleId to the channels
+    // with constant data (like reference genome or primers). This is done to
+    // generalize cases where the reference genome may not be identical for
+    // each sample (as is the case in the influenza pipeline, for example).
+    ref_genome_with_index = ref_genome_with_index
+    .combine(reads).map { _, genome_and_index_files, sampleId, reads ->
+        return [sampleId, genome_and_index_files]
+    }
+    primers_and_pairs = primers_and_pairs
+    .combine(reads).map { _, primers_and_pairs, sampleId, reads ->
+        return [sampleId, primers_and_pairs]
+    }
 
     // Processes
     fastqc_1(reads, "initialfastq")
     kraken2(reads)
     trimmomatic(reads, adapters)
-    bwa(trimmomatic.out[0], ref_genome_with_index)
+    j = trimmomatic.out[0].join(ref_genome_with_index)
+    bwa(j)
     dehumanization(bwa.out, trimmomatic.out[1])
     fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
-    filtering(bwa.out, primers)
-    masking(filtering.out[0], primers, pairs)
+    filtering(bwa.out, primers_and_pairs.map{sampleId, files -> [sampleId, files[0]]})
+    masking(filtering.out[0], primers_and_pairs)
     combined = filtering.out[1].join(masking.out)
     merging(combined)
     picard(bwa.out)
@@ -106,10 +119,10 @@ workflow{
     modeller(nextclade.out[1], modeller_data)
     pangolin(manta.out)
     snpEff(vcf_for_fasta.out.join(indelQual.out), ref_genome)
-    simpleStats(manta.out.join(wgsMetrics.out), primers)
+    simpleStats(manta.out.join(wgsMetrics.out), primers_and_pairs.map{sampleId, files -> [sampleId, files[0]]})
 
     // Coinfection line
-    coinfection_ivar(bwa.out, ref_genome, primers)
+    coinfection_ivar(bwa.out, ref_genome, primers_and_pairs.map{sampleId, files -> [sampleId, files[0]]})
     freyja(coinfection_ivar.out[0], ref_genome)
     coinfection_varscan(coinfection_ivar.out[1])
     coinfection_analysis(coinfection_varscan.out, coinfections)

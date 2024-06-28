@@ -2,9 +2,7 @@ process filtering {
     tag "filtering:${sampleId}"
 
     input:
-    tuple val(sampleId), path(bam), path(bai)
-    tuple val(sampleId), path(ref_genome_fasta)
-    tuple val(sampleId), path(primers)
+    tuple val(sampleId), path(bam), path(bai), path(ref_genome_fasta), path(primers)
 
     output:
     tuple val(sampleId), path('to_clip_sorted.bam'), path('to_clip_sorted.bam.bai')

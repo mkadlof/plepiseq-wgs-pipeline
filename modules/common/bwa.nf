@@ -3,8 +3,7 @@ process bwa {
     maxForks 5
 
     input:
-    tuple val(sampleId), path(reads)
-    tuple val(sampleId2), path(ref_genome_with_index)
+    tuple val(sampleId), path(reads), path(ref_genome_with_index)
 
     output:
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai')

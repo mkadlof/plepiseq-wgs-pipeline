@@ -2,6 +2,7 @@
 params.memory = 2024
 params.quality_initial = 5
 params.length = 90
+params.max_number_for_SV = 200000
 params.max_depth = 600
 params.min_cov = 20
 params.min_mapq = 30
@@ -28,12 +29,15 @@ include { fastqc as fastqc_2 } from "${params.modules}/common/fastqc.nf"
 include { trimmomatic } from "${params.modules}/common/trimmomatic.nf"
 include { filtering } from "${params.modules}/infl/filtering.nf"
 include { masking } from "${params.modules}/common/masking.nf"
+include { picard } from "${params.modules}/common/picard.nf"
 
 workflow{
     // Channels
     reads = Channel.fromFilePairs(params.reads)
     genomes = Channel.fromPath("${projectDir}/data/infl/genomes/")
     primers = Channel.fromPath("${projectDir}/data/infl/primers/")
+    pairs = Channel.fromPath("${projectDir}/data/infl/primers/pairs.tsv").first()
+
 
     // Processes
     fastqc_1(reads, "initialfastq")
@@ -41,7 +45,13 @@ workflow{
     fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
     detect_subtype(reads, genomes)
     reassortment(detect_subtype.out[0], genomes, primers)
-    bwa(trimmomatic.out[0], reassortment.out[0])
-    filtering(bwa.out, reassortment.out)
-    masking(filtering.out, reassortment.out[0], reassortment.out[1])
+    bwa(trimmomatic.out[0].join(reassortment.out[0]))
+    c1 = bwa.out.join(reassortment.out[0]).join(reassortment.out[1])
+    filtering(c1)
+
+    primers_and_pairs = reassortment.out[1].merge(pairs).map {sampleId, primers, pairs ->
+        return [sampleId, tuple(primers, pairs)]}
+
+    masking(filtering.out, primers_and_pairs)
+    picard(bwa.out)
 }
