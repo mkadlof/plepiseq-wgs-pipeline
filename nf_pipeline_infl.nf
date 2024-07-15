@@ -40,6 +40,7 @@ include { indelQual } from "${params.modules}/common/indelQual.nf"
 include { wgsMetrics } from "${params.modules}/common/wgsMetrics.nf"
 include { lowCov } from "${params.modules}/common/lowCov.nf"
 include { varScan } from "${params.modules}/common/varscan.nf"
+include { freeBayes } from "${params.modules}/common/freeBayes.nf"
 
 workflow{
     // Channels
@@ -68,6 +69,7 @@ workflow{
     sort_and_index(masking.out)
     indelQual(sort_and_index.out, ref_genome)
     varScan(indelQual.out, ref_genome)
+    freeBayes(indelQual.out, ref_genome)
 
     wgsMetrics(indelQual.out, ref_genome)
     lowCov(indelQual.out, ref_genome)
