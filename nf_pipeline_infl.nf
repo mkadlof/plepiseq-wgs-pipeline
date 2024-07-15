@@ -6,6 +6,10 @@ params.max_number_for_SV = 200000
 params.max_depth = 600
 params.min_cov = 20
 params.mask = 20
+params.quality_snp = 15
+params.pval = 0.05
+params.lower_ambig = 0.45
+params.upper_ambig = 0.55
 params.min_mapq = 30
 params.variant = "UNK"
 
@@ -35,6 +39,7 @@ include { sort_and_index } from "${params.modules}/infl/sort_and_index.nf"
 include { indelQual } from "${params.modules}/common/indelQual.nf"
 include { wgsMetrics } from "${params.modules}/common/wgsMetrics.nf"
 include { lowCov } from "${params.modules}/common/lowCov.nf"
+include { varScan } from "${params.modules}/common/varscan.nf"
 
 workflow{
     // Channels
@@ -62,6 +67,8 @@ workflow{
     picard(bwa.out)
     sort_and_index(masking.out)
     indelQual(sort_and_index.out, ref_genome)
+    varScan(indelQual.out, ref_genome)
+
     wgsMetrics(indelQual.out, ref_genome)
     lowCov(indelQual.out, ref_genome)
 }
