@@ -42,6 +42,7 @@ include { lowCov } from "${params.modules}/common/lowCov.nf"
 include { varScan } from "${params.modules}/common/varscan.nf"
 include { freeBayes } from "${params.modules}/common/freeBayes.nf"
 include { lofreq } from "${params.modules}/common/lofreq.nf"
+include { consensus } from "${params.modules}/common/consensus.nf"
 
 workflow{
     // Channels
@@ -74,4 +75,6 @@ workflow{
     lofreq(indelQual.out, ref_genome)
     wgsMetrics(indelQual.out, ref_genome)
     lowCov(indelQual.out, ref_genome)
+    c2 = lowCov.out[1].join(varScan.out).join(freeBayes.out).join(lofreq.out)
+    consensus(c2)
 }

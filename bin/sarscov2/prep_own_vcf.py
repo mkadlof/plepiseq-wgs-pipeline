@@ -85,7 +85,7 @@ def prep_mutation_list(slownik, ref_name, target_name, n=1):
     i = 1
     # zapelniamy stany
     for k, j in zip(sekwencja_ref, sekwencja_target):
-        if k == j:
+        if k == j or (k != j and k == 'N' or j == 'N'):
             # brak mutacji
             stany.append(0)
         else:
@@ -116,7 +116,16 @@ def prep_mutation_list(slownik, ref_name, target_name, n=1):
 
     # gdyby mutacja byla na ostatnim elemencie
     if wartosc == 1:
-        lista_zakresow.append([start, koniec])
+        try:
+            lista_zakresow.append([start, koniec])
+        except:
+            pass
+
+    if len(lista_zakresow) == 0:
+        # brak mutacji
+        # dummy slownik mutacji
+        slownik_mutacji = {1: ['A', 'A']}
+        return slownik_mutacji
 
     # tworzenie irange
     # potrzebujemy dwoch list o rownej dlugosci jedna zawiera poczatki zakresu
@@ -126,7 +135,6 @@ def prep_mutation_list(slownik, ref_name, target_name, n=1):
     for i, j in lista_zakresow:
         starts.append(i)
         widths.append(j - i)
-
     x = IRanges(start=starts, width=widths)
     try:
         zasiegi_mutacji_reduced = x.reduce(min_gap_width=n + 1)

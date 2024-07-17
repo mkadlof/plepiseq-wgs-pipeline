@@ -53,7 +53,7 @@ include { lowCov } from "${params.modules}/common/lowCov.nf"
 include { varScan } from "${params.modules}/common/varscan.nf"
 include { freeBayes } from "${params.modules}/common/freeBayes.nf"
 include { lofreq } from "${params.modules}/common/lofreq.nf"
-include { consensus } from "${params.modules}/sarscov2/consensus.nf"
+include { consensus } from "${params.modules}/common/consensus.nf"
 include { vcf_for_fasta } from "${params.modules}/sarscov2/vcf_for_fasta.nf"
 include { consensusMasking } from "${params.modules}/sarscov2/consensusMasking.nf"
 include { snpEff } from "${params.modules}/sarscov2/snpEff.nf"
@@ -111,7 +111,7 @@ workflow{
     varScan(indelQual.out, ref_genome)
     freeBayes(indelQual.out, ref_genome)
     lofreq(indelQual.out, ref_genome_with_index)
-    c2 = varScan.out.join(freeBayes.out).join(lofreq.out)
+    c2 = lowCov.out[1].join(varScan.out).join(freeBayes.out).join(lofreq.out)
     consensus(c2)
     vcf_for_fasta(consensus.out, ref_genome, vcf_template)
     consensusMasking(consensus.out.join(lowCov.out[1]))
