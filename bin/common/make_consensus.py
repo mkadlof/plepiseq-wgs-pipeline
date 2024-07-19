@@ -23,7 +23,7 @@ from Bio.Align import AlignInfo
 def create_consensus(input_aln, segment):
     alignment = AlignIO.read(input_aln, "fasta")
     summary_align = AlignInfo.SummaryInfo(alignment)
-    with open(f'output_{segment}_consensus.fa', 'w') as f:
+    with open(f'output_{segment}_consensus.fasta', 'w') as f:
         f.write(f'>{segment}\n')
         f.write(str(summary_align.gap_consensus(threshold=0.6, ambiguous='X')))
     return True
@@ -106,10 +106,6 @@ if __name__ == '__main__':
     lista_plikow_freebayes = get_fastas(sys.argv[3], 'freebyes')
     lista_plikow_lofreq = get_fastas(sys.argv[4], 'lofreq')
 
-    # print(lista_pliow_ref)
-    # print(lista_pliow_program)
-    # output_consensus_masked.fa
-
     # 1 runda tworzenie sekwencji konsensusowe
     for masked, varscan, freebayes, lofreq in zip(lista_plikow_masked, lista_plikow_varsacan, lista_plikow_freebayes, lista_plikow_lofreq):
         # workaround for the cases when there is only one field in fasta ID
@@ -126,8 +122,8 @@ if __name__ == '__main__':
                 f.write(f'{wartosc}\n')
         create_consensus('tmp.fasta', segment)
         os.remove('tmp.fasta')
-        with open(f'consensus.fa', 'a') as f:
-            aln = align_fasta(masked, f'output_{segment}_consensus.fa')
+        with open(f'consensus.fasta', 'a') as f:
+            aln = align_fasta(masked, f'output_{segment}_consensus.fasta')
             ref, target = aln.values()
             sekwencja_with_n = ''
             for i in range(len(ref)):
@@ -143,5 +139,5 @@ if __name__ == '__main__':
         os.remove(varscan)
         os.remove(freebayes)
         os.remove(lofreq)
-        os.remove(f'output_{segment}_consensus.fa')
-    split_final_fasta(f'consensus.fa', 'consensus')
+        os.remove(f'output_{segment}_consensus.fasta')
+    split_final_fasta(f'consensus.fasta', 'consensus')

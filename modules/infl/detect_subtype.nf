@@ -8,6 +8,7 @@ process detect_subtype {
 
     output:
     tuple val(sampleId), path("subtype_counts_each_segment.txt"), path("subtype_scores_each_segment.txt"), env(REF_GENOME_ID)
+    tuple val(sampleId), env(REF_GENOME_ID_MINI)
 
     script:
     """
@@ -99,6 +100,7 @@ process detect_subtype {
         REF_GENOME_FASTA="data/infl/genomes/\${result}/\${result}.fasta"
     fi
     REF_GENOME_ID=\${result}
+    REF_GENOME_ID_MINI=`echo \${result} | cut -d "_" -f1`
     rm *bam*
     """
 }

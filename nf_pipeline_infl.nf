@@ -43,6 +43,7 @@ include { varScan } from "${params.modules}/common/varscan.nf"
 include { freeBayes } from "${params.modules}/common/freeBayes.nf"
 include { lofreq } from "${params.modules}/common/lofreq.nf"
 include { consensus } from "${params.modules}/common/consensus.nf"
+include { nextclade } from "${params.modules}/infl/nextclade.nf"
 
 workflow{
     // Channels
@@ -77,4 +78,5 @@ workflow{
     lowCov(indelQual.out, ref_genome)
     c2 = lowCov.out[1].join(varScan.out).join(freeBayes.out).join(lofreq.out)
     consensus(c2)
+    nextclade(detect_subtype.out[1], consensus.out[1])
 }

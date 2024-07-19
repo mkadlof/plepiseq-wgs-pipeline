@@ -6,6 +6,7 @@ process consensus {
 
     output:
     tuple val(sampleId), path("consensus.fa")
+    tuple val(sampleId), path("consensus_*.fasta")
 
     script:
     """
