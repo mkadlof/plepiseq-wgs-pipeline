@@ -24,7 +24,7 @@ params.results_dir = "./results"
 
 // Translate id into paths
 adapters="/home/data/common/adapters/${params.adapters_id}.fa"
-
+nextalign_db="/home/data/infl/nextalign"
 
 include { detect_subtype } from "${params.modules}/infl/detect_subtype.nf"
 include { reassortment } from "${params.modules}/infl/reassortment.nf"
@@ -44,6 +44,7 @@ include { freeBayes } from "${params.modules}/common/freeBayes.nf"
 include { lofreq } from "${params.modules}/common/lofreq.nf"
 include { consensus } from "${params.modules}/common/consensus.nf"
 include { nextclade } from "${params.modules}/infl/nextclade.nf"
+include { nextalign } from "${params.modules}/infl/nextalign.nf"
 
 workflow{
     // Channels
@@ -79,4 +80,5 @@ workflow{
     c2 = lowCov.out[1].join(varScan.out).join(freeBayes.out).join(lofreq.out)
     consensus(c2)
     nextclade(detect_subtype.out[1], consensus.out[1])
+    nextalign(detect_subtype.out[1], consensus.out[1], nextalign_db)
 }

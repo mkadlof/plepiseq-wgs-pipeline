@@ -394,9 +394,14 @@ RUN mkdir -p /opt/kraken2 && \
     ./install_kraken2.sh /opt/kraken2/bin
 
 # builder-modeller
-FROM builder-base AS modeller
+FROM builder-base AS builder-modeller
 ADD third-party/modeller/modeller.tar.gz /opt
 ADD third-party/modeller/config.py /opt/modeller/modlib/modeller/config.py
+
+# builder-nextalign
+FROM builder-base AS builder-nextalign
+WORKDIR /opt/nextalign
+RUN curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/2.14.0/nextalign-x86_64-unknown-linux-gnu" -o "nextalign" && chmod +x nextalign
 
 # main
 FROM python:3.11.8-slim-bookworm AS main
@@ -453,7 +458,10 @@ COPY --from=builder-usher /opt/usher/bin/usher /opt/usher/bin/usher
 COPY --from=builder-usher /opt/tbb /opt/tbb
 COPY --from=builder-nextclade /opt/nextclade /opt/nextclade
 COPY --from=builder-kraken2 /opt/kraken2 /opt/kraken2
-COPY --from=modeller /opt/modeller /opt/modeller
+COPY --from=builder-modeller /opt/modeller /opt/modeller
+COPY --from=builder-nextalign /opt/nextalign /opt/nextalign
+
+ADD data /home/data
 
 COPY bin /home/bin
 
@@ -480,6 +488,7 @@ ENV PATH="/home/bin/common:"\
 "/opt/bcftools/bin:"\
 "/opt/samtools/bin:"\
 "/opt/venv/bin:"\
+"/opt/nextalign:"\
 "/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 
