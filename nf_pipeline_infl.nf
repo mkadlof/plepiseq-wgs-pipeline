@@ -45,6 +45,7 @@ include { lofreq } from "${params.modules}/common/lofreq.nf"
 include { consensus } from "${params.modules}/common/consensus.nf"
 include { nextclade } from "${params.modules}/infl/nextclade.nf"
 include { nextalign } from "${params.modules}/infl/nextalign.nf"
+include { resistance } from "${params.modules}/infl/resistance.nf"
 
 workflow{
     // Channels
@@ -81,4 +82,5 @@ workflow{
     consensus(c2)
     nextclade(detect_subtype.out[1], consensus.out[1])
     nextalign(detect_subtype.out[1], consensus.out[1], nextalign_db)
+    resistance(detect_subtype.out[1], nextalign.out)
 }
