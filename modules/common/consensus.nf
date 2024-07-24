@@ -10,7 +10,6 @@ process consensus {
 
     script:
     """
-    echo pf
     make_consensus.py ${ref_genome_fa} ${freebayes_fa} ${lofreq_fa} ${varscan_fa}
     """
 }

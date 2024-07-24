@@ -25,6 +25,7 @@ params.results_dir = "./results"
 
 // Translate id into paths
 adapters="/home/data/common/adapters/${params.adapters_id}.fa"
+
 nextalign_db="/home/data/infl/nextalign"
 
 include { kraken2 } from "${params.modules}/common/kraken2.nf"
@@ -39,6 +40,7 @@ include { filtering } from "${params.modules}/infl/filtering.nf"
 include { masking } from "${params.modules}/common/masking.nf"
 include { picard } from "${params.modules}/common/picard.nf"
 include { sort_and_index } from "${params.modules}/infl/sort_and_index.nf"
+include { manta } from "${params.modules}/common/manta.nf"
 include { indelQual } from "${params.modules}/common/indelQual.nf"
 include { wgsMetrics } from "${params.modules}/common/wgsMetrics.nf"
 include { lowCov } from "${params.modules}/common/lowCov.nf"
@@ -69,8 +71,7 @@ workflow{
     ref_genome = reassortment.out[0].map{ sampleId, files -> [sampleId, files[0]]}
     bwa(trimmomatic.out[0].join(reassortment.out[0]))
     dehumanization(bwa.out, trimmomatic.out[1])
-    c1 = bwa.out.join(reassortment.out[0]).join(reassortment.out[1])
-    filtering(c1)
+    filtering(bwa.out.join(reassortment.out[0]).join(reassortment.out[1]))
 
     primers_and_pairs = reassortment.out[1].merge(pairs).map {sampleId, primers, pairs ->
         return [sampleId, tuple(primers, pairs)]}
@@ -79,11 +80,11 @@ workflow{
     picard(bwa.out)
     sort_and_index(masking.out)
     indelQual(sort_and_index.out, ref_genome)
+    lowCov(indelQual.out, ref_genome)
     varScan(indelQual.out, ref_genome)
     freeBayes(indelQual.out, ref_genome)
     lofreq(indelQual.out, ref_genome)
     wgsMetrics(indelQual.out, ref_genome)
-    lowCov(indelQual.out, ref_genome)
     c2 = lowCov.out[1].join(varScan.out).join(freeBayes.out).join(lofreq.out)
     consensus(c2)
     nextclade(detect_subtype.out[1], consensus.out[1])

@@ -3,7 +3,7 @@ params.memory = 2024
 params.quality_initial = 5
 params.length = 90
 params.max_number_for_SV = 200000
-params.max_depth = 600 
+params.max_depth = 600
 params.min_cov = 20
 params.mask = 20
 params.quality_snp = 15
@@ -46,7 +46,7 @@ include { filtering } from "${params.modules}/sarscov2/filtering.nf"
 include { masking } from "${params.modules}/common/masking.nf"
 include { merging } from "${params.modules}/sarscov2/merging.nf"
 include { picard } from "${params.modules}/common/picard.nf"
-include { manta } from "${params.modules}/sarscov2/manta.nf"
+include { manta } from "${params.modules}/common/manta.nf"
 include { indelQual } from "${params.modules}/common/indelQual.nf"
 include { wgsMetrics } from "${params.modules}/common/wgsMetrics.nf"
 include { lowCov } from "${params.modules}/common/lowCov.nf"
@@ -55,7 +55,6 @@ include { freeBayes } from "${params.modules}/common/freeBayes.nf"
 include { lofreq } from "${params.modules}/common/lofreq.nf"
 include { consensus } from "${params.modules}/common/consensus.nf"
 include { vcf_for_fasta } from "${params.modules}/sarscov2/vcf_for_fasta.nf"
-include { consensusMasking } from "${params.modules}/sarscov2/consensusMasking.nf"
 include { snpEff } from "${params.modules}/sarscov2/snpEff.nf"
 include { simpleStats } from "${params.modules}/sarscov2/simpleStats.nf"
 include { nextclade } from "${params.modules}/sarscov2/nextclade.nf"
@@ -96,26 +95,24 @@ workflow{
     fastqc_1(reads, "initialfastq")
     kraken2(reads)
     trimmomatic(reads, adapters)
-    j = trimmomatic.out[0].join(ref_genome_with_index)
-    bwa(j)
-    dehumanization(bwa.out, trimmomatic.out[1])
     fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
+    bwa(trimmomatic.out[0].join(ref_genome_with_index))
+    dehumanization(bwa.out, trimmomatic.out[1])
     filtering(bwa.out, primers)
     masking(filtering.out[0], primers_and_pairs)
     c1 = filtering.out[1].join(masking.out)
     merging(c1)
     picard(bwa.out)
     indelQual(merging.out, ref_genome)
-    wgsMetrics(indelQual.out, ref_genome)
     lowCov(indelQual.out, ref_genome)
     varScan(indelQual.out, ref_genome)
     freeBayes(indelQual.out, ref_genome)
     lofreq(indelQual.out, ref_genome_with_index)
+    wgsMetrics(indelQual.out, ref_genome)
     c2 = lowCov.out[1].join(varScan.out).join(freeBayes.out).join(lofreq.out)
     consensus(c2)
     vcf_for_fasta(consensus.out[0], ref_genome, vcf_template)
-    consensusMasking(consensus.out[0].join(lowCov.out[1]))
-    manta(picard.out.join(consensusMasking.out))
+    manta(picard.out.join(consensus.out[0]))
     nextclade(manta.out)
     modeller(nextclade.out[1], modeller_data)
     pangolin(manta.out)
