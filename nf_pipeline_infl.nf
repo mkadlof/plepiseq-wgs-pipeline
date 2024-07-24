@@ -15,6 +15,7 @@ params.variant = "UNK"
 
 // Specifying location of reads and primers and necessary databases, MUST be selected by a user
 params.threads = 12
+params.kraken2_db_absolute_path_on_host = ""
 
 // adapters, can be set  by a user but there is a default
 params.adapters_id="TruSeq3-PE-2" // To podaje user ale jest default
@@ -26,6 +27,7 @@ params.results_dir = "./results"
 adapters="/home/data/common/adapters/${params.adapters_id}.fa"
 nextalign_db="/home/data/infl/nextalign"
 
+include { kraken2 } from "${params.modules}/common/kraken2.nf"
 include { detect_subtype } from "${params.modules}/infl/detect_subtype.nf"
 include { reassortment } from "${params.modules}/infl/reassortment.nf"
 include { bwa } from "${params.modules}/common/bwa.nf"
@@ -47,6 +49,7 @@ include { nextclade } from "${params.modules}/infl/nextclade.nf"
 include { nextalign } from "${params.modules}/infl/nextalign.nf"
 include { resistance } from "${params.modules}/infl/resistance.nf"
 
+
 workflow{
     // Channels
     reads = Channel.fromFilePairs(params.reads)
@@ -56,6 +59,7 @@ workflow{
 
     // Processes
     fastqc_1(reads, "initialfastq")
+    kraken2(reads)
     trimmomatic(reads, adapters)
     fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
     detect_subtype(reads, genomes)
