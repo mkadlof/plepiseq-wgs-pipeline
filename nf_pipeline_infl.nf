@@ -31,6 +31,7 @@ include { kraken2 } from "${params.modules}/common/kraken2.nf"
 include { detect_subtype } from "${params.modules}/infl/detect_subtype.nf"
 include { reassortment } from "${params.modules}/infl/reassortment.nf"
 include { bwa } from "${params.modules}/common/bwa.nf"
+include { dehumanization } from "${params.modules}/common/dehumanization.nf"
 include { fastqc as fastqc_1 } from "${params.modules}/common/fastqc.nf"
 include { fastqc as fastqc_2 } from "${params.modules}/common/fastqc.nf"
 include { trimmomatic } from "${params.modules}/common/trimmomatic.nf"
@@ -67,6 +68,7 @@ workflow{
     // For convenience we name the output with the hybrid genome as ref_genome
     ref_genome = reassortment.out[0].map{ sampleId, files -> [sampleId, files[0]]}
     bwa(trimmomatic.out[0].join(reassortment.out[0]))
+    dehumanization(bwa.out, trimmomatic.out[1])
     c1 = bwa.out.join(reassortment.out[0]).join(reassortment.out[1])
     filtering(c1)
 
