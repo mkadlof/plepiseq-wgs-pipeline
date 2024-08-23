@@ -12,7 +12,7 @@ process manta {
     script:
     """
     GENOME_ID="MN908947.3"
-    GENOME_FASTA="/home/data/sarscov2/genome/sarscov2.fasta"
+    GENOME_FASTA="/SARS-CoV2/genome/sarscov2.fasta"
     ILE_ODCZYTOW=`samtools view ${bam_file} | wc -l`
     if [  \${ILE_ODCZYTOW} -lt 1000 ]; then
         # pusty bam, nie puszczamy manty, po prostu tworzymy kopie plikow z poprawionymi nazwami

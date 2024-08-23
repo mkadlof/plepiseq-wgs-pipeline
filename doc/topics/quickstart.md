@@ -25,8 +25,8 @@ with the actual Modeller key you own. If you don't have one, you can get a free 
 5. Build three containers:
 
 ```bash
-  docker build --target production -f Dockerfile-main -t nf_illumina_sars-3.0-main .
-  docker build --target prodcution -f Dockerfile-manta -t nf_illumina_sars-3.0-manta .
+  docker build --target main -f Dockerfile-main -t nf_illumina_sars-3.0-main .
+  docker build --target manta -f Dockerfile-manta -t nf_illumina_sars-3.0-manta .
   docker build --target updater -f Dockerfile-main -t nf_illumina_sars-3.0-updater:latest .
 ```
 
