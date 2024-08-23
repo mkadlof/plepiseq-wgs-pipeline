@@ -86,8 +86,9 @@ COPY --from=builder-bcftools /opt/docker/bcftools /opt/docker/bcftools
 COPY --from=builder-samtools /opt/docker/samtools /opt/docker/samtools
 COPY --from=builder-python-packages /usr/lib64/python2.7/site-packages /usr/lib64/python2.7/site-packages/
 COPY data/sarscov2/genome/ /home/data/sarscov2/genome
+COPY bin /home/bin
 
-ENV PATH="/opt/docker/manta/bin:/opt/docker/htslib/bin:/opt/docker/bcftools/bin:/opt/docker/samtools/bin:$PATH"
+ENV PATH="/home/bin/common:/home/bin/sarscov2:/home/bin/infl:/opt/docker/manta/bin:/opt/docker/htslib/bin:/opt/docker/bcftools/bin:/opt/docker/samtools/bin:$PATH"
 ENV LD_LIBRARY_PATH="/opt/docker/manta/lib:/opt/docker/htslib/lib:/opt/docker/bcftools/lib:/opt/docker/samtools/lib:$LD_LIBRARY_PATH"
 ENV GENOME_ID="MN908947.3"
 ENV GENOME_FASTA="/home/data/sarscov2/genome/sarscov2.fasta"
