@@ -11,6 +11,8 @@ process manta {
 
     script:
     """
+    GENOME_ID="MN908947.3"
+    GENOME_FASTA="/home/data/sarscov2/genome/sarscov2.fasta"
     ILE_ODCZYTOW=`samtools view ${bam_file} | wc -l`
     if [  \${ILE_ODCZYTOW} -lt 1000 ]; then
         # pusty bam, nie puszczamy manty, po prostu tworzymy kopie plikow z poprawionymi nazwami
@@ -33,7 +35,7 @@ process manta {
 
             if [ \${ILE_SV} -gt 0 ]; then
                 cat \${GENOME_FASTA} | bcftools consensus -s - manta_results.vcf.gz  > output_manta.fa
-                insert_SV_python2.py ${consensus_masked_fasta} output_manta.fa output_consensus_masked_SV.fa
+                sarscov2/insert_SV_python2.py ${consensus_masked_fasta} output_manta.fa output_consensus_masked_SV.fa
             else
                 HEADER=`head -1 ${consensus_masked_fasta}`
                 NEW_HEADER=`echo -e "\${HEADER}_SV"`
