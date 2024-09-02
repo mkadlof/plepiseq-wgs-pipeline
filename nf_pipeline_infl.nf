@@ -56,8 +56,8 @@ include { resistance } from "${params.modules}/infl/resistance.nf"
 workflow{
     // Channels
     reads = Channel.fromFilePairs(params.reads)
-    genomes = Channel.fromPath("${projectDir}/data/infl/genomes/")
-    primers = Channel.fromPath("${projectDir}/data/infl/primers/")
+    genomes = Channel.fromPath("${projectDir}/data/infl/genomes/").first()
+    primers = Channel.fromPath("${projectDir}/data/infl/primers/").first()
     pairs = Channel.fromPath("${projectDir}/data/infl/primers/pairs.tsv").first()
 
     // Processes
@@ -79,12 +79,12 @@ workflow{
     masking(filtering.out, primers_and_pairs)
     picard(bwa.out)
     sort_and_index(masking.out)
-    indelQual(sort_and_index.out, ref_genome)
-    lowCov(indelQual.out, ref_genome)
-    varScan(indelQual.out, ref_genome)
-    freeBayes(indelQual.out, ref_genome)
-    lofreq(indelQual.out, ref_genome)
-    wgsMetrics(indelQual.out, ref_genome)
+    indelQual(sort_and_index.out.join(ref_genome))
+    lowCov(indelQual.out.join(ref_genome)) //
+    varScan(indelQual.out.join(ref_genome)) //
+    freeBayes(indelQual.out.join(ref_genome)) //
+    lofreq(indelQual.out.join(ref_genome)) //
+    wgsMetrics(indelQual.out.join(ref_genome)) //
     c2 = lowCov.out[1].join(varScan.out).join(freeBayes.out).join(lofreq.out)
     consensus(c2)
     nextclade(detect_subtype.out[1], consensus.out[1])

@@ -12,6 +12,7 @@ process detect_subtype {
 
     script:
     """
+    echo ${genomes}
     run_bwa() {
         for GENOME in "\${@}"; do
             bwa mem -t ${params.threads} -T 30 ${genomes}/\${GENOME}/\${GENOME}.fasta ${reads[0]} ${reads[1]} | \

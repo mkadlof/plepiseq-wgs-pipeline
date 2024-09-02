@@ -3,8 +3,7 @@ process freeBayes {
     publishDir "${params.results_dir}/${sampleId}/freebayes", mode: 'copy'
 
     input:
-    tuple val(sampleId), path(bam), path(bai)
-    tuple val(sampleId2), path(ref_genome)
+    tuple val(sampleId), path(bam), path(bai), path(ref_genome)
 
     output:
     tuple val(sampleId), path('freebayes.fa')

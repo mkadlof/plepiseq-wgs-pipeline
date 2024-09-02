@@ -3,8 +3,7 @@ process indelQual {
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "forvariants.bam*"
 
     input:
-    tuple val(sampleId), path(bam), path(bai)
-    tuple val(sampleId2), path(ref_genome)
+    tuple val(sampleId), path(bam), path(bai), path(ref_genome)
 
     output:
     tuple val(sampleId), path('forvariants.bam'), path('forvariants.bam.bai')

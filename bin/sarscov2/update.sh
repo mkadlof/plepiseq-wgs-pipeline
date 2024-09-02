@@ -20,6 +20,7 @@ fi
 if [ "$1" == "nextclade" ]
 then
   /opt/nextclade/bin/nextclade dataset get --name sars-cov-2 --output-zip /home/nextclade/sars-cov-2.zip
+  exit $?
 fi
 
 # Update pangolin
@@ -29,12 +30,14 @@ then
       --target pangolin \
       --upgrade \
       git+https://github.com/cov-lineages/pangolin-data.git
+  exit $?
 fi
 
 # Update kraken2
 if [ "$1" == "kraken" ]
 then
   /home/kraken_updater.py standard /home/kraken
+  exit $?
 fi
 
 # Update freyja
@@ -44,4 +47,5 @@ then
   wget https://raw.githubusercontent.com/andersen-lab/Freyja-data/main/lineages.yml
   wget https://raw.githubusercontent.com/andersen-lab/Freyja-data/main/curated_lineages.json
   wget https://github.com/andersen-lab/Freyja-data/raw/main/usher_barcodes.csv
+  exit $?
 fi

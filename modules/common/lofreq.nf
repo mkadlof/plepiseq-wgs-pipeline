@@ -3,8 +3,7 @@ process lofreq {
     publishDir "${params.results_dir}/${sampleId}/lofreq", mode: 'copy'
 
     input:
-    tuple val(sampleId), path(bam), path(bai)
-    tuple val(sampleId2), path(ref_genome_with_index)
+    tuple val(sampleId), path(bam), path(bai), path(ref_genome_with_index)
 
     output:
     tuple val(sampleId), path('lofreq.fa')

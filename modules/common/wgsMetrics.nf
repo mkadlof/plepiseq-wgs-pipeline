@@ -3,8 +3,7 @@ process wgsMetrics {
     publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "picard_statistics.txt"
 
     input:
-    tuple val(sampleId), path(bam), path(bai)
-    tuple val(sampleId2), path(ref_genome)
+    tuple val(sampleId), path(bam), path(bai), path(ref_genome)
 
     output:
     tuple val(sampleId), path('picard_statistics.txt')

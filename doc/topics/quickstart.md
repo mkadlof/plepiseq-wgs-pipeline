@@ -34,7 +34,10 @@ with the actual Modeller key you own. If you don't have one, you can get a free 
 
 In project root dir run:
 ```bash
-  ./update_external_databases.sh
+  ./update_external_databases.sh pangolin
+  ./update_external_databases.sh nextclade
+  ./update_external_databases.sh kraken
+  ./update_external_databases.sh freyja
 ```
 This should fill directories in `data/pangolin` and `data/nextclade`.
 For more details read the chapter [](updates.md).

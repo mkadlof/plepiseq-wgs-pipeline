@@ -2,8 +2,7 @@ process lowCov {
     tag "lowCov:${sampleId}"
 
     input:
-    tuple val(sampleId), path(bam), path(bai)
-    tuple val(sampleId2), path(ref_genome)
+    tuple val(sampleId), path(bam), path(bai), path(ref_genome)
 
     output:
     tuple val(sampleId), path('low_coverage.bed')
