@@ -29,7 +29,7 @@ def list_available_databases(bucket_name: str, prefix: str) -> List[str]:
         return databases
     except Exception as e:
         print(f"Error while listing databases: {e}")
-        return []
+        exit(1)
 
 
 def find_latest_database(databases: List[str], db_name_regexp: re.Pattern) -> str:
@@ -57,6 +57,7 @@ def download_from_s3(bucket_name: str, file_name: str, local_path: str):
         print(f"File downloaded successfully.")
     except Exception as e:
         print(f"Error while downloading file: {e}")
+        exit(1)
 
 
 def main():
@@ -91,6 +92,7 @@ def main():
             print(f"File {local_path} already exists. Skipping download.")
     else:
         print("Database was not found.")
+        exit(1)
 
 
 if __name__ == "__main__":
