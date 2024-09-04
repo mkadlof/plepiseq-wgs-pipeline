@@ -39,7 +39,7 @@ update_freyja() {
 # Function to update a specific database
 update_database() {
     local db_name=$1
-    local db_path="/home/external_databases/${db_name}"
+    local db_path="/home/external_databases"
 
     # Ensure the directory exists
     if [ ! -d "$db_path" ]; then
