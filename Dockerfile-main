@@ -509,11 +509,5 @@ RUN apt update && \
 
 ADD bin/sarscov2/update.sh /home/update.sh
 ADD bin/sarscov2/kraken_updater.py /home/kraken_updater.py
-WORKDIR /home/pangolin
-WORKDIR /home/nextclade
-WORKDIR /home/kraken
-WORKDIR /home/freyja
-RUN chown -R 1000:1000 /home && chmod 777 /home/pangolin /home/nextclade /home/kraken /home/freyja
-
 WORKDIR /home
 ENTRYPOINT ["/home/update.sh"]
