@@ -12,7 +12,8 @@ trace-*.txt
 .python-version
 
 # PyCharm
-.idea/
+.idea/*
+!.idea/runConfigurations
 
 ### Vim ###
 [._]*.s[a-v][a-z]

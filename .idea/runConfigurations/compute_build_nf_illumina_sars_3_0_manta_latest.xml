@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="compute build nf_illumina_sars-3.0-manta:latest" type="docker-deploy" factoryName="dockerfile" folderName="compute" server-name="Docker on compute">
+    <deployment type="dockerfile">
+      <settings>
+        <option name="imageTag" value="nf_illumina_sars-3.0-manta:latest" />
+        <option name="buildCliOptions" value="--target manta --network host" />
+        <option name="buildOnly" value="true" />
+        <option name="containerName" value="" />
+        <option name="showCommandPreview" value="true" />
+        <option name="sourceFilePath" value="Dockerfile-manta" />
+      </settings>
+    </deployment>
+    <method v="2" />
+  </configuration>
+</component>

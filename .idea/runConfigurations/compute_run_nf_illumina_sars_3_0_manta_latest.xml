@@ -1,0 +1,20 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="compute run nf_illumina_sars-3.0-manta:latest" type="docker-deploy" factoryName="docker-image" folderName="compute" server-name="Docker on compute">
+    <deployment type="docker-image">
+      <settings>
+        <option name="imageTag" value="nf_illumina_sars-3.0-manta:latest" />
+        <option name="containerName" value="" />
+        <option name="showCommandPreview" value="true" />
+        <option name="volumeBindings">
+          <list>
+            <DockerVolumeBindingImpl>
+              <option name="containerPath" value="$PROJECT_DIR$/../../../../../work" />
+              <option name="hostPath" value="$PROJECT_DIR$/work" />
+            </DockerVolumeBindingImpl>
+          </list>
+        </option>
+      </settings>
+    </deployment>
+    <method v="2" />
+  </configuration>
+</component>

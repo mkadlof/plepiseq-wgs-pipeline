@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="compute run nf_illumina_sars-3.0-updater:latest" type="docker-deploy" factoryName="docker-image" folderName="compute" server-name="Docker on compute">
+    <deployment type="docker-image">
+      <settings>
+        <option name="imageTag" value="nf_illumina_sars-3.0-updater:latest" />
+        <option name="containerName" value="" />
+        <option name="commandLineOptions" value="-u 1000:1000 --network host" />
+        <option name="showCommandPreview" value="true" />
+      </settings>
+    </deployment>
+    <method v="2" />
+  </configuration>
+</component>
