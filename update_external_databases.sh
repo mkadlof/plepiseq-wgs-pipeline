@@ -62,8 +62,10 @@ if [ ! -w "$PATH_TO_USE" ]; then
     exit 1
 fi
 
+PATH_TO_USE=$(realpath ${PATH_TO_USE})
+
 docker run \
-       --volume $(pwd)/${PATH_TO_USE}:/home/external_databases:rw \
+       --volume ${PATH_TO_USE}:/home/external_databases:rw \
        --user $(id -u):$(id -g) \
        --name nf_illumina_sars-3.0-updating-${1} \
        --rm \
