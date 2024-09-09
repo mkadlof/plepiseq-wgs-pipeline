@@ -81,6 +81,10 @@ workflow{
     // with constant data (like reference genome or primers). This is done to
     // generalize cases where the reference genome may not be identical for
     // each sample (as is the case in the influenza pipeline, for example).
+    ref_genome = ref_genome
+    .combine(reads).map { _, genome, sampleId, reads ->
+        return [sampleId, genome]
+    }
     ref_genome_with_index = ref_genome_with_index
     .combine(reads).map { _, genome_and_index_files, sampleId, reads ->
         return [sampleId, genome_and_index_files]
@@ -89,6 +93,7 @@ workflow{
     .combine(reads).map { _, primers_and_pairs, sampleId, reads ->
         return [sampleId, primers_and_pairs]
     }
+
     primers = primers_and_pairs.map{ sampleId, files -> [sampleId, files[0]] }
 
     // Processes
