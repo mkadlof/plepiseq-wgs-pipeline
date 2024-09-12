@@ -4,7 +4,7 @@ process kraken2 {
     publishDir "${params.results_dir}/${sampleId}/kraken2", mode: 'copy', pattern: "report_kraken2.txt"
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "summary_kraken.txt"
     containerOptions "--volume ${params.kraken2_db_absolute_path_on_host}:/home/external_databases/kraken2"
-    maxForks 5
+    maxForks 4
 
     input:
     tuple val(sampleId), path(reads)
