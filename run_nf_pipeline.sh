@@ -28,7 +28,7 @@ pval=0.05 # -k
 lower_ambig=0.45 # -l
 upper_ambig=0.55 # -n
 window_size=50 # -s
-mapping_quality=30 # -u 
+min_mapq=30 # -u
 
 ## Stage 3. Other parameters with defaults, only some can be set via context menu
 cpu=1 # -t
@@ -144,7 +144,7 @@ while getopts ":r:g:p:a:w:x:y:z:m:o:b:c:j:d:e:f:i:k:l:n:s:u:t:h" flag; do
         l) lower_ambig="${OPTARG}" ;;
         n) upper_ambig="${OPTARG}" ;;
         s) window_size="${OPTARG}" ;;
-        u) mapping_quality="${OPTARG}" ;;
+        u) min_mapq="${OPTARG}" ;;
         t) cpu=${OPTARG} ;;
         h | *) usage
             exit 0
@@ -315,7 +315,7 @@ if [ ${window_size} -lt 10 ]; then
         exit 1
 fi
 
-if [ ${mapping_quality} -lt 1 ]; then
+if [ ${min_mapq} -lt 1 ]; then
         echo -e "Wartość podawana jako parametr do flagi -u musi przyjmować wartości co najmniej 1"
         echo -e "Value provided with -u must be at least 1"
         exit 1
@@ -351,7 +351,7 @@ nextflow run ${project_dir}/nf_pipeline.nf \
     --upper_ambig  ${upper_ambig} \
     --memory ${memory} \
     --window_size ${window_size} \
-    --mapping_quality ${mapping_quality} \
+    --min_mapq ${min_mapq} \
     --threads ${cpu} \
     -with-docker ${container_name} \
     -with-trace
