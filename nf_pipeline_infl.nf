@@ -89,5 +89,5 @@ workflow{
     consensus(c2)
     nextclade(detect_subtype.out[1], consensus.out[1])
     nextalign(detect_subtype.out[1], consensus.out[1], nextalign_db)
-    resistance(detect_subtype.out[1], nextalign.out)
+    resistance(detect_subtype.out[1], nextalign.out[0])
 }

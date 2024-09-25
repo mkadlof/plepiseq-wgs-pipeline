@@ -1,5 +1,6 @@
 process nextalign {
     tag "nextalign:${sampleId}"
+    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "consensus_M2.fasta"
 
     input:
     tuple val(sampleId), env("REF_GENOME_ID_MINI")
@@ -8,6 +9,7 @@ process nextalign {
 
     output:
     tuple val(sampleId), path("nextalign_gene_*.translation.fasta")
+    tuple val(sampleId), path("consensus_M2.fasta")
 
     script:
     """
