@@ -1,5 +1,6 @@
 process reassortment {
     tag "reassortment:${sampleId}"
+    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "hybrid_genome.fasta"
     maxForks 5
 
     input:
