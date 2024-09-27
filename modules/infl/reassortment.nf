@@ -3,7 +3,7 @@ process reassortment {
     maxForks 5
 
     input:
-    tuple val(sampleId), path('subtype_scores_each_segment.txt'), path('subtype_counts_each_segment.txt'), env("REF_GENOME_ID")
+    tuple val(sampleId), path('subtype_counts_each_segment.txt'), path('subtype_scores_each_segment.txt'), env("REF_GENOME_ID")
     path(genomes)
     path(primers)
 

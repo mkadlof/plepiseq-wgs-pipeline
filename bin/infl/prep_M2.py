@@ -37,7 +37,7 @@ def align_fasta(fasta1_file: str, *args, **kwargs):
     alignowano sekwencje
     """
 
-    # Najpierw normalizujemy sciezki  isprawdzamy czy podane plik/pliki istnieja
+    # Najpierw normalizujemy sciezki i sprawdzamy czy podane plik/pliki istnieja
     fasta1_file = [os.path.abspath(fasta1_file)]
     stan1 = os.path.isfile(fasta1_file[0])
     if not stan1:
