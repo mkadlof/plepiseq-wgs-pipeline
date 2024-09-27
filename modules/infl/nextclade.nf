@@ -12,6 +12,15 @@ process nextclade {
 
     script:
     """
+    # === This workaround because nextflow replace glob patterns with numbers ===
+    # It goal is to rename symlinks to their targets names.
+    for link in \$(find . -maxdepth 1 -type l); do
+        target=\$(readlink "\$link")
+        base_target=\$(basename "\$target")
+        mv "\$link" "\$base_target"
+    done
+    # === End of workaround ===
+
     touch nextstrain_lineage_HA.csv
     touch nextclade_lineages_HA
     touch nextstrain_lineage_NA.csv
@@ -22,13 +31,13 @@ process nextclade {
     KNOWN='H1N1 H3N2 Yamagata Victoria'
     if [[ \${KNOWN[@]} =~ \${REF_GENOME_ID_MINI} ]]; then
         nextclade run \
-            --input-dataset /home/external_databases/nextclade_db/infl/\${REF_GENOME_ID_MINI}_HA.zip \
+            --input-dataset /home/external_databases/nextclade_db/\${REF_GENOME_ID_MINI}_HA.zip \
             --output-csv nextstrain_lineage_HA.csv \
             --output-all nextclade_linages_HA \
             consensus_HA.fasta
 
         if [ \${REF_GENOME_ID_MINI} != 'Yamagata' ]; then
-            nextclade run --input-dataset /home/external_databases/nextclade_db/infl/\${REF_GENOME_ID_MINI}_NA.zip \
+            nextclade run --input-dataset /home/external_databases/nextclade_db/\${REF_GENOME_ID_MINI}_NA.zip \
                 --output-csv nextstrain_lineage_NA.csv \
                 --output-all nextclade_linages_NA \
                 consensus_NA.fasta
