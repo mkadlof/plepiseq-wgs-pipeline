@@ -4,8 +4,7 @@ process nextclade {
     containerOptions "--volume ${params.nextclade_db_absolute_path_on_host}:/home/external_databases/nextclade_db"
 
     input:
-    tuple val(sampleId), env("REF_GENOME_ID_MINI")
-    tuple val(sampleId), path("consensus_*.fasta")
+    tuple val(sampleId), env("REF_GENOME_ID_MINI"), path("consensus_*.fasta")
 
     output:
     tuple val(sampleId), path("nextstrain_lineage_HA.csv"), path("nextclade_lineages_HA"), path('nextstrain_lineage_NA.csv'), path("nextclade_lineages_NA")

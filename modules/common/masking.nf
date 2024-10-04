@@ -1,12 +1,11 @@
 process masking {
-    tag "masking:${sampleId1}"
+    tag "masking:${sampleId}"
 
     input:
-    tuple val(sampleId1), path(bam), path(bai)
-    tuple val(sampleId2), path(primers_and_pairs)
+    tuple val(sampleId), path(bam), path(bai), path(primers_and_pairs)
 
     output:
-    tuple val(sampleId1), path('ivar_trimmed_all.bam')
+    tuple val(sampleId), path('ivar_trimmed_all.bam')
 
     script:
     """

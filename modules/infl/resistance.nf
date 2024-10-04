@@ -2,8 +2,7 @@ process resistance {
     tag "resistance:${sampleId}"
 
     input:
-    tuple val(sampleId), env("REF_GENOME_ID_MINI")
-    tuple val(sampleId), path("nextalign_gene_*.translation.fasta")
+    tuple val(sampleId), env("REF_GENOME_ID_MINI"), path("nextalign_gene_*.translation.fasta")
 
     output:
     tuple val(sampleId), path("Mutation_report_*.txt")

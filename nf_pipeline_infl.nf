@@ -70,13 +70,15 @@ workflow{
     // For convenience we name the output with the hybrid genome as ref_genome
     ref_genome = reassortment.out[0].map{ sampleId, files -> [sampleId, files[0]]}
     bwa(trimmomatic.out[0].join(reassortment.out[0]))
-    dehumanization(bwa.out, trimmomatic.out[1])
+    c1 = bwa.out.join(trimmomatic.out[1])
+    dehumanization(c1)
     filtering(bwa.out.join(reassortment.out[0]).join(reassortment.out[1]))
 
     primers_and_pairs = reassortment.out[1].merge(pairs).map {sampleId, primers, pairs ->
         return [sampleId, tuple(primers, pairs)]}
 
-    masking(filtering.out, primers_and_pairs)
+    c2 = filtering.out.join(primers_and_pairs)
+    masking(c2)
     picard(bwa.out)
     sort_and_index(masking.out)
     indelQual(sort_and_index.out.join(ref_genome))
@@ -85,9 +87,11 @@ workflow{
     freeBayes(indelQual.out.join(ref_genome)) //
     lofreq(indelQual.out.join(ref_genome)) //
     wgsMetrics(indelQual.out.join(ref_genome)) //
-    c2 = lowCov.out[1].join(varScan.out).join(freeBayes.out).join(lofreq.out)
-    consensus(c2)
-    nextclade(detect_subtype.out[1], consensus.out[1])
+    c3 = lowCov.out[1].join(varScan.out).join(freeBayes.out).join(lofreq.out)
+    consensus(c3)
+    c4 = detect_subtype.out[1].join(consensus.out[1])
+    nextclade(c4)
     nextalign(detect_subtype.out[1], consensus.out[1], nextalign_db)
-    resistance(detect_subtype.out[1], nextalign.out[0])
+    c5 = detect_subtype.out[1].join(nextalign.out[0])
+    resistance(c5)
 }

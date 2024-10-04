@@ -3,8 +3,7 @@ process dehumanization  {
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy'
 
     input:
-    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai')
-    tuple val(sampleId), path(reads)
+    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), path(reads)
 
     output:
     tuple val(sampleId), path('forward_paired_nohuman.fq.gz'), path('reverse_paired_nohuman.fq.gz')
