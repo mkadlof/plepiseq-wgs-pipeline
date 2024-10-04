@@ -60,6 +60,7 @@ include { simpleStats } from "${params.modules}/sarscov2/simpleStats.nf"
 include { nextclade } from "${params.modules}/sarscov2/nextclade.nf"
 include { pangolin } from "${params.modules}/sarscov2/pangolin.nf"
 include { modeller } from "${params.modules}/sarscov2/modeller.nf"
+include { json_aggregator } from "${params.modules}/common/json_aggregator.nf"
 
 // Coinfection line
 include { freyja } from "${params.modules}/sarscov2/freyja.nf"
@@ -96,6 +97,11 @@ workflow{
 
     primers = primers_and_pairs.map{ sampleId, files -> [sampleId, files[0]] }
 
+    // The following two variables are used exclusively to include pipeline version information in the resulting output.json file.
+    def repo_path = workflow.projectDir
+    version = Channel.value("git -C ${repo_path} rev-parse HEAD".execute().text.trim().substring(0, 7))
+    pathogen = Channel.value('sars2')
+
     // Processes
     fastqc_1(reads, "initialfastq")
     kraken2(reads)
@@ -131,4 +137,5 @@ workflow{
     freyja(coinfection_ivar.out[0], ref_genome)
     coinfection_varscan(coinfection_ivar.out[1])
     coinfection_analysis(coinfection_varscan.out, coinfections)
+    json_aggregator(pathogen, version)
 }
