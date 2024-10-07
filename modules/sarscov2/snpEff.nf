@@ -3,8 +3,7 @@ process snpEff {
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "detected_variants_consensus_annotated.txt"
 
     input:
-    tuple val(sampleId), path(consensus_vcf_gz), path(consensus_vcf_gz_tbi), path('forvariants.bam'), path('forvariants.bam.bai')
-    tuple val(sampleId2), path(ref_genome)
+    tuple val(sampleId), path(consensus_vcf_gz), path(consensus_vcf_gz_tbi), path('forvariants.bam'), path('forvariants.bam.bai'), path(ref_genome)
 
     output:
     tuple val(sampleId), path('detected_variants_consensus_annotated.vcf.gz'), path('detected_variants_consensus_annotated.txt')

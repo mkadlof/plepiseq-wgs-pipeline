@@ -2,8 +2,7 @@ process filtering {
     tag "filtering:${sampleId}"
 
     input:
-    tuple val(sampleId), path(bam), path(bai)
-    tuple val(sampleId2), path(primers)
+    tuple val(sampleId), path(bam), path(bai), path(primers)
 
     output:
     tuple val(sampleId), path('first_pass_sorted.bam'), path('first_pass_sorted.bam.bai') 

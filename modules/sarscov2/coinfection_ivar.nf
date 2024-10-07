@@ -2,9 +2,7 @@ process coinfection_ivar {
     tag "coinfection_ivar:${sampleId}"
 
     input:
-    tuple val(sampleId), path(mapped_reads), path(mapped_reads_bai)
-    tuple val(sampleId2), path(ref_genome)
-    tuple val(sampleId3), path(primers)
+    tuple val(sampleId), path(mapped_reads), path(mapped_reads_bai), path(ref_genome), path(primers)
 
     output:
     tuple val(sampleId), path('for_contamination_sorted.bam'), path('for_contamination_sorted.bam.bai')

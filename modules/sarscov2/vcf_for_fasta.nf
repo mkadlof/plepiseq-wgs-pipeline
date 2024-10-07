@@ -3,8 +3,7 @@ process vcf_for_fasta {
     publishDir "${params.results_dir}/${sampleId}/consensus_vcf", mode: 'copy', pattern: "*vcf*"
 
     input:
-    tuple val(sampleId), path("consensus.fa")
-    tuple val(sampleId2), path(ref_genome)
+    tuple val(sampleId), path("consensus.fa"), path(ref_genome)
     path(vcf_template)
 
     output:

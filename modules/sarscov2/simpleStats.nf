@@ -3,8 +3,7 @@ process simpleStats {
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "primers_poor*"
 
     input:
-    tuple val(sampleId), path(consensus_masked_fa), path(picard_statistics_txt)
-    tuple val(sampleId2), path(primers)
+    tuple val(sampleId), path(consensus_masked_fa), path(picard_statistics_txt), path(primers)
 
     output:
     tuple val(sampleId), path('consensus_masked_N_summary.txt'), path('picard_summary.txt'), path('primers_poor_stretch.txt'), path('primers_poor.txt')

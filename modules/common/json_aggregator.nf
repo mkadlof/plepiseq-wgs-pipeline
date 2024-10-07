@@ -1,9 +1,11 @@
 process json_aggregator {
     tag "json_aggregator:${sampleId}"
+    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "output.json"
 
     input:
     val pathogen
     val pipeline_version
+    tuple val(sampleId), path(reads)
 
      output:
      file('output.json')

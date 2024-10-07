@@ -4,8 +4,7 @@ process freyja {
     containerOptions "--volume ${params.freyja_db_absolute_path_on_host}:/home/external_databases/freyja"
 
     input:
-    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai')
-    tuple val(sampleId2), path(ref_genome)
+    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), path(ref_genome)
 
     output:
     tuple val(sampleId), path('coinfections.tsv')
