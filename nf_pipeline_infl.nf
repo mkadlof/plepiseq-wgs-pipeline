@@ -51,6 +51,7 @@ include { consensus } from "${params.modules}/common/consensus.nf"
 include { nextclade } from "${params.modules}/infl/nextclade.nf"
 include { nextalign } from "${params.modules}/infl/nextalign.nf"
 include { resistance } from "${params.modules}/infl/resistance.nf"
+include { json_aggregator } from "${params.modules}/common/json_aggregator.nf"
 
 
 workflow{
@@ -59,6 +60,11 @@ workflow{
     genomes = Channel.fromPath("${projectDir}/data/infl/genomes/").first()
     primers = Channel.fromPath("${projectDir}/data/infl/primers/").first()
     pairs = Channel.fromPath("${projectDir}/data/infl/primers/pairs.tsv").first()
+
+    // The following two variables are used exclusively to include pipeline version information in the resulting output.json file.
+    def repo_path = workflow.projectDir
+    version = Channel.value("git -C ${repo_path} rev-parse HEAD".execute().text.trim().substring(0, 7))
+    pathogen = Channel.value('sars2')
 
     // Processes
     fastqc_1(reads, "initialfastq")
@@ -94,4 +100,5 @@ workflow{
     nextalign(detect_subtype.out[1], consensus.out[1], nextalign_db)
     c5 = detect_subtype.out[1].join(nextalign.out[0])
     resistance(c5)
+    json_aggregator(pathogen, version, reads)
 }
