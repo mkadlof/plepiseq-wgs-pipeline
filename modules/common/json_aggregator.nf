@@ -7,8 +7,8 @@ process json_aggregator {
     val pipeline_version
     tuple val(sampleId), path(reads)
 
-     output:
-     file('output.json')
+    output:
+    file('output.json')
 
     script:
     """
@@ -17,10 +17,13 @@ process json_aggregator {
     python -c '
 import json
 import sys
+import datetime
 
 output = {"output": {}}
-output["pipeline_version"] = "${pipeline_version}"
-output["pathogen"] = "${pathogen}"
+output["output"]["pipeline_version"] = "${pipeline_version}"
+output["output"]["pathogen"] = "${pathogen}"
+output["output"]["sampleId"] = "${sampleId}"
+output["output"]["created_timestamp"] = datetime.datetime.now().isoformat()
 
 with open("output.json", "w") as f:
     json.dump(output, f, indent=4)
