@@ -1,5 +1,7 @@
 // Programs parameters can be modified by a shell wrapper
 params.memory = 2024
+params.min_number_of_reads = 0
+params.min_median_quality = 0
 params.quality_initial = 5
 params.length = 90
 params.max_number_for_SV = 200000
@@ -104,18 +106,19 @@ workflow{
 
     // Processes
     fastqc_1(reads, "initialfastq")
-    kraken2(reads)
+    c1 = reads.join(fastqc_1.out[2])
+    kraken2(c1)
     trimmomatic(reads, adapters)
     fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
     bwa(trimmomatic.out[0].join(ref_genome_with_index))
-    c1 = bwa.out.join(trimmomatic.out[1])
-    dehumanization(c1)
-    c2 = bwa.out.join(primers)
-    filtering(c2)
-    c3 = filtering.out[0].join(primers_and_pairs)
-    masking(c3)
-    c4 = filtering.out[1].join(masking.out)
-    merging(c4)
+    c2 = bwa.out.join(trimmomatic.out[1])
+    dehumanization(c2)
+    c3 = bwa.out.join(primers)
+    filtering(c3)
+    c4 = filtering.out[0].join(primers_and_pairs)
+    masking(c4)
+    c5 = filtering.out[1].join(masking.out)
+    merging(c5)
     picard(bwa.out)
     indelQual(merging.out.join(ref_genome))
     lowCov(indelQual.out.join(ref_genome))
@@ -123,24 +126,24 @@ workflow{
     freeBayes(indelQual.out.join(ref_genome))
     lofreq(indelQual.out.join(ref_genome_with_index))
     wgsMetrics(indelQual.out.join(ref_genome))
-    c5= lowCov.out[1].join(varScan.out).join(freeBayes.out).join(lofreq.out)
-    consensus(c5)
-    c6 = consensus.out[0].join(ref_genome)
-    vcf_for_fasta(c6, vcf_template)
+    c6 = lowCov.out[1].join(varScan.out).join(freeBayes.out).join(lofreq.out)
+    consensus(c6)
+    c7 = consensus.out[0].join(ref_genome)
+    vcf_for_fasta(c7, vcf_template)
     manta(picard.out.join(consensus.out[0]))
     nextclade(manta.out)
     modeller(nextclade.out[1], modeller_data)
     pangolin(manta.out)
-    c7 = vcf_for_fasta.out.join(indelQual.out).join(ref_genome)
-    snpEff(c7)
-    c8 = manta.out.join(wgsMetrics.out).join(primers)
-    simpleStats(c8)
+    c8 = vcf_for_fasta.out.join(indelQual.out).join(ref_genome)
+    snpEff(c8)
+    c9 = manta.out.join(wgsMetrics.out).join(primers)
+    simpleStats(c9)
 
     // Coinfection line
-    c9 = bwa.out.join(ref_genome).join(primers)
-    coinfection_ivar(c9)
-    c10 = coinfection_ivar.out[0].join(ref_genome)
-    freyja(c10)
+    c10 = bwa.out.join(ref_genome).join(primers)
+    coinfection_ivar(c10)
+    c11 = coinfection_ivar.out[0].join(ref_genome)
+    freyja(c11)
     coinfection_varscan(coinfection_ivar.out[1])
     coinfection_analysis(coinfection_varscan.out, coinfections)
 

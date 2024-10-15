@@ -1,5 +1,7 @@
 // Programs parameters can be modified by a shell wrapper
 params.memory = 2024
+params.min_number_of_reads = 0
+params.min_median_quality = 0
 params.quality_initial = 5
 params.length = 90
 params.max_number_for_SV = 200000
@@ -10,6 +12,7 @@ params.quality_snp = 15
 params.pval = 0.05
 params.lower_ambig = 0.45
 params.upper_ambig = 0.55
+params.window_size = 100 // TODO: this parameter is to be implemented. Currently there is default in script: simple_filter_illumina_INFL.py
 params.min_mapq = 30
 params.variant = "UNK"
 
@@ -68,7 +71,8 @@ workflow{
 
     // Processes
     fastqc_1(reads, "initialfastq")
-    kraken2(reads)
+    c1 = reads.join(fastqc_1.out[2])
+    kraken2(c1)
     trimmomatic(reads, adapters)
     fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
     detect_subtype(reads, genomes)
@@ -76,15 +80,15 @@ workflow{
     // For convenience we name the output with the hybrid genome as ref_genome
     ref_genome = reassortment.out[0].map{ sampleId, files -> [sampleId, files[0]]}
     bwa(trimmomatic.out[0].join(reassortment.out[0]))
-    c1 = bwa.out.join(trimmomatic.out[1])
-    dehumanization(c1)
+    c2 = bwa.out.join(trimmomatic.out[1])
+    dehumanization(c2)
     filtering(bwa.out.join(reassortment.out[0]).join(reassortment.out[1]))
 
     primers_and_pairs = reassortment.out[1].merge(pairs).map {sampleId, primers, pairs ->
         return [sampleId, tuple(primers, pairs)]}
 
-    c2 = filtering.out.join(primers_and_pairs)
-    masking(c2)
+    c3 = filtering.out.join(primers_and_pairs)
+    masking(c3)
     picard(bwa.out)
     sort_and_index(masking.out)
     indelQual(sort_and_index.out.join(ref_genome))
@@ -93,12 +97,12 @@ workflow{
     freeBayes(indelQual.out.join(ref_genome)) //
     lofreq(indelQual.out.join(ref_genome)) //
     wgsMetrics(indelQual.out.join(ref_genome)) //
-    c3 = lowCov.out[1].join(varScan.out).join(freeBayes.out).join(lofreq.out)
-    consensus(c3)
-    c4 = detect_subtype.out[1].join(consensus.out[1])
-    nextclade(c4)
+    c4 = lowCov.out[1].join(varScan.out).join(freeBayes.out).join(lofreq.out)
+    consensus(c4)
+    c5 = detect_subtype.out[1].join(consensus.out[1])
+    nextclade(c5)
     nextalign(detect_subtype.out[1], consensus.out[1], nextalign_db)
-    c5 = detect_subtype.out[1].join(nextalign.out[0])
-    resistance(c5)
+    c6 = detect_subtype.out[1].join(nextalign.out[0])
+    resistance(c6)
     json_aggregator(pathogen, version, reads)
 }
