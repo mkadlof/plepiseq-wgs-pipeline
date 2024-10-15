@@ -25,6 +25,11 @@ output["output"]["pathogen"] = "${pathogen}"
 output["output"]["sampleId"] = "${sampleId}"
 output["output"]["created_timestamp"] = datetime.datetime.now().isoformat()
 
+output["output"]["dehumanized_fastq_data"] = {}
+output["output"]["viral_classification_data"] = {}
+output["output"]["viral_genome_data"] = {}
+output["output"]["viral_mutation_data"] = {}
+
 with open("output.json", "w") as f:
     json.dump(output, f, indent=4)
 
