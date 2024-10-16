@@ -7,6 +7,7 @@ process wgsMetrics {
 
     output:
     tuple val(sampleId), path('picard_statistics.txt')
+    tuple val(sampleId), path("wgsMetrics.json")
 
     script:
     """
@@ -15,5 +16,7 @@ process wgsMetrics {
                                                    --MINIMUM_MAPPING_QUALITY ${params.min_mapq} \
                                                    --INPUT ${bam} \
                                                    --OUTPUT picard_statistics.txt
+
+    parse_wgsMetrics.py picard_statistics.txt wgsMetrics.json
     """
 }

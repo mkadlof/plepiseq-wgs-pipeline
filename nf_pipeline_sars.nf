@@ -136,7 +136,7 @@ workflow{
     pangolin(manta.out)
     c8 = vcf_for_fasta.out.join(indelQual.out).join(ref_genome)
     snpEff(c8)
-    c9 = manta.out.join(wgsMetrics.out).join(primers)
+    c9 = manta.out.join(wgsMetrics.out[0]).join(primers)
     simpleStats(c9)
 
     // Coinfection line
@@ -147,5 +147,6 @@ workflow{
     coinfection_varscan(coinfection_ivar.out[1])
     coinfection_analysis(coinfection_varscan.out, coinfections)
 
-    json_aggregator(pathogen, version, reads)
+
+    json_aggregator(pathogen, version, wgsMetrics.out[1])
 }

@@ -5,36 +5,14 @@ process json_aggregator {
     input:
     val pathogen
     val pipeline_version
-    tuple val(sampleId), path(reads)
+    tuple val(sampleId), path(wgsMetrics_json)
 
     output:
     file('output.json')
 
     script:
     """
-    echo ${pathogen}
-    echo ${pipeline_version}
-    python -c '
-import json
-import sys
-import datetime
-
-output = {"output": {}}
-output["output"]["pipeline_version"] = "${pipeline_version}"
-output["output"]["pathogen"] = "${pathogen}"
-output["output"]["sampleId"] = "${sampleId}"
-output["output"]["created_timestamp"] = datetime.datetime.now().isoformat()
-
-output["output"]["dehumanized_fastq_data"] = {}
-output["output"]["viral_classification_data"] = {}
-output["output"]["viral_genome_data"] = {}
-output["output"]["viral_mutation_data"] = {}
-
-with open("output.json", "w") as f:
-    json.dump(output, f, indent=4)
-
-# Here will go rest of aggregation
-'
-
+    json_aggregator.py ${pipeline_version} ${pathogen} ${sampleId} \
+                       --wgsMetrics ${wgsMetrics_json}
     """
 }
