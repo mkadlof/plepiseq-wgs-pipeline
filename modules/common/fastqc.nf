@@ -8,9 +8,9 @@ process fastqc {
     val(prefix)
 
     output:
-    tuple val(sampleId), path("*csv"), emit: publishdir // Wykresy, kopiujemy bo json wskazuje do publishdir
-    tuple val(sampleId), path("*json"), emit: json // Sam json do kopiowania w celu zlozenia "ostatecznego jsona"
-    tuple val(sampleId), env(QC_STATUS_EXIT), emit: qcstatus // Sam QC status
+    tuple val(sampleId), path("*csv"),                               emit: publishdir // Wykresy, kopiujemy bo json wskazuje do publishdir
+    tuple val(sampleId), path("forward.json"), path("reverse.json"), emit: json // Sam json do kopiowania w celu zlozenia "ostatecznego jsona"
+    tuple val(sampleId), env(QC_STATUS_EXIT),                        emit: qcstatus // Sam QC status
 
     script:
     if (QC_STATUS == null) { QC_STATUS="tak" } // Domyslna wartosc w przypadku gdy user nie poda QC status
