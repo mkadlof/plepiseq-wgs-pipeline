@@ -10,7 +10,7 @@ def json_aggregator(args):
     output["output"]["pipeline_version"] = args.version
     output["output"]["pathogen"] = args.pathogen
     output["output"]["sampleId"] = args.sampleId
-    output["output"]["created_timestamp"] = datetime.datetime.now().isoformat()
+    output["output"]["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
     output["output"]["dehumanized_fastq_data"] = {}
     output["output"]["viral_classification_data"] = {}
@@ -23,6 +23,20 @@ def json_aggregator(args):
     if output["output"]["pathogen"] == "sars2":
         output["output"]["sars_data"] = {}
 
+    with open(args.wgsMetrics) as f:
+        wgsMetrics = json.load(f)
+        average_coverage_value = wgsMetrics["average_coverage_value"]
+        output["output"]["viral_genome_data"]["average_coverage_value"] = average_coverage_value
+
+    output["output"]["viral_genome_data"]["coverage_barplot_data"] = []
+    with open(args.segment_bedgraphs_files) as f:
+        lines = f.readlines()
+        for line in lines:
+            # filename example: segment_MN908947.3.bedgraph
+            segment_name = line.split("_")[1].split(".")[0]
+            data_file_path = args.publish_dir + "/" + line.strip()
+            output["output"]["viral_genome_data"]["coverage_barplot_data"].append({"segment_name": segment_name, "data_file_path": data_file_path})
+
     with open("output.json", "w") as f:
         json.dump(output, f, indent=4)
 
@@ -32,7 +46,9 @@ def main():
     parser.add_argument('version', help="Pipeline version")
     parser.add_argument('pathogen', help="Pathogen")
     parser.add_argument('sampleId', help="Sample ID")
+    parser.add_argument('publish_dir', help="Publish directory")
     parser.add_argument('--wgsMetrics', help="WGS metrics file")
+    parser.add_argument('--segment_bedgraphs_files', help="Segment bedgraphs files")
     args = parser.parse_args()
 
     json_aggregator(args)
