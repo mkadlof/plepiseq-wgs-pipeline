@@ -23,6 +23,7 @@ def json_aggregator(args):
     if output["output"]["pathogen"] == "sars2":
         output["output"]["sars_data"] = {}
 
+    # viral_genome_data
     with open(args.wgsMetrics) as f:
         wgsMetrics = json.load(f)
         average_coverage_value = wgsMetrics["average_coverage_value"]
@@ -38,6 +39,11 @@ def json_aggregator(args):
             output["output"]["viral_genome_data"]["coverage_barplot_data"].append({"segment_name": segment_name, "data_file_path": data_file_path})
     output["output"]["viral_genome_data"]["coverage_histogram_data"] = args.publish_dir + "/" + "coverage_histogram_data.tsv"
 
+    with open(args.consensus) as f:
+        consensus = json.load(f)
+        output["output"]["viral_genome_data"]['total_length_value'] = consensus['total_length_value']
+        output["output"]["viral_genome_data"]['number_of_Ns_value'] = consensus['number_of_Ns_value']
+
     with open("output.json", "w") as f:
         json.dump(output, f, indent=4)
 
@@ -50,6 +56,7 @@ def main():
     parser.add_argument('publish_dir', help="Publish directory")
     parser.add_argument('--wgsMetrics', help="WGS metrics file")
     parser.add_argument('--segment_bedgraphs_files', help="Segment bedgraphs files")
+    parser.add_argument('--consensus', help="JSON from consensus module")
     args = parser.parse_args()
 
     json_aggregator(args)
