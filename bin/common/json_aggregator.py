@@ -36,6 +36,7 @@ def json_aggregator(args):
             segment_name = line.split("_")[1].split(".")[0]
             data_file_path = args.publish_dir + "/" + line.strip()
             output["output"]["viral_genome_data"]["coverage_barplot_data"].append({"segment_name": segment_name, "data_file_path": data_file_path})
+    output["output"]["viral_genome_data"]["coverage_histogram_data"] = args.publish_dir + "/" + "coverage_histogram_data.tsv"
 
     with open("output.json", "w") as f:
         json.dump(output, f, indent=4)

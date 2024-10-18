@@ -2,6 +2,7 @@ process wgsMetrics {
     tag "wgsMetrics:${sampleId}"
     publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "picard_statistics.txt"
     publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "segment_*.bedgraph"
+    publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "coverage_histogram_data.tsv"
 
     input:
     tuple val(sampleId), path(bam), path(bai), path(ref_genome)
