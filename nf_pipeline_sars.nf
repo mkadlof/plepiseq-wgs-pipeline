@@ -147,6 +147,6 @@ workflow{
     coinfection_varscan(coinfection_ivar.out[1])
     coinfection_analysis(coinfection_varscan.out, coinfections)
 
-
-    json_aggregator(pathogen, version, wgsMetrics.out[1])
+    c12 = wgsMetrics.out[1].join(consensus.out[2])
+    json_aggregator(pathogen, version, c12)
 }
