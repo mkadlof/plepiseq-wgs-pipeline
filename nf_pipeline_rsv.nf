@@ -69,12 +69,18 @@ println("module to ${modules}")
 
 include { kraken2_illumina } from "${modules}/common/kraken2.nf"
 include { kraken2_nanopore } from "${modules}/common/kraken2.nf"
+
 // include { bwa } from "${params.modules}/common/bwa.nf"
 // include { dehumanization } from "${params.modules}/common/dehumanization.nf"
+
 include { fastqc as fastqc_1 } from "${modules}/common/fastqc.nf"
 include { run_fastqc_nanopore as run_fastqc_nanopore_1 } from "${modules}/common/fastqc_nanopore.nf"
-// include { fastqc as fastqc_2 } from "${params.modules}/common/fastqc.nf"
+include { fastqc as fastqc_2 } from "${modules}/common/fastqc.nf"
+
 include { trimmomatic } from "${modules}/common/trimmomatic.nf"
+
+include { detect_type_illumina } from "${modules}/rsv/detect_type.nf"
+
 // include { filtering } from "${params.modules}/sarscov2/filtering.nf"
 // include { masking } from "${params.modules}/common/masking.nf"
 // include { merging } from "${params.modules}/sarscov2/merging.nf"
@@ -115,6 +121,13 @@ if(params.machine == 'Illumina') {
   reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
   kraken2_out = kraken2_illumina(reads_and_qc, "Orthopneumovirus") // Extra input is the name of the expected genus for this species
   trimmomatic_out = trimmomatic(reads.join(kraken2_out.qcstatus_only, by:0))
+  fastqc_filtered_out = fastqc_2(trimmomatic_out.proper_reads_and_qc, "post-filtering")
+  
+  final_reads_and_final_qc = trimmomatic_out.proper_reads.join(fastqc_filtered_out.qcstatus, by:0)
+  
+  // This module will detect RSV type and provide genome files, primers and pairs 
+  detect_type_illumina_out = detect_type_illumina(final_reads_and_final_qc)
+  reads_and_type = trimmomatic_out.proper_reads.join(detect_type_illumina_out.all, by:0)
 
 } else if (params.machine == 'Nanopore') {
   Channel

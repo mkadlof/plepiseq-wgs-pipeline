@@ -6,7 +6,8 @@ process trimmomatic {
     tuple val(sampleId), path(reads), val(QC_status)
 
     output:
-    tuple val(sampleId), path('*_paired.fastq.gz'), val(QC_status), emit: proper_reads
+    tuple val(sampleId), path('*_paired.fastq.gz'), val(QC_status), emit: proper_reads_and_qc
+    tuple val(sampleId), path('*_paired.fastq.gz'), emit: proper_reads
     tuple val(sampleId), path('*_paired.fastq.gz'), path('*_unpaired.fastq.gz'), val(QC_status), emit: all_reads
 
     script:
