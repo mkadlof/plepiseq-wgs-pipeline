@@ -74,7 +74,7 @@ include { kraken2_nanopore } from "${modules}/common/kraken2.nf"
 include { fastqc as fastqc_1 } from "${modules}/common/fastqc.nf"
 include { run_fastqc_nanopore as run_fastqc_nanopore_1 } from "${modules}/common/fastqc_nanopore.nf"
 // include { fastqc as fastqc_2 } from "${params.modules}/common/fastqc.nf"
-// include { trimmomatic } from "${params.modules}/common/trimmomatic.nf"
+include { trimmomatic } from "${modules}/common/trimmomatic.nf"
 // include { filtering } from "${params.modules}/sarscov2/filtering.nf"
 // include { masking } from "${params.modules}/common/masking.nf"
 // include { merging } from "${params.modules}/sarscov2/merging.nf"
@@ -114,6 +114,8 @@ if(params.machine == 'Illumina') {
   // Running kraken2 prediction
   reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
   kraken2_out = kraken2_illumina(reads_and_qc, "Orthopneumovirus") // Extra input is the name of the expected genus for this species
+  trimmomatic_out = trimmomatic(reads.join(kraken2_out.qcstatus_only, by:0))
+
 } else if (params.machine == 'Nanopore') {
   Channel
   .fromPath(params.reads)
