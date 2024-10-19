@@ -12,6 +12,7 @@ params.threads = 5
 // For now machine-specifing parameters are mostly identical
 if ( params.machine  == 'Illumina' ) {
 params.min_number_of_reads = 0
+params.expected_genus_value = 5
 params.min_median_quality = 0
 params.quality_initial = 5
 params.length = 90
@@ -28,8 +29,9 @@ params.min_mapq = 30
 } else if (params.machine  == 'Nanopore') {
 params.model_medaka = "r941_min_hac_g507" // Flow cell v9.4.1
 params.min_number_of_reads = 0
+params.expected_genus_value = 5
 params.min_median_quality = 0
-params.quality_initial = 5
+params.quality_initial = 2 // We are extreamly liberal for nanopore 
 params.length = 90
 params.max_number_for_SV = 200000
 params.max_depth = 600
@@ -65,7 +67,8 @@ println("module to ${modules}")
 // adapters="/home/data/common/adapters/${params.adapters_id}.fa"
 // params.ref_genome_id="MN908947.3"
 
-// include { kraken2 } from "${params.modules}/common/kraken2.nf"
+include { kraken2_illumina } from "${modules}/common/kraken2.nf"
+include { kraken2_nanopore } from "${modules}/common/kraken2.nf"
 // include { bwa } from "${params.modules}/common/bwa.nf"
 // include { dehumanization } from "${params.modules}/common/dehumanization.nf"
 include { fastqc as fastqc_1 } from "${modules}/common/fastqc.nf"
@@ -105,14 +108,22 @@ if(params.machine == 'Illumina') {
   Channel
     .fromFilePairs(params.reads)
     .set {reads}
+  // Initail fastqc
   fastqc_initial_out = fastqc_1(reads, "pre-filtering")
 
+  // Running kraken2 prediction
+  reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
+  kraken2_out = kraken2_illumina(reads_and_qc, "Orthopneumovirus") // Extra input is the name of the expected genus for this species
 } else if (params.machine == 'Nanopore') {
   Channel
   .fromPath(params.reads)
   .map {it -> tuple(it.getName().split("\\.")[0], it)}
   .set {reads}
-  run_fastqc_nanopore_1_out = run_fastqc_nanopore_1(reads, "pre-filtering")
+ 
+  fastqc_initial_out = run_fastqc_nanopore_1(reads, "pre-filtering")
+ 
+  reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
+  kraken2_out = kraken2_nanopore(reads_and_qc, "Orthopneumovirus")
 }
 
     // Channels
