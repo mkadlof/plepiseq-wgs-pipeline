@@ -71,6 +71,7 @@ include { kraken2_illumina } from "${modules}/common/kraken2.nf"
 include { kraken2_nanopore } from "${modules}/common/kraken2.nf"
 
 include { bwa } from "${modules}/common/bwa.nf"
+include { minimap2 } from "${modules}/common/minimap2.nf"
 // include { dehumanization } from "${params.modules}/common/dehumanization.nf"
 
 include { fastqc as fastqc_1 } from "${modules}/common/fastqc.nf"
@@ -80,6 +81,7 @@ include { fastqc as fastqc_2 } from "${modules}/common/fastqc.nf"
 include { trimmomatic } from "${modules}/common/trimmomatic.nf"
 
 include { detect_type_illumina } from "${modules}/rsv/detect_type.nf"
+include { detect_type_nanopore } from "${modules}/rsv/detect_type.nf"
 
 // include { filtering } from "${params.modules}/sarscov2/filtering.nf"
 // include { masking } from "${params.modules}/common/masking.nf"
@@ -140,6 +142,10 @@ if(params.machine == 'Illumina') {
  
   reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
   kraken2_out = kraken2_nanopore(reads_and_qc, "Orthopneumovirus")
+  final_reads_and_final_qc = reads.join(kraken2_out.qcstatus_only, by:0)
+  detect_type_nanopore_out = detect_type_nanopore(final_reads_and_final_qc)
+  reads_and_genome = reads.join(detect_type_nanopore_out.to_minimap2, by:0)
+  minimap2_out = minimap2(reads_and_genome)
 }
 
     // Channels
