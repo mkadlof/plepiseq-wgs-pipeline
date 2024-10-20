@@ -70,7 +70,7 @@ println("module to ${modules}")
 include { kraken2_illumina } from "${modules}/common/kraken2.nf"
 include { kraken2_nanopore } from "${modules}/common/kraken2.nf"
 
-// include { bwa } from "${params.modules}/common/bwa.nf"
+include { bwa } from "${modules}/common/bwa.nf"
 // include { dehumanization } from "${params.modules}/common/dehumanization.nf"
 
 include { fastqc as fastqc_1 } from "${modules}/common/fastqc.nf"
@@ -127,7 +127,8 @@ if(params.machine == 'Illumina') {
   
   // This module will detect RSV type and provide genome files, primers and pairs 
   detect_type_illumina_out = detect_type_illumina(final_reads_and_final_qc)
-  reads_and_type = trimmomatic_out.proper_reads.join(detect_type_illumina_out.all, by:0)
+  reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
+  bwa_out = bwa(reads_and_genome)
 
 } else if (params.machine == 'Nanopore') {
   Channel

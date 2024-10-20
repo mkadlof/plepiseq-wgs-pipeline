@@ -5,7 +5,8 @@ process detect_type_illumina {
 input:
   tuple val(sampleId), path(reads), val(QC_STATUS)
 output:
-  tuple val(sampleId), path("genome.fasta"), path("primers.bed"), path("pairs.tsv"), env(TYPE), env(REF_GENOME_ID), env(QC_exit), emit: all
+  tuple val(sampleId), path("RSV*"), path("primers.bed"), path("pairs.tsv"), env(TYPE), env(REF_GENOME_ID), env(QC_exit), emit: all
+  tuple val(sampleId), path("RSV*"), env(QC_exit), emit: to_bwa
   tuple val(sampleId), env(TYPE), emit: json
 script:
 """
@@ -16,7 +17,8 @@ if [ ${QC_STATUS} == "nie" ]; then
   TYPE="unk"
   REF_GENOME_ID="unk"
   touch pairs.tsv
-  touch genome.fa
+  touch RSV_dummy.fasta
+  touch RSV_dummy.fasta.amb
   touch primers.bed
 else
   REFERENCE_GENOME_FASTA="/home/data/rsv/genome/RSV/RSV.fasta"
@@ -35,7 +37,8 @@ else
       TYPE="unk"
       REF_GENOME_ID="unk"
       touch pairs.tsv
-      touch genome.fa
+      touch RSV_dummy.fasta
+      touch RSV_dummy.fasta.amb
       touch primers.bed
   elif [[ \${ILE_A} -gt 1000 || \${ILE_B} -gt 1000 ]]; then
     QC_exit="tak"
@@ -43,12 +46,12 @@ else
       TYPE="A"
       cp /home/data/rsv/primers/A/${params.primers_id}/*bed primers.bed
       cp /home/data/rsv/primers/A/${params.primers_id}/*tsv pairs.tsv
-      cp /home/data/rsv/genome/RSV_A/RSV_A.fasta genome.fasta
+      cp /home/data/rsv/genome/RSV_A/RSV* .
     else
       TYPE="B"
       cp /home/data/rsv/primers/B/${params.primers_id}/*bed primers.bed
       cp /home/data/rsv/primers/B/${params.primers_id}/*tsv pairs.tsv
-      cp /home/data/rsv/genome/RSV_B/RSV_B.fasta genome.fasta
+      cp /home/data/rsv/genome/RSV_B/RSV* .
     
     fi
   REF_GENOME_ID=`head -1 genome.fasta | cut -d " " -f1 | tr -d ">"`
