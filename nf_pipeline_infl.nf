@@ -67,7 +67,7 @@ workflow{
     // The following two variables are used exclusively to include pipeline version information in the resulting output.json file.
     def repo_path = workflow.projectDir
     version = Channel.value("git -C ${repo_path} rev-parse HEAD".execute().text.trim().substring(0, 7))
-    pathogen = Channel.value('sars2')
+    pathogen = Channel.value('influenza')
 
     // Processes
     fastqc_1(reads, "initialfastq")
@@ -104,5 +104,7 @@ workflow{
     nextalign(detect_subtype.out[1], consensus.out[1], nextalign_db)
     c6 = detect_subtype.out[1].join(nextalign.out[0])
     resistance(c6)
-    json_aggregator(pathogen, version, reads)
+
+    c7 = wgsMetrics.out[1].join(consensus.out[2])
+    json_aggregator(pathogen, version, c7)
 }

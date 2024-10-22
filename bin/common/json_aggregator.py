@@ -28,13 +28,12 @@ def fill_viral_genome_data(args, output):
             "segment_name": "MN908947.3",
             "data_file_path": args.publish_dir + "/" + "coverage_histogram_data.tsv"
         }]
-    else:
-        if args.pathogen == "sars2":
-            output["output"]["viral_genome_data"][
-                "coverage_histogram_data"] = [{
-                "segment_name": "",
-                "data_file_path": ""  # TODO:
-            }]
+    elif args.pathogen == "influenza":
+        output["output"]["viral_genome_data"][
+            "coverage_histogram_data"] = [{
+            "segment_name": "",
+            "data_file_path": ""  # TODO:
+        }]
         warn(
             "coverage_histogram_data is not implemented for pathogen: " + args.pathogen + ". Fields in output.json are empty.")
     with open(args.consensus) as f:
@@ -48,17 +47,26 @@ def fill_viral_genome_data(args, output):
 
 
 def fill_sars_data(args, output):
-    if output["output"]["pathogen"] == "sars2":
-        output["output"]["sars_data"] = {
-            'coinfection_histogram_file': "",  # TODO
-            'coinfection_message': "",  # TODO
-            'coinfections_status': "nie",  # TODO
-            'freyja_lineage1_abundance': -1,  # TODO
-            'freyja_lineage1_name': "",  # TODO
-            'freyja_lineage2_abundance': -1,  # TODO
-            'freyja_lineage2_name': "",  # TODO
-            'protein_structure_data': []  # TODO
-        }
+    output["output"]["sars_data"] = {
+        'coinfection_histogram_file': "",  # TODO
+        'coinfection_message': "",  # TODO
+        'coinfections_status': "nie",  # TODO
+        'freyja_lineage1_abundance': -1,  # TODO
+        'freyja_lineage1_name': "",  # TODO
+        'freyja_lineage2_abundance': -1,  # TODO
+        'freyja_lineage2_name': "",  # TODO
+        'protein_structure_data': []  # TODO
+    }
+
+
+def fill_infl_data(args, output):
+    output["output"]["infl_data"] = {
+        'resistance_data': [], # TODO
+        'protein_structure_data': [], # TODO
+        'reassortment_data': [], # TODO
+        'subtype_name': "...", # TODO
+        'type_name': "unk", # TODO
+    }
 
 
 def json_aggregator(args):
@@ -78,7 +86,10 @@ def json_aggregator(args):
 
     # fill json sections
     fill_viral_genome_data(args, output)
-    fill_sars_data(args, output)
+    if output["output"]["pathogen"] == "sars2":
+        fill_sars_data(args, output)
+    elif output["output"]["pathogen"] == "influenza":
+        fill_infl_data(args, output)
 
     output["output"]["genome_files_data"]['file_data'] = []  # TODO
     output["output"]["genome_files_data"]['status'] = "tak"  # TODO
