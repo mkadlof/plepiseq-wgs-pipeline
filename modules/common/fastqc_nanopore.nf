@@ -24,7 +24,7 @@ process run_fastqc_nanopore {
     ERROR_MSG=""
   fi
  
-  DANE_FORWARD=(`run_fastqc_and_generate_json.py -i ${reads} -m ${params.memory} -c ${params.threads} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e $prefix -p "${params.results_dir}/${sampleId}/QC" -o forward.json`)
+  DANE_FORWARD=(`run_fastqc_and_generate_json.py -i ${reads} -m ${params.memory} -c ${params.threads} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e ${prefix} -p "${params.results_dir}/${sampleId}/QC" -o forward.json`)
   STATUS_FORWARD="\${DANE_FORWARD[0]}"
   TOTAL_BASES="\${DANE_FORWARD[1]}"
 
