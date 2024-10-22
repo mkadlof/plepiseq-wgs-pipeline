@@ -72,7 +72,8 @@ include { kraken2_nanopore } from "${modules}/common/kraken2.nf"
 
 include { bwa } from "${modules}/common/bwa.nf"
 include { minimap2 } from "${modules}/common/minimap2.nf"
-// include { dehumanization } from "${params.modules}/common/dehumanization.nf"
+include { dehumanization_illumina } from "${modules}/common/dehumanization.nf"
+include { dehumanization_nanopore } from "${modules}/common/dehumanization.nf"
 
 include { fastqc as fastqc_1 } from "${modules}/common/fastqc.nf"
 include { run_fastqc_nanopore as run_fastqc_nanopore_1 } from "${modules}/common/fastqc_nanopore.nf"
@@ -132,6 +133,9 @@ if(params.machine == 'Illumina') {
   reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
   bwa_out = bwa(reads_and_genome)
 
+  // Dehumanization
+  dehumanization_illumina_out = dehumanization_illumina(bwa_out.join(trimmomatic_out.proper_reads, by:0))
+
 } else if (params.machine == 'Nanopore') {
   Channel
   .fromPath(params.reads)
@@ -146,6 +150,9 @@ if(params.machine == 'Illumina') {
   detect_type_nanopore_out = detect_type_nanopore(final_reads_and_final_qc)
   reads_and_genome = reads.join(detect_type_nanopore_out.to_minimap2, by:0)
   minimap2_out = minimap2(reads_and_genome)
+
+  // Dehumanization
+  dehumanization_nanopore_out = dehumanization_nanopore(minimap2_out.join(reads, by:0))
 }
 
     // Channels
