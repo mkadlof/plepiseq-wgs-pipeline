@@ -3,27 +3,35 @@ process consensus {
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "consensus_*.fasta"
 
     input:
-    tuple val(sampleId), path(ref_genome_fa), path(freebayes_fa), path(lofreq_fa), path(varscan_fa)
+    tuple val(sampleId), path(masked_ref_genome_fa), path(varscan_fa), path(freebayes_fa), val(QC_status), path(lofreq_fa)
 
     output:
-    tuple val(sampleId), path("consensus.fasta")
-    tuple val(sampleId), path("consensus_*.fasta")
-    tuple val(sampleId), path("consensus.json")
+    tuple val(sampleId), path("consensus.fasta"), emit: single_fasta
+    tuple val(sampleId), path("consensus_*.fasta"), emit: multiple_fastas
+    tuple val(sampleId), path("consensus.json"), emit: json
 
     script:
     """
-    make_consensus.py ${ref_genome_fa} ${freebayes_fa} ${lofreq_fa} ${varscan_fa}
+    if [ ${QC_status} == "nie" ]; then
+      touch consensus.fasta
+      touch consensus_A.fasta
+      touch consensus.json
 
-    # get the total length and number of Ns in the consensus
+    else
 
-    TOTAL_LENGTH=\$(grep -v '>' consensus.fasta | wc -c)
-    NUMBER_OF_N=\$(grep -v '>' consensus.fasta | grep N -o | wc -l)
+      make_consensus.py ${masked_ref_genome_fa} ${freebayes_fa} ${lofreq_fa} ${varscan_fa}
 
-    cat > consensus.json <<EOF
-    {
+      # get the total length and number of Ns in the consensus
+
+      TOTAL_LENGTH=\$(grep -v '>' consensus.fasta | wc -c)
+      NUMBER_OF_N=\$(grep -v '>' consensus.fasta | grep N -o | wc -l)
+
+      cat > consensus.json <<EOF
+      {
         "total_length_value": \${TOTAL_LENGTH},
         "number_of_Ns_value": \${NUMBER_OF_N}
-    }
-    EOF
+      }
+      EOF
+    fi
     """
 }

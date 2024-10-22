@@ -26,6 +26,7 @@ params.lower_ambig = 0.45
 params.upper_ambig = 0.55
 params.window_size = 50 // Window size in which we equalize the coverage
 params.min_mapq = 30
+params.quality_for_coverage = 10 // Parametr uzywany w modul lowCov
 } else if (params.machine  == 'Nanopore') {
 params.model_medaka = "r941_min_hac_g507" // Flow cell v9.4.1
 params.min_number_of_reads = 0
@@ -43,6 +44,7 @@ params.lower_ambig = 0.45
 params.upper_ambig = 0.55
 params.window_size = 50 // Window size in which we equalize the coverage
 params.min_mapq = 30
+params.quality_for_coverage = 10 // Parametr uzywany w modul lowCov
 } else {
   println("Incorrect sequnecing platform, avalable options are : Illumina and Nanopore")
   System.exit(0)
@@ -94,11 +96,11 @@ include { picard_downsample } from "${modules}/common/picard.nf"
 
 include { indelQual } from "${modules}/common/indelQual.nf"
 // include { wgsMetrics } from "${params.modules}/common/wgsMetrics.nf"
-// include { lowCov } from "${params.modules}/common/lowCov.nf"
-// include { varScan } from "${params.modules}/common/varscan.nf"
-// include { freeBayes } from "${params.modules}/common/freeBayes.nf"
-// include { lofreq } from "${params.modules}/common/lofreq.nf"
-// include { consensus } from "${params.modules}/common/consensus.nf"
+include { lowCov } from "${modules}/common/lowCov.nf"
+include { varScan } from "${modules}/common/varscan.nf"
+include { freeBayes } from "${modules}/common/freeBayes.nf"
+include { lofreq } from "${modules}/common/lofreq.nf"
+include { consensus } from "${modules}/common/consensus.nf"
 // include { vcf_for_fasta } from "${params.modules}/sarscov2/vcf_for_fasta.nf"
 // include { snpEff } from "${params.modules}/sarscov2/snpEff.nf"
 // include { simpleStats } from "${params.modules}/sarscov2/simpleStats.nf"
@@ -150,7 +152,17 @@ if(params.machine == 'Illumina') {
 
   pre_final_bam_and_genome = merging_out.join(detect_type_illumina_out.only_genome, by:0)
   indelQual_out = indelQual(pre_final_bam_and_genome) 
+   
+  freebayes_out = freeBayes(indelQual_out.join(detect_type_illumina_out.only_genome, by:0))
+  lofreq_out = lofreq(indelQual_out.join(detect_type_illumina_out.only_genome, by:0))
+  lowCov_out = lowCov(indelQual_out.join(detect_type_illumina_out.only_genome, by:0)) 
+  varScan_out = varScan(indelQual_out.join(detect_type_illumina_out.only_genome, by:0))
+
+  all_sub_fastas = lowCov_out.fasta.join(varScan_out)
+  all_sub_fastas = all_sub_fastas.join(freebayes_out)
+  all_sub_fastas = all_sub_fastas.join(lofreq_out)
   
+  consensus_out = consensus(all_sub_fastas) 
 
 } else if (params.machine == 'Nanopore') {
   Channel
