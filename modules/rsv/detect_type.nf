@@ -7,6 +7,8 @@ input:
 output:
   tuple val(sampleId), path("RSV*"), path("primers.bed"), path("pairs.tsv"), env(TYPE), env(REF_GENOME_ID), env(QC_exit), emit: all
   tuple val(sampleId), path("RSV*"), env(QC_exit), emit: to_bwa
+  tuple val(sampleId), path("primers.bed"), path("pairs.tsv"), emit: primers_and_pairs
+  tuple val(sampleId), path("genome.fasta"), emit: only_genome // indelqual module requires a variable not a tupple
   tuple val(sampleId), env(TYPE), emit: json
 script:
 """
@@ -20,6 +22,7 @@ if [ ${QC_STATUS} == "nie" ]; then
   touch RSV_dummy.fasta
   touch RSV_dummy.fasta.amb
   touch primers.bed
+  touch genome.fasta
 else
   REFERENCE_GENOME_FASTA="/home/data/rsv/genome/RSV/RSV.fasta"
   bwa mem -t ${params.threads} \
@@ -40,6 +43,7 @@ else
       touch RSV_dummy.fasta
       touch RSV_dummy.fasta.amb
       touch primers.bed
+      touch genome.fasta
   elif [[ \${ILE_A} -gt 1000 || \${ILE_B} -gt 1000 ]]; then
     QC_exit="tak"
     if  [ \${ILE_A} -gt \${ILE_B} ]; then
@@ -47,11 +51,13 @@ else
       cp /home/data/rsv/primers/A/${params.primers_id}/*bed primers.bed
       cp /home/data/rsv/primers/A/${params.primers_id}/*tsv pairs.tsv
       cp /home/data/rsv/genome/RSV_A/RSV* .
+      cp /home/data/rsv/genome/RSV_A/RSV_A.fasta genome.fasta
     else
       TYPE="B"
       cp /home/data/rsv/primers/B/${params.primers_id}/*bed primers.bed
       cp /home/data/rsv/primers/B/${params.primers_id}/*tsv pairs.tsv
       cp /home/data/rsv/genome/RSV_B/RSV* .
+      cp /home/data/rsv/genome/RSV_B/RSV_B.fasta genome.fasta
     
     fi
   REF_GENOME_ID=`head -1 genome.fasta | cut -d " " -f1 | tr -d ">"`

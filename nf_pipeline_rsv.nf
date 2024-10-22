@@ -84,12 +84,15 @@ include { trimmomatic } from "${modules}/common/trimmomatic.nf"
 include { detect_type_illumina } from "${modules}/rsv/detect_type.nf"
 include { detect_type_nanopore } from "${modules}/rsv/detect_type.nf"
 
-// include { filtering } from "${params.modules}/sarscov2/filtering.nf"
-// include { masking } from "${params.modules}/common/masking.nf"
-// include { merging } from "${params.modules}/sarscov2/merging.nf"
-// include { picard } from "${params.modules}/common/picard.nf"
+include { filtering } from "${modules}/sarscov2/filtering.nf" // Filtering dla SARS i RSV sa identyczne
+include { masking } from "${modules}/common/masking.nf"
+include { merging } from "${modules}/sarscov2/merging.nf" // Ponownie pozyczamy kod z SARS
+include { picard_downsample } from "${modules}/common/picard.nf"
+
+
 // include { manta } from "${params.modules}/common/manta.nf"
-// include { indelQual } from "${params.modules}/common/indelQual.nf"
+
+include { indelQual } from "${modules}/common/indelQual.nf"
 // include { wgsMetrics } from "${params.modules}/common/wgsMetrics.nf"
 // include { lowCov } from "${params.modules}/common/lowCov.nf"
 // include { varScan } from "${params.modules}/common/varscan.nf"
@@ -136,6 +139,19 @@ if(params.machine == 'Illumina') {
   // Dehumanization
   dehumanization_illumina_out = dehumanization_illumina(bwa_out.join(trimmomatic_out.proper_reads, by:0))
 
+  // Predicting SV with manta
+  picard_downsample_out = picard_downsample(bwa_out)
+  
+  initial_bam_and_primers = bwa_out.join(detect_type_illumina_out.primers_and_pairs, by:0)
+  
+  filtering_out = filtering(initial_bam_and_primers)
+  masking_out = masking(filtering_out.one_amplicon_primers_and_QC)
+  merging_out = merging(filtering_out.two_amplicon_only.join(masking_out, by:0)) 
+
+  pre_final_bam_and_genome = merging_out.join(detect_type_illumina_out.only_genome, by:0)
+  indelQual_out = indelQual(pre_final_bam_and_genome) 
+  
+
 } else if (params.machine == 'Nanopore') {
   Channel
   .fromPath(params.reads)
@@ -153,6 +169,7 @@ if(params.machine == 'Illumina') {
 
   // Dehumanization
   dehumanization_nanopore_out = dehumanization_nanopore(minimap2_out.join(reads, by:0))
+
 }
 
     // Channels
