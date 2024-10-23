@@ -76,7 +76,10 @@ def json_aggregator(args):
     output["output"]["sampleId"] = args.sampleId
     output["output"]["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
-    output["output"]["dehumanized_fastq_data"] = []
+    output["output"]["dehumanized_fastq_data"] = [
+        args.publish_dir + "/forward_paired_nohuman.fastq.gz",
+        args.publish_dir + "/reverse_paired_nohuman.fastq.gz",
+    ]
     output["output"]["viral_classification_data"] = []
     output["output"]["viral_genome_data"] = {}
     output["output"]["viral_mutation_data"] = []
