@@ -105,11 +105,11 @@ workflow{
     pathogen = Channel.value('sars2')
 
     // Processes
-    fastqc_1(reads, "initialfastq")
+    fastqc_1(reads, "pre-filtering")
     c1 = reads.join(fastqc_1.out[2])
     kraken2_illumina(c1, "Betacoronavirus")
     trimmomatic(reads, adapters)
-    fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
+    fastqc_2(trimmomatic.out[0], "post-filtering")
     bwa(trimmomatic.out[0].join(ref_genome_with_index))
     c2 = bwa.out.join(trimmomatic.out[1])
     dehumanization(c2)
@@ -147,6 +147,6 @@ workflow{
     coinfection_varscan(coinfection_ivar.out[1])
     coinfection_analysis(coinfection_varscan.out, coinfections)
 
-    c12 = wgsMetrics.out[1].join(consensus.out[2]).join(kraken2_illumina.out[1])
+    c12 = wgsMetrics.out[1].join(consensus.out[2]).join(kraken2_illumina.out[1]).join(fastqc_1.out[1]).join(fastqc_2.out[1])
     json_aggregator(pathogen, version, c12)
 }

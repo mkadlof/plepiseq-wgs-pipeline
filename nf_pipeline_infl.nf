@@ -70,11 +70,11 @@ workflow{
     pathogen = Channel.value('influenza')
 
     // Processes
-    fastqc_1(reads, "initialfastq")
+    fastqc_1(reads, "pre-filtering")
     c1 = reads.join(fastqc_1.out[2])
     kraken2_illumina(c1, "Alphainfluenzavirus") // TODO: Beta viruses have to be added.
     trimmomatic(reads, adapters)
-    fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
+    fastqc_2(trimmomatic.out[0], "post-filtering")
     detect_subtype(reads, genomes)
     reassortment(detect_subtype.out[0], genomes, primers)
     // For convenience we name the output with the hybrid genome as ref_genome
@@ -105,6 +105,6 @@ workflow{
     c6 = detect_subtype.out[1].join(nextalign.out[0])
     resistance(c6)
 
-    c7 = wgsMetrics.out[1].join(consensus.out[2]).join(kraken2_illumina.out[1])
+    c7 = wgsMetrics.out[1].join(consensus.out[2]).join(kraken2_illumina.out[1]).join(fastqc_1.out[1]).join(fastqc_2.out[1])
     json_aggregator(pathogen, version, c7)
 }

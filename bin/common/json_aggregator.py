@@ -61,11 +61,11 @@ def fill_sars_data(args, output):
 
 def fill_infl_data(args, output):
     output["output"]["infl_data"] = {
-        'resistance_data': [], # TODO
-        'protein_structure_data': [], # TODO
-        'reassortment_data': [], # TODO
-        'subtype_name': "...", # TODO
-        'type_name': "unk", # TODO
+        'resistance_data': [],  # TODO
+        'protein_structure_data': [],  # TODO
+        'reassortment_data': [],  # TODO
+        'subtype_name': "...",  # TODO
+        'type_name': "unk",  # TODO
     }
 
 
@@ -73,6 +73,14 @@ def fill_contamination_data(args, output):
     with open(args.contamination) as f:
         contamination = json.load(f)
         output["output"]["contamination_data"] = contamination
+
+
+def fill_sequencing_summary_data(args, output):
+    files = [args.fastqc_pre[0], args.fastqc_pre[1], args.fastqc_post[0], args.fastqc_post[1]]
+    for file in files:
+        with open(file) as f:
+            fastqc = json.load(f)
+            output["output"]["sequencing_summary_data"].append(fastqc[0])
 
 
 def json_aggregator(args):
@@ -109,6 +117,8 @@ def json_aggregator(args):
     elif output["output"]["pathogen"] == "influenza":
         fill_infl_data(args, output)
 
+    fill_sequencing_summary_data(args, output)
+
     output["output"]["genome_files_data"]['file_data'] = []  # TODO
     output["output"]["genome_files_data"]['status'] = "tak"  # TODO
 
@@ -126,6 +136,9 @@ def main():
     parser.add_argument('--segment_bedgraphs_files', help="Segment bedgraphs files")
     parser.add_argument('--consensus', help="JSON from consensus module")
     parser.add_argument('--contamination', help="JSON from contamination detection (kraken2)")
+    parser.add_argument('--fastqc_pre', nargs=2, help='Two json files from fastqc module (pre_filtering)')
+    parser.add_argument('--fastqc_post', nargs=2, help='Two json files from fastqc module (post_filtering)')
+
     args = parser.parse_args()
 
     json_aggregator(args)
