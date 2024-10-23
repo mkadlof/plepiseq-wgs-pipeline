@@ -8,7 +8,7 @@ process consensus {
     output:
     tuple val(sampleId), path("consensus.fasta")
     tuple val(sampleId), path("consensus_*.fasta")
-    tuple val(sampleId), path("consensus.json")
+    tuple val(sampleId), path("consensus.json"), path("list_of_fasta_files.txt")
 
     script:
     """
@@ -25,5 +25,6 @@ process consensus {
         "number_of_Ns_value": \${NUMBER_OF_N}
     }
     EOF
+    ls consensus_*.fasta > list_of_fasta_files.txt
     """
 }

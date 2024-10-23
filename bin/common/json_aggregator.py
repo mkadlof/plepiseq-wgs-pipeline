@@ -17,8 +17,8 @@ def fill_viral_genome_data(args, output):
     with open(args.segment_bedgraphs_files) as f:
         lines = f.readlines()
         for line in lines:
-            # filename example: segment_MN908947.3.bedgraph
-            segment_name = line.split("_")[1].split(".")[0]
+            # filename example: segment_MN908947.3.bedgraph, segment_chr4_HA.bedgraph
+            segment_name = line.split("_")[-1].split(".")[0]
             data_file_path = args.publish_dir + "/" + line.strip()
             output["output"]["viral_genome_data"]["coverage_barplot_data"].append(
                 {"segment_name": segment_name, "data_file_path": data_file_path})
@@ -83,6 +83,26 @@ def fill_sequencing_summary_data(args, output):
             output["output"]["sequencing_summary_data"].append(fastqc[0])
 
 
+def fill_genome_files_data(args, output):
+    output["output"]['genome_files_data']['file_data'] = []
+    output["output"]["genome_files_data"]['status'] = "tak"  # TODO
+    if args.pathogen == 'sars2':
+        # For sars file is hardcoded. It never changes.
+        output["output"]['genome_files_data']['file_data'].append({
+            'segment_name': 'MN908947.3',
+            'segment_path': args.publish_dir + '/output_consensus_masked_SV.fa'
+        })
+    elif args.pathogen == 'influenza':
+        # For influenza, we need to read the list of fasta files from a file
+        with open(args.list_of_fasta_files) as f:
+            for line in f:
+                filename = line.strip()
+                segment_name = filename.split("_")[1].split(".")[0]
+                output["output"]['genome_files_data']['file_data'].append({
+                    'segment_name': segment_name,
+                    'segment_path': filename
+                })
+
 def json_aggregator(args):
     output = {"output": {}}
 
@@ -110,6 +130,9 @@ def json_aggregator(args):
     # fill contamination data (from kraken2 module)
     fill_contamination_data(args, output)
 
+    # paths to fasta files
+    fill_genome_files_data(args, output)
+
     # fill json sections that depend on pathogen
     fill_viral_genome_data(args, output)
     if output["output"]["pathogen"] == "sars2":
@@ -118,9 +141,6 @@ def json_aggregator(args):
         fill_infl_data(args, output)
 
     fill_sequencing_summary_data(args, output)
-
-    output["output"]["genome_files_data"]['file_data'] = []  # TODO
-    output["output"]["genome_files_data"]['status'] = "tak"  # TODO
 
     with open("output.json", "w") as f:
         json.dump(output, f, indent=4)
@@ -135,6 +155,7 @@ def main():
     parser.add_argument('--wgsMetrics', help="WGS metrics file")
     parser.add_argument('--segment_bedgraphs_files', help="Segment bedgraphs files")
     parser.add_argument('--consensus', help="JSON from consensus module")
+    parser.add_argument('--list_of_fasta_files', help="File with a list of fastq files")
     parser.add_argument('--contamination', help="JSON from contamination detection (kraken2)")
     parser.add_argument('--fastqc_pre', nargs=2, help='Two json files from fastqc module (pre_filtering)')
     parser.add_argument('--fastqc_post', nargs=2, help='Two json files from fastqc module (post_filtering)')
