@@ -5,6 +5,11 @@ params.reads = "" // Must be provided by user
 params.primers_id = "" // Either V0 or V1
 params.adapters_id="TruSeq3-PE-2" // To podaje user ale jest default
 
+// All docker images used by this pipeline
+params.main_image = "nf_viral_main:1.0"
+params.manta_image = "nf_viral_manta:1.0"
+params.medaka_image = "ontresearch/medaka:sha447c70a639b8bcf17dc49b51e74dfcde6474837b-amd64"
+
 // Other parameters 
 params.memory = 4048
 params.threads = 5
@@ -51,7 +56,7 @@ params.quality_for_coverage = 10 // Parametr uzywany w modul lowCov
 }
 
 // List of databases
-params.nextclade_db_absolute_path_on_host = "/home/jenkins/workspace/nf_illumina_sars/external_databases/nextclade" // Need to be updated to include rsv
+params.nextclade_db_absolute_path_on_host = "/home/jenkins/workspace/nf_illumina_sars/external_databases/nextclade" 
 params.kraken2_db_absolute_path_on_host = "/home/michall/kraken2/kraken2_db/kraken2_sdb/"
 
 params.main_image = "nf_viral_main:1.0"
@@ -92,7 +97,7 @@ include { merging } from "${modules}/sarscov2/merging.nf" // Ponownie pozyczamy 
 include { picard_downsample } from "${modules}/common/picard.nf"
 
 
-// include { manta } from "${params.modules}/common/manta.nf"
+include { introduce_SV_with_manta } from "${modules}/common/manta.nf"
 
 include { indelQual } from "${modules}/common/indelQual.nf"
 include { picard_wgsMetrics } from "${modules}/common/wgsMetrics.nf"
@@ -106,7 +111,7 @@ include { vcf_for_fasta } from "${modules}/sarscov2/vcf_for_fasta.nf"
 include { snpEff } from "${modules}/rsv/snpEff.nf"
 
 // include { simpleStats } from "${params.modules}/sarscov2/simpleStats.nf"
-// include { nextclade } from "${params.modules}/sarscov2/nextclade.nf"
+include { nextclade } from "${modules}/sarscov2/nextclade.nf"
 // include { pangolin } from "${params.modules}/sarscov2/pangolin.nf"
 // include { modeller } from "${params.modules}/sarscov2/modeller.nf"
 // include { json_aggregator } from "${params.modules}/common/json_aggregator.nf"
@@ -141,12 +146,9 @@ if(params.machine == 'Illumina') {
   bwa_out = bwa(reads_and_genome)
 
   // Dehumanization
-  dehumanization_illumina_out = dehumanization_illumina(bwa_out.join(trimmomatic_out.proper_reads, by:0))
+  dehumanization_illumina_out = dehumanization_illumina(bwa_out.only_bam.join(trimmomatic_out.proper_reads, by:0))
 
-  // Predicting SV with manta
-  picard_downsample_out = picard_downsample(bwa_out)
-  
-  initial_bam_and_primers = bwa_out.join(detect_type_illumina_out.primers_and_pairs, by:0)
+  initial_bam_and_primers = bwa_out.only_bam.join(detect_type_illumina_out.primers_and_pairs, by:0)
   
   filtering_out = filtering(initial_bam_and_primers)
   masking_out = masking(filtering_out.one_amplicon_primers_and_QC)
@@ -172,7 +174,12 @@ if(params.machine == 'Illumina') {
   vcf_for_fasta_out = vcf_for_fasta(genome_sequence_and_ref)
 
   snpEff_out = snpEff(vcf_for_fasta_out.vcf.join(indelQual_out.bam_genome_and_qc, by:0))
-
+  
+  // Predicting SV with manta
+  picard_downsample_out = picard_downsample(bwa_out.bam_and_genome)
+  manta_out = introduce_SV_with_manta(picard_downsample_out.to_manta.join(consensus_out.single_fasta, by:0))
+  nextclade_out = nextclade(manta_out.fasta_refgenome_and_qc)
+ 
 } else if (params.machine == 'Nanopore') {
   Channel
   .fromPath(params.reads)

@@ -2,10 +2,10 @@ process picard_downsample {
     tag "picard:${sampleId}"
 
     input:
-    tuple val(sampleId), path(bam), path(bai), val(QC_status)
+    tuple val(sampleId), path(bam), path(bai), path(ref_genome_with_index), val(QC_status)
 
     output:
-    tuple val(sampleId), path('downsample.bam'), path('downsample.bam.bai'), env(QC_exit), emit: to_pubdir
+    tuple val(sampleId), path('downsample.bam'), path('downsample.bam.bai'), path(ref_genome_with_index), env(QC_exit), emit: to_manta
 
     script:
     """

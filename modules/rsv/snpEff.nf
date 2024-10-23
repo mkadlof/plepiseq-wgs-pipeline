@@ -6,7 +6,7 @@ process snpEff {
     tuple val(sampleId), path(consensus_vcf_gz), path(consensus_vcf_gz_tbi), path('forvariants.bam'), path('forvariants.bam.bai'), path(ref_genome), val(QC_status)
 
     output:
-    tuple val(sampleId), path('detected_variants_consensus_annotated.vcf.gz'), path('detected_variants_consensus_annotated.txt'), emit: to_pubdir
+    tuple val(sampleId), path('detected_variants_consensus_annotated.txt'), emit: to_pubdir
     tuple val(sampleId), path('dummy_json.json'), emit: json
 
     script:

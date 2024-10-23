@@ -6,7 +6,8 @@ process bwa {
     tuple val(sampleId), path(reads), path(ref_genome_with_index), val(QC_status)
 
     output:
-    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), env(QC_exit)
+    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), env(QC_exit), emit: only_bam
+    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), path(ref_genome_with_index), env(QC_exit), emit: bam_and_genome
 
     script:
     // Check the index of a file with fasta extension in ref_genome_with_index list
