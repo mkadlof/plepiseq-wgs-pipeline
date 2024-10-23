@@ -95,14 +95,16 @@ include { picard_downsample } from "${modules}/common/picard.nf"
 // include { manta } from "${params.modules}/common/manta.nf"
 
 include { indelQual } from "${modules}/common/indelQual.nf"
-// include { wgsMetrics } from "${params.modules}/common/wgsMetrics.nf"
+include { picard_wgsMetrics } from "${modules}/common/wgsMetrics.nf"
 include { lowCov } from "${modules}/common/lowCov.nf"
 include { varScan } from "${modules}/common/varscan.nf"
 include { freeBayes } from "${modules}/common/freeBayes.nf"
 include { lofreq } from "${modules}/common/lofreq.nf"
 include { consensus } from "${modules}/common/consensus.nf"
-// include { vcf_for_fasta } from "${params.modules}/sarscov2/vcf_for_fasta.nf"
-// include { snpEff } from "${params.modules}/sarscov2/snpEff.nf"
+include { vcf_for_fasta } from "${modules}/sarscov2/vcf_for_fasta.nf"
+
+include { snpEff } from "${modules}/rsv/snpEff.nf"
+
 // include { simpleStats } from "${params.modules}/sarscov2/simpleStats.nf"
 // include { nextclade } from "${params.modules}/sarscov2/nextclade.nf"
 // include { pangolin } from "${params.modules}/sarscov2/pangolin.nf"
@@ -152,17 +154,24 @@ if(params.machine == 'Illumina') {
 
   pre_final_bam_and_genome = merging_out.join(detect_type_illumina_out.only_genome, by:0)
   indelQual_out = indelQual(pre_final_bam_and_genome) 
-   
-  freebayes_out = freeBayes(indelQual_out.join(detect_type_illumina_out.only_genome, by:0))
-  lofreq_out = lofreq(indelQual_out.join(detect_type_illumina_out.only_genome, by:0))
-  lowCov_out = lowCov(indelQual_out.join(detect_type_illumina_out.only_genome, by:0)) 
-  varScan_out = varScan(indelQual_out.join(detect_type_illumina_out.only_genome, by:0))
+ 
+  final_bam_and_genome = indelQual_out.bam_and_qc.join(detect_type_illumina_out.only_genome, by:0)   
+  
+  freebayes_out = freeBayes(final_bam_and_genome)
+  lofreq_out = lofreq(final_bam_and_genome)
+  lowCov_out = lowCov(final_bam_and_genome) 
+  varScan_out = varScan(final_bam_and_genome)
+  wgsMetrics_out = picard_wgsMetrics(final_bam_and_genome) 
 
   all_sub_fastas = lowCov_out.fasta.join(varScan_out)
   all_sub_fastas = all_sub_fastas.join(freebayes_out)
   all_sub_fastas = all_sub_fastas.join(lofreq_out)
   
   consensus_out = consensus(all_sub_fastas) 
+  genome_sequence_and_ref = consensus_out.single_fasta.join(detect_type_illumina_out.only_genome, by:0)
+  vcf_for_fasta_out = vcf_for_fasta(genome_sequence_and_ref)
+
+  snpEff_out = snpEff(vcf_for_fasta_out.vcf.join(indelQual_out.bam_genome_and_qc, by:0))
 
 } else if (params.machine == 'Nanopore') {
   Channel

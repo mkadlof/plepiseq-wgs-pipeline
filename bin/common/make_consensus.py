@@ -85,18 +85,20 @@ def get_fastas(input_fasta, program):
     lista_plikow = []
     record = SeqIO.parse(input_fasta, 'fasta')
     for r in record:
-        with open(f'{program}_{r.id}.fasta', 'w') as file:
-            file.write(f'>{r.id}_{program}\n')
+        segement_name = r.id.replace("/", "_")
+        with open(f'{program}_{segement_name}.fasta', 'w') as file:
+            file.write(f'>{segement_name}_{program}\n')
             file.write(f'{str(r.seq)}\n')
-        lista_plikow.append(f'{program}_{r.id}.fasta')
+        lista_plikow.append(f'{program}_{segement_name}.fasta')
     return lista_plikow
 
 
 def split_final_fasta(input_fasta, prefix):
     record = SeqIO.parse(input_fasta, 'fasta')
     for r in record:
-        with open(f'{prefix}_{r.id}.fasta', 'w') as file:
-            file.write(f'>{r.id}\n')
+        segement_name = r.id.replace("/", "_")
+        with open(f'{prefix}_{segement_name}.fasta', 'w') as file:
+            file.write(f'>{segement_name}\n')
             file.write(f'{str(r.seq)}\n')
 
 
@@ -111,9 +113,9 @@ if __name__ == '__main__':
         # workaround for the cases when there is only one field in fasta ID
         tmp = varscan.split('_')
         if len(tmp) == 3:
-            segment = tmp[2].split('.')[0]
+            segment = tmp[2].split('.')[0].replace("/", "_")
         else:
-            segment = tmp[1].split('.')[0]
+            segment = tmp[1].split('.')[0].replace("/", "_")
         # end of workaround
         slownik_segmentu = align_fasta(varscan, freebayes, lofreq)
         with open('tmp.fasta', 'w') as f:

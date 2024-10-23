@@ -24,7 +24,7 @@ if [ ${QC_STATUS} == "nie" ]; then
   touch primers.bed
   touch genome.fasta
 else
-  REFERENCE_GENOME_FASTA="/home/data/rsv/genome/RSV/RSV.fasta"
+  REFERENCE_GENOME_FASTA="/home/data/rsv/genomes/RSV/RSV.fasta"
   bwa mem -t ${params.threads} \
           -T 30 \
           "\${REFERENCE_GENOME_FASTA}" \
@@ -50,14 +50,14 @@ else
       TYPE="A"
       cp /home/data/rsv/primers/A/${params.primers_id}/*bed primers.bed
       cp /home/data/rsv/primers/A/${params.primers_id}/*tsv pairs.tsv
-      cp /home/data/rsv/genome/RSV_A/RSV* .
-      cp /home/data/rsv/genome/RSV_A/RSV_A.fasta genome.fasta
+      cp /home/data/rsv/genomes/RSV_A/RSV* .
+      cp /home/data/rsv/genomes/RSV_A/RSV_A.fasta genome.fasta
     else
       TYPE="B"
       cp /home/data/rsv/primers/B/${params.primers_id}/*bed primers.bed
       cp /home/data/rsv/primers/B/${params.primers_id}/*tsv pairs.tsv
-      cp /home/data/rsv/genome/RSV_B/RSV* .
-      cp /home/data/rsv/genome/RSV_B/RSV_B.fasta genome.fasta
+      cp /home/data/rsv/genomes/RSV_B/RSV* .
+      cp /home/data/rsv/genomes/RSV_B/RSV_B.fasta genome.fasta
     
     fi
   REF_GENOME_ID=`head -1 genome.fasta | cut -d " " -f1 | tr -d ">"`
@@ -91,7 +91,7 @@ if [ ${QC_STATUS} == "nie" ]; then
   touch RSV_dummy.fasta.amb
   touch primers.bed
 else
-  REFERENCE_GENOME_FASTA="/home/data/rsv/genome/RSV/RSV.fasta"
+  REFERENCE_GENOME_FASTA="/home/data/rsv/genomes/RSV/RSV.fasta"
   minimap2 -a -x map-ont -t ${params.threads} -o tmp.sam \${REFERENCE_GENOME_FASTA} ${reads}  >> ${log} 2>&1
   samtools view -@ ${params.threads} -Sb -o type_determination.bam -F 2052 tmp.sam
 
@@ -112,12 +112,12 @@ else
       TYPE="A"
       cp /home/data/rsv/primers/A/${params.primers_id}/*bed primers.bed
       cp /home/data/rsv/primers/A/${params.primers_id}/*tsv pairs.tsv
-      cp /home/data/rsv/genome/RSV_A/RSV* .
+      cp /home/data/rsv/genomes/RSV_A/RSV* .
     else
       TYPE="B"
       cp /home/data/rsv/primers/B/${params.primers_id}/*bed primers.bed
       cp /home/data/rsv/primers/B/${params.primers_id}/*tsv pairs.tsv
-      cp /home/data/rsv/genome/RSV_B/RSV* .
+      cp /home/data/rsv/genomes/RSV_B/RSV* .
 
     fi
   REF_GENOME_ID=`head -1 genome.fasta | cut -d " " -f1 | tr -d ">"`

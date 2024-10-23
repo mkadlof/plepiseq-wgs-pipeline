@@ -6,7 +6,7 @@ process consensus {
     tuple val(sampleId), path(masked_ref_genome_fa), path(varscan_fa), path(freebayes_fa), val(QC_status), path(lofreq_fa)
 
     output:
-    tuple val(sampleId), path("consensus.fasta"), emit: single_fasta
+    tuple val(sampleId), path("consensus.fasta"), val(QC_status), emit: single_fasta
     tuple val(sampleId), path("consensus_*.fasta"), emit: multiple_fastas
     tuple val(sampleId), path("consensus.json"), emit: json
 
@@ -26,12 +26,7 @@ process consensus {
       TOTAL_LENGTH=\$(grep -v '>' consensus.fasta | wc -c)
       NUMBER_OF_N=\$(grep -v '>' consensus.fasta | grep N -o | wc -l)
 
-      cat > consensus.json <<EOF
-      {
-        "total_length_value": \${TOTAL_LENGTH},
-        "number_of_Ns_value": \${NUMBER_OF_N}
-      }
-      EOF
+      echo -e '{"total_length_value": \${TOTAL_LENGTH}\n"number_of_Ns_value": \${NUMBER_OF_N}}' >> consensus.json 
     fi
     """
 }

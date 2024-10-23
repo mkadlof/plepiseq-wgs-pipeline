@@ -44,7 +44,8 @@ def main():
                                            quality_threshold=qual)
         # coverage is a 4-element tuple with values at a given position
         # for A, C, T, and G
-        with open(f'{segment}_mask.bed', 'w') as f:
+
+        with open(f'{segment.replace("/", "_")}_mask.bed', 'w') as f:
             for i in range(len(coverage[0])):
                 suma = coverage[0][i] + coverage[1][i] + coverage[2][i] + coverage[3][i]
                 if suma < threshold:

@@ -6,7 +6,8 @@ process indelQual {
     tuple val(sampleId), path(bam), path(bai), val(QC_status), path(ref_genome)
 
     output:
-    tuple val(sampleId), path('forvariants.bam'), path('forvariants.bam.bai'), val(QC_status)
+    tuple val(sampleId), path('forvariants.bam'), path('forvariants.bam.bai'), val(QC_status), emit: bam_and_qc
+    tuple val(sampleId), path('forvariants.bam'), path('forvariants.bam.bai'), path(ref_genome), val(QC_status), emit: bam_genome_and_qc
 
     script:
     """
