@@ -69,17 +69,23 @@ def fill_infl_data(args, output):
     }
 
 
+def fill_contamination_data(args, output):
+    with open(args.contamination) as f:
+        contamination = json.load(f)
+        output["output"]["contamination_data"] = contamination
+
+
 def json_aggregator(args):
     output = {"output": {}}
+
+    # Fields independent of modules output
     output["output"]["pipeline_version"] = args.version
     output["output"]["pathogen"] = args.pathogen
     output["output"]["sampleId"] = args.sampleId
     output["output"]["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
-    output["output"]["dehumanized_fastq_data"] = [
-        args.publish_dir + "/forward_paired_nohuman.fastq.gz",
-        args.publish_dir + "/reverse_paired_nohuman.fastq.gz",
-    ]
+    # Initialize empty fields
+    output["output"]["dehumanized_fastq_data"] = []
     output["output"]["viral_classification_data"] = []
     output["output"]["viral_genome_data"] = {}
     output["output"]["viral_mutation_data"] = []
@@ -87,7 +93,16 @@ def json_aggregator(args):
     output["output"]["genome_files_data"] = {}
     output["output"]["sequencing_summary_data"] = []
 
-    # fill json sections
+    # fill json dehumanized sections
+    output["output"]["dehumanized_fastq_data"] = [
+        args.publish_dir + "/forward_paired_nohuman.fastq.gz",
+        args.publish_dir + "/reverse_paired_nohuman.fastq.gz",
+    ]
+
+    # fill contamination data (from kraken2 module)
+    fill_contamination_data(args, output)
+
+    # fill json sections that depend on pathogen
     fill_viral_genome_data(args, output)
     if output["output"]["pathogen"] == "sars2":
         fill_sars_data(args, output)
@@ -110,6 +125,7 @@ def main():
     parser.add_argument('--wgsMetrics', help="WGS metrics file")
     parser.add_argument('--segment_bedgraphs_files', help="Segment bedgraphs files")
     parser.add_argument('--consensus', help="JSON from consensus module")
+    parser.add_argument('--contamination', help="JSON from contamination detection (kraken2)")
     args = parser.parse_args()
 
     json_aggregator(args)

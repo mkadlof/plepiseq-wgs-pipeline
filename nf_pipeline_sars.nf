@@ -38,7 +38,7 @@ adapters="/home/data/common/adapters/${params.adapters_id}.fa"
 
 params.ref_genome_id="MN908947.3"
 
-include { kraken2 } from "${params.modules}/common/kraken2.nf"
+include { kraken2_illumina } from "${params.modules}/common/kraken2.nf"
 include { bwa } from "${params.modules}/common/bwa.nf"
 include { dehumanization } from "${params.modules}/common/dehumanization.nf"
 include { fastqc as fastqc_1 } from "${params.modules}/common/fastqc.nf"
@@ -107,7 +107,7 @@ workflow{
     // Processes
     fastqc_1(reads, "initialfastq")
     c1 = reads.join(fastqc_1.out[2])
-    kraken2(c1)
+    kraken2_illumina(c1, "Betacoronavirus")
     trimmomatic(reads, adapters)
     fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
     bwa(trimmomatic.out[0].join(ref_genome_with_index))
@@ -147,6 +147,6 @@ workflow{
     coinfection_varscan(coinfection_ivar.out[1])
     coinfection_analysis(coinfection_varscan.out, coinfections)
 
-    c12 = wgsMetrics.out[1].join(consensus.out[2])
+    c12 = wgsMetrics.out[1].join(consensus.out[2]).join(kraken2_illumina.out[1])
     json_aggregator(pathogen, version, c12)
 }

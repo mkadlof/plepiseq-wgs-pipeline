@@ -31,7 +31,7 @@ adapters="/home/data/common/adapters/${params.adapters_id}.fa"
 
 nextalign_db="/home/data/infl/nextalign"
 
-include { kraken2 } from "${params.modules}/common/kraken2.nf"
+include { kraken2_illumina } from "${params.modules}/common/kraken2.nf"
 include { detect_subtype } from "${params.modules}/infl/detect_subtype.nf"
 include { reassortment } from "${params.modules}/infl/reassortment.nf"
 include { bwa } from "${params.modules}/common/bwa.nf"
@@ -72,7 +72,7 @@ workflow{
     // Processes
     fastqc_1(reads, "initialfastq")
     c1 = reads.join(fastqc_1.out[2])
-    kraken2(c1)
+    kraken2_illumina(c1, "Alphainfluenzavirus") // TODO: Beta viruses have to be added.
     trimmomatic(reads, adapters)
     fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
     detect_subtype(reads, genomes)
@@ -105,6 +105,6 @@ workflow{
     c6 = detect_subtype.out[1].join(nextalign.out[0])
     resistance(c6)
 
-    c7 = wgsMetrics.out[1].join(consensus.out[2])
+    c7 = wgsMetrics.out[1].join(consensus.out[2]).join(kraken2_illumina.out[1])
     json_aggregator(pathogen, version, c7)
 }
