@@ -103,12 +103,13 @@ def fill_genome_files_data(args, output):
                     'segment_path': filename
                 })
 
-def fill_viral_classification_data_pangolin(args, output):
-    if args.pangolin == "non-existent":
+def fill_viral_classification_data(file_path, output):
+    if file_path == "non-existent":
         return
-    with open(args.pangolin) as f:
-        pangolin = json.load(f)
-        output["output"]["viral_classification_data"].append(pangolin)
+    with open(file_path) as f:
+        data = json.load(f)
+        output["output"]["viral_classification_data"].append(data)
+
 
 
 def json_aggregator(args):
@@ -150,7 +151,8 @@ def json_aggregator(args):
 
     fill_sequencing_summary_data(args, output)
 
-    fill_viral_classification_data_pangolin(args, output)
+    fill_viral_classification_data(args.pangolin, output)
+    fill_viral_classification_data(args.nextclade, output)
 
     with open("output.json", "w") as f:
         json.dump(output, f, indent=4)
@@ -169,7 +171,8 @@ def main():
     parser.add_argument('--contamination', help="JSON from contamination detection (kraken2)")
     parser.add_argument('--fastqc_pre', nargs=2, help='Two json files from fastqc module (pre_filtering)')
     parser.add_argument('--fastqc_post', nargs=2, help='Two json files from fastqc module (post_filtering)')
-    parser.add_argument('--pangolin', help="JSON from viral classification module")
+    parser.add_argument('--pangolin', help="JSON from viral classification module (pangolin)")
+    parser.add_argument('--nextclade', help="JSON from viral classification module (nextclade)")
 
     args = parser.parse_args()
 

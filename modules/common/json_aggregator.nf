@@ -11,7 +11,7 @@ process json_aggregator {
         path(kraken_contamination),
         path(fastqc_pre_json_forward), path(fastqc_pre_json_reverse),
         path(fastqc_post_json_forward), path(fastqc_post_json_reverse),
-        path(pangolin_json)
+        path(pangolin_json), path(nextclade_json)
 
     output:
     file('output.json')
@@ -26,7 +26,8 @@ process json_aggregator {
                        --contamination ${kraken_contamination} \
                        --fastqc_pre ${fastqc_pre_json_forward} ${fastqc_pre_json_reverse} \
                        --fastqc_post ${fastqc_post_json_forward} ${fastqc_post_json_reverse} \
-                       ${!pangolin_json.contains('/non-existent') ? "--pangolin ${pangolin_json}" : ""}
+                       ${!pangolin_json.contains('/non-existent') ? "--pangolin ${pangolin_json}" : ""} \
+                       --nextclade ${nextclade_json}
 
     """
 }

@@ -7,7 +7,7 @@ process nextclade {
     tuple val(sampleId), path(consensus_masked_sv_fa)
 
     output:
-    tuple val(sampleId), path("nextclade_lineages"), path('nextstrain_lineage.csv')
+    tuple val(sampleId), path('nextstrain_lineage.json')
     tuple val(sampleId), path('nextclade_lineages/nextclade.cds_translation.S.fasta')
 
     script:
@@ -16,5 +16,6 @@ process nextclade {
                   --output-csv nextstrain_lineage.csv \
                   --output-all nextclade_lineages \
                   ${consensus_masked_sv_fa}
+    parse_nextclade_output_csv2json.py nextstrain_lineage.csv nextclade_lineages/nextclade.auspice.json nextstrain_lineage.json
     """
 }
