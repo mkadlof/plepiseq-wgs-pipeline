@@ -7,12 +7,13 @@ process pangolin {
     tuple val(sampleId), path(consensus_masked_sv_fa)
 
     output:
-    tuple val(sampleId), path('pangolin_lineage.csv')
+    tuple val(sampleId), path('pangolin.json')
 
     script:
     """
     pangolin --outfile pangolin_lineage.csv \
              --threads ${params.threads} \
              ${consensus_masked_sv_fa}
+    parse_pangolin_output_csv2json.py pangolin_lineage.csv pangolin.json
     """
 }

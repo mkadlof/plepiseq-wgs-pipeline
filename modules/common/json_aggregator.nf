@@ -10,7 +10,8 @@ process json_aggregator {
         path(consensus_json), path(list_of_fasta_files),
         path(kraken_contamination),
         path(fastqc_pre_json_forward), path(fastqc_pre_json_reverse),
-        path(fastqc_post_json_forward), path(fastqc_post_json_reverse)
+        path(fastqc_post_json_forward), path(fastqc_post_json_reverse),
+        path(pangolin_json)
 
     output:
     file('output.json')
@@ -21,10 +22,11 @@ process json_aggregator {
                        --wgsMetrics ${wgsMetrics_json} \
                        --segment_bedgraphs_files ${segment_bedgraphs_files_txt} \
                        --consensus ${consensus_json} \
-                          --list_of_fasta_files ${list_of_fasta_files} \
+                       --list_of_fasta_files ${list_of_fasta_files} \
                        --contamination ${kraken_contamination} \
                        --fastqc_pre ${fastqc_pre_json_forward} ${fastqc_pre_json_reverse} \
-                       --fastqc_post ${fastqc_post_json_forward} ${fastqc_post_json_reverse}
+                       --fastqc_post ${fastqc_post_json_forward} ${fastqc_post_json_reverse} \
+                       ${!pangolin_json.contains('/non-existent') ? "--pangolin ${pangolin_json}" : ""}
 
     """
 }

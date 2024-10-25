@@ -105,6 +105,12 @@ workflow{
     c6 = detect_subtype.out[1].join(nextalign.out[0])
     resistance(c6)
 
-    c7 = wgsMetrics.out[1].join(consensus.out[2]).join(kraken2_illumina.out[1]).join(fastqc_1.out[1]).join(fastqc_2.out[1])
+    // Dummy channel that creates tuple with sample id and arbitrary substring
+    dummy = reads.map { sampleId, _ ->
+        return [sampleId, '/non-existent']
+    }
+
+
+    c7 = wgsMetrics.out[1].join(consensus.out[2]).join(kraken2_illumina.out[1]).join(fastqc_1.out[1]).join(fastqc_2.out[1]).join(dummy)
     json_aggregator(pathogen, version, c7)
 }
