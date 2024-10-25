@@ -45,7 +45,10 @@ def main_program(input_kraken, input_metaphlan_genera, input_metaphlan_species, 
             for line in f:
                 line = line.split()
                 if line[3] == "S":
-                    species_dict[line[5] + " " + line[6]] = float(line[0])
+                    try:
+                        species_dict[line[5] + " " + line[6]] = float(line[0])
+                    except IndexError:
+                        species_dict[line[5]] = float(line[0])
                 elif line[3] == "G":
                     genus_dict[line[5]] = float(line[0])
             genus_names_sorted = sorted(genus_dict, key=lambda x: genus_dict[x], reverse=True)

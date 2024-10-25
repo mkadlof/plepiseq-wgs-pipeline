@@ -59,7 +59,6 @@ params.quality_for_coverage = 10 // Parametr uzywany w modul lowCov
 params.nextclade_db_absolute_path_on_host = "/home/jenkins/workspace/nf_illumina_sars/external_databases/nextclade" 
 params.kraken2_db_absolute_path_on_host = "/home/michall/kraken2/kraken2_db/kraken2_sdb/"
 
-params.main_image = "nf_viral_main:1.0"
 
 // output dir, by default "results" directory
 params.results_dir = "./results"

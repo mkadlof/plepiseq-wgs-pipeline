@@ -20,6 +20,7 @@ process fastqc {
     # does not meet predeifned criteria. The script returns to values status (tak, nie, blad) and total numberof bases in fastqfile (0 if status is not tak)
     if [ ${QC_STATUS} == "nie" ]; then
       ERROR_MSG="Initial QC received by this module was nie"
+      touch dummy.csv
     else
       ERROR_MSG=""
     fi

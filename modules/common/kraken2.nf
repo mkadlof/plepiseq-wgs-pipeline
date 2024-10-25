@@ -139,12 +139,12 @@ process kraken2_nanopore {
         # all downstream modules will not execute and produce dummy values
         if [ \${GENUS_EXPECTED_ILE} -lt ${params.expected_genus_value} ]; then
             QC_status_contaminations="nie"
-            FINAL_GENUS="${EXPECTED_GENUS}"
+            FINAL_GENUS="unk"
             ERR_MSG="Number of reads associated with the expected genus is below threshold set to: ${params.expected_genus_value} %"
             json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s blad -m "\${ERR_MSG}" -o contaminations.json
 
         else
-            FINAL_GENUS="unknown"
+            FINAL_GENUS="${EXPECTED_GENUS}"
             QC_status_contaminations="tak"
             json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s tak -o contaminations.json
 
