@@ -1,5 +1,6 @@
 process consensus {
     tag "consensus:${sampleId}"
+    container  = params.main_image
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "consensus_*.fasta"
 
     input:

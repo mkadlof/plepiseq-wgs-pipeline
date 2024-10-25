@@ -1,5 +1,6 @@
 process snpEff {
     tag "snpEff:${sampleId}"
+    container  = params.main_image
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "detected_variants_consensus_annotated.txt"
 
     input:

@@ -2,24 +2,27 @@
 // Other parameters should not be modifie to allow reporoducibility between samples
 params.machine = '' // Can be set to either 'Illumina' or 'Nanopore'. Required
 params.reads = "" // Must be provided by user
-params.primers_id = "" // Either V0 or V1
-params.adapters_id="TruSeq3-PE-2" // To podaje user ale jest default
-params.species = "" // Required field name of a species expected to be analyzed with this pipeline can be either "SARS-CoV-2", "RSV" or "Influenza" 
+params.primers_id = "" // Organism specific, e.g V0 or V1 for RSV
+params.adapters_id="TruSeq3-PE-2" // Can be user-provided, there is a default
+params.species = "" // Required, name of a species expected to be analyzed with this pipeline can be either "SARS-CoV-2", "RSV" or "Influenza" 
 
 // Output Dir by default "results" directory 
 params.results_dir = "./results"
 
-// projectDir is not defined in sars pipeline in nf explicite but is set by bash wrapper
+// projectDir is not defined in sars pipeline explicite but is set by bash wrapper
+// so we define it here
 // Modules are just a subdirectory to projectDir and this cannot be changed
 
 params.projectDir = "/home/michall/git/nf_illumina_sars_ml"
 modules = "${params.projectDir}/modules" // Modules are part of the projectDir
 
 // External databases with PREDEFINED structure
-// When we use EXTERNAL database with a module we mount this path and the module itself will access the relevant database for relevant species
+// When we use EXTERNAL database within a module we mount this path 
+// and the module itself will access the relevant database for a relevant species
 params.external_databases_path="/home/jenkins/workspace/nf_illumina_sars/external_databases"
 
 // All species-relevant variables, for now only expected genus for kraken2
+// Furthermore if a user provides a wrong species the pipeline will not execute
 if ( params.species  == 'SARS-CoV-2' ) {
 genus="Betacoronavirus"
 
@@ -36,7 +39,7 @@ genus="Orthopneumovirus"
 }
 
 // All docker images used by this pipeline
-// All modules require explicit information which of this images they use
+// All modules now require explicit information which of these images they use
 params.main_image = "nf_viral_main:1.0"
 params.manta_image = "nf_viral_manta:1.0"
 params.medaka_image = "ontresearch/medaka:sha447c70a639b8bcf17dc49b51e74dfcde6474837b-amd64"
@@ -135,10 +138,10 @@ include { copy_genome_and_primers } from "${modules}/sarscov2/copy_genome_and_pr
 include { pangolin } from "${modules}/sarscov2/pangolin.nf"
 
 // // Coinfection line for SARS
-include { freyja } from "${params.modules}/sarscov2/freyja.nf"
-include { coinfection_ivar } from "${params.modules}/sarscov2/coinfection_ivar.nf"
-include { coinfection_varscan } from "${params.modules}/sarscov2/coinfection_varscan.nf"
-include { coinfection_analysis } from "${params.modules}/sarscov2/coinfection_analysis.nf"
+include { freyja } from "${modules}/sarscov2/freyja.nf"
+include { coinfection_ivar } from "${modules}/sarscov2/coinfection_ivar.nf"
+include { coinfection_varscan } from "${modules}/sarscov2/coinfection_varscan.nf"
+include { coinfection_analysis } from "${modules}/sarscov2/coinfection_analysis.nf"
 
 // INFL-specific modules 
 include { detect_subtype as detect_subtype_influenza_illuumina } from "${modules}/infl/detect_subtype.nf"
@@ -150,8 +153,8 @@ include { nextalign } from "${modules}/infl/nextalign.nf"
 include { resistance } from "${modules}/infl/resistance.nf"
 
 // RSV-specific modules
-include { detect_type_rsv_illumina } from "${modules}/rsv/detect_type.nf"
-include { detect_type_rsv_nanopore } from "${modules}/rsv/detect_type.nf"
+include { detect_type_illumina as detect_type_rsv_illumina } from "${modules}/rsv/detect_type.nf"
+include { detect_type_nanopore as detect_type_rsv_nanopore } from "${modules}/rsv/detect_type.nf"
 
 // Main workflow
 workflow{
@@ -160,6 +163,7 @@ if(params.machine == 'Illumina') {
   Channel
     .fromFilePairs(params.reads)
     .set {reads}
+  
   // Initail fastqc
   fastqc_initial_out = fastqc_1(reads, "pre-filtering")
 
@@ -185,17 +189,20 @@ if(params.machine == 'Illumina') {
   
  
   bwa_out = bwa(reads_and_genome)
-
   // Dehumanization
   dehumanization_illumina_out = dehumanization_illumina(bwa_out.only_bam.join(trimmomatic_out.proper_reads, by:0))
 
   initial_bam_and_primers = bwa_out.only_bam.join(detect_type_illumina_out.primers_and_pairs, by:0)
   
-  filtering_out = filtering(initial_bam_and_primers)
-  masking_out = masking(filtering_out.one_amplicon_primers_and_QC)
-  merging_out = merging(filtering_out.two_amplicon_only.join(masking_out, by:0)) 
-
-  pre_final_bam_and_genome = merging_out.join(detect_type_illumina_out.only_genome, by:0)
+  if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
+    filtering_out = filtering_one_segment(initial_bam_and_primers)
+    masking_out = masking(filtering_out.one_amplicon_primers_and_QC)
+    merging_out = merging(filtering_out.two_amplicon_only.join(masking_out, by:0))
+    pre_final_bam_and_genome = merging_out.join(detect_type_illumina_out.only_genome, by:0)
+  } else if (params.species  == 'Influenza') {
+    // TBD filtering and sort_and_index modules
+  }
+ 
   indelQual_out = indelQual(pre_final_bam_and_genome) 
  
   final_bam_and_genome = indelQual_out.bam_and_qc.join(detect_type_illumina_out.only_genome, by:0)   
@@ -241,81 +248,4 @@ if(params.machine == 'Illumina') {
 
 }
 
-    // Channels
-    // ref_genome = Channel.fromFilePairs("${projectDir}/data/sarscov2/genome/*sarscov2.fasta", size: -1).collect().sort()
-    // ref_genome_with_index = Channel.fromFilePairs("${projectDir}/data/sarscov2/genome/*sarscov2.fasta{,.amb,.ann,.bwt,.fai,.pac,.sa}", size: -1).collect().sort()
-    // primers_and_pairs = Channel.fromFilePairs("${projectDir}/data/sarscov2/primers/${params.primers_id}/*{nCoV-2019.scheme.bed,pairs.tsv}").collect()
-    // coinfections = Channel.fromPath("${projectDir}/data/sarscov2/coinfections/").first()
-    // vcf_template = Channel.fromPath("${projectDir}/data/sarscov2/vcf_template/").first()
-    // modeller_data = Channel.fromPath("${projectDir}/data/sarscov2/modeller/").first()
-
-    // The following construct is needed to add the sampleId to the channels
-    // with constant data (like reference genome or primers). This is done to
-    // generalize cases where the reference genome may not be identical for
-    // each sample (as is the case in the influenza pipeline, for example).
-    // ref_genome = ref_genome
-    // .combine(reads).map { _, genome, sampleId, reads ->
-    //     return [sampleId, genome]
-    //}
-    // ref_genome_with_index = ref_genome_with_index
-    // .combine(reads).map { _, genome_and_index_files, sampleId, reads ->
-    //     return [sampleId, genome_and_index_files]
-    // }
-    // primers_and_pairs = primers_and_pairs
-    // .combine(reads).map { _, primers_and_pairs, sampleId, reads ->
-    //    return [sampleId, primers_and_pairs]
-    // }
-
-    // primers = primers_and_pairs.map{ sampleId, files -> [sampleId, files[0]] }
-
-    // The following two variables are used exclusively to include pipeline version information in the resulting output.json file.
-    // def repo_path = workflow.projectDir
-    // version = Channel.value("git -C ${repo_path} rev-parse HEAD".execute().text.trim().substring(0, 7))
-    // pathogen = Channel.value('sars2')
-
-    // Processes
-    // fastqc_1(reads, "initialfastq")
-    // c1 = reads.join(fastqc_1.out[2])
-    // kraken2(c1)
-    // trimmomatic(reads, adapters)
-    // fastqc_2(trimmomatic.out[0], "aftertrimmomatic")
-    // bwa(trimmomatic.out[0].join(ref_genome_with_index))
-    // c2 = bwa.out.join(trimmomatic.out[1])
-    // dehumanization(c2)
-    // c3 = bwa.out.join(primers)
-    // filtering(c3)
-    // c4 = filtering.out[0].join(primers_and_pairs)
-    // masking(c4)
-    // c5 = filtering.out[1].join(masking.out)
-    // merging(c5)
-    // picard(bwa.out)
-    // indelQual(merging.out.join(ref_genome))
-    // lowCov(indelQual.out.join(ref_genome))
-    // varScan(indelQual.out.join(ref_genome))
-    // freeBayes(indelQual.out.join(ref_genome))
-    // lofreq(indelQual.out.join(ref_genome_with_index))
-    // wgsMetrics(indelQual.out.join(ref_genome))
-    // c6 = lowCov.out[1].join(varScan.out).join(freeBayes.out).join(lofreq.out)
-    // consensus(c6)
-    // c7 = consensus.out[0].join(ref_genome)
-    // vcf_for_fasta(c7, vcf_template)
-    // manta(picard.out.join(consensus.out[0]))
-    // nextclade(manta.out)
-    // modeller(nextclade.out[1], modeller_data)
-    // pangolin(manta.out)
-    // c8 = vcf_for_fasta.out.join(indelQual.out).join(ref_genome)
-    // snpEff(c8)
-    // c9 = manta.out.join(wgsMetrics.out[0]).join(primers)
-    // simpleStats(c9)
-
-    // Coinfection line
-    // c10 = bwa.out.join(ref_genome).join(primers)
-    // coinfection_ivar(c10)
-    // c11 = coinfection_ivar.out[0].join(ref_genome)
-    // freyja(c11)
-    // coinfection_varscan(coinfection_ivar.out[1])
-    // coinfection_analysis(coinfection_varscan.out, coinfections)
-
-
-    // json_aggregator(pathogen, version, wgsMetrics.out[1])
 }

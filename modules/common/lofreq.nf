@@ -1,5 +1,6 @@
 process lofreq {
     tag "lofreq:${sampleId}"
+    container  = params.main_image
     publishDir "${params.results_dir}/${sampleId}/lofreq", mode: 'copy'
 
     input:

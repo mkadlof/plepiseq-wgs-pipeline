@@ -1,6 +1,6 @@
 process filtering {
     tag "filtering:${sampleId}"
-
+    container  = params.main_image
     input:
     tuple val(sampleId), path(bam), path(bai), val(QC_status), path(primers), path(pairs)
 

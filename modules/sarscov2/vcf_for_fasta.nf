@@ -1,5 +1,6 @@
 process vcf_for_fasta {
     tag "vcf_for_fasta:${sampleId}"
+    container  = params.main_image
     publishDir "${params.results_dir}/${sampleId}/consensus_vcf", mode: 'copy', pattern: "*vcf*"
 
     input:

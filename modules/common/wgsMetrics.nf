@@ -1,5 +1,6 @@
 process picard_wgsMetrics {
     tag "wgsMetrics:${sampleId}"
+    container  = params.main_image
     publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "picard_statistics.txt"
     publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "segment_*.bedgraph"
     publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "coverage_histogram_data.tsv"

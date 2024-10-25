@@ -1,6 +1,6 @@
 process picard_downsample {
     tag "picard:${sampleId}"
-
+    container  = params.main_image
     input:
     tuple val(sampleId), path(bam), path(bai), path(ref_genome_with_index), val(QC_status)
 
@@ -21,7 +21,7 @@ process picard_downsample {
       if [ `awk -v norm="\${NORM}" 'BEGIN {if(norm>0.99) {print 1} else {print 0}}'` -eq 1 ]; then 
         NORM=0.99
       fi
-
+      echo \${NORM}
       suffix=`echo "${params.max_number_for_SV}/1000" | bc -l | awk '{print int(\$0)}'`
 
       java -jar /opt/picard/picard.jar PositionBasedDownsampleSam \
@@ -29,7 +29,7 @@ process picard_downsample {
                                       --OUTPUT downsample.bam -F \${NORM}
       samtools index downsample.bam
       NO_READS=`samtools view downsample.bam | wc -l`
-      if [ "\${NO_READS}" -lt 1000 ]; then
+      if [ "\${NO_READS}" -lt 10000 ]; then
         QC_exit="nie"
       else
         QC_exit="tak"

@@ -1,5 +1,6 @@
 process copy_genome_and_primers {
   tag "Detecting type for sample:${sampleId}"
+  container  = params.main_image
   // Dummy modules that pass genome from within container to the nextflow work dir
   // It is dummy hence there is no difference between illumina and nanopre
 input:

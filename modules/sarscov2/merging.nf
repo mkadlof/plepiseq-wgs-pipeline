@@ -1,6 +1,6 @@
 process merging {
     tag "merging:${sampleId}"
-
+    container  = params.main_image
     input:
     tuple val(sampleId), path(filtering_bam), path(ivar_bam), val(QC_status)
 

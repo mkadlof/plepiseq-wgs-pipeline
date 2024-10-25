@@ -1,6 +1,6 @@
 process masking {
     tag "masking:${sampleId}"
-
+    container  = params.main_image
     input:
     tuple val(sampleId), path(bam), path(bai), path(primers), path(pairs), val(QC_status)
 

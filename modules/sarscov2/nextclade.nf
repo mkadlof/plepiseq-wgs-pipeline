@@ -1,7 +1,8 @@
 process nextclade {
     tag "nextclade:${sampleId}"
+    container  = params.main_image
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "nextstrain_lineage.csv"
-    containerOptions "--volume ${params.nextclade_db_absolute_path_on_host}:/home/external_databases/nextclade_db"
+    containerOptions "--volume ${params.external_databases_path}:/home/external_databases/"
 
     input:
     tuple val(sampleId), path('consensus_masked_SV.fa'), path(ref_genome_with_index), val(QC_status)
@@ -28,13 +29,13 @@ process nextclade {
       HEADER=`head -1 ${ref_genome_with_index[final_index]} | tr -d ">"`
       if [[ "\${HEADER}" == "MN"* ]]; then
         NEXCLADE_FILE="sars-cov-2.zip"
-      elif [[ \${HEADER} == "hRSV/A/"* ]]; then
+      elif [[ \${HEADER} == "hRSV/A"* ]]; then
         NEXCLADE_FILE="RSV-A.zip"
       elif [[ \${HEADER} == "hRSV/B/"* ]]; then
         NEXCLADE_FILE="RSV-B.zip"
       fi
 
-      nextclade run --input-dataset /home/external_databases/nextclade_db/\${NEXCLADE_FILE} \
+      nextclade run --input-dataset /home/external_databases/nextclade/\${NEXCLADE_FILE} \
                     --output-csv nextstrain_lineage.csv \
                     --output-all nextclade_lineages \
                     consensus_masked_SV.fa
