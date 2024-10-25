@@ -765,6 +765,12 @@ if __name__ == '__main__':
         pysam.index('two_amplicons_sorted.bam')
 
     # Uzycie primerow
+    with open('Primer_usage.txt', "w") as f:
+        f.write('Segment\tPrimer_number\tPrimare_usage\n')
+        for klucz in slownik_amplikonow_uzycie_left_primer.keys():
+            f.write(f'{name_ref}\t{klucz}\t{int(slownik_amplikonow_uzycie_left_primer[klucz]) + int(slownik_amplikonow_uzycie_right_primer[klucz])}\n')
+
+    # Legacy version for Statisics file
     statystyki.write('Uzycie primerow (kolejno numer primeru, uzycie primeru lewego, uzycie primeru prawego:\n')
 
     for klucz in slownik_amplikonow_uzycie_left_primer.keys():

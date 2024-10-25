@@ -28,6 +28,7 @@ process filtering {
       else
           samtools view -b -o two_amplicons_sorted.bam -L /dev/null first_pass_sorted.bam
       fi
+      # Komentarz do json-a - Primer_usage.txt zawiera plik z 3 kolumanmi - nazwa segmentu, nazwa primera, uzyciem
     fi
     """
 }
