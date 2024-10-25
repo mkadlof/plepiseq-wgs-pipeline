@@ -4,17 +4,49 @@ params.machine = '' // Can be set to either 'Illumina' or 'Nanopore'. Required
 params.reads = "" // Must be provided by user
 params.primers_id = "" // Either V0 or V1
 params.adapters_id="TruSeq3-PE-2" // To podaje user ale jest default
+params.species = "" // Required field name of a species expected to be analyzed with this pipeline can be either "SARS-CoV-2", "RSV" or "Influenza" 
+
+// Output Dir by default "results" directory 
+params.results_dir = "./results"
+
+// projectDir is not defined in sars pipeline in nf explicite but is set by bash wrapper
+// Modules are just a subdirectory to projectDir and this cannot be changed
+
+params.projectDir = "/home/michall/git/nf_illumina_sars_ml"
+modules = "${params.projectDir}/modules" // Modules are part of the projectDir
+
+// External databases with PREDEFINED structure
+// When we use EXTERNAL database with a module we mount this path and the module itself will access the relevant database for relevant species
+params.external_databases_path="/home/jenkins/workspace/nf_illumina_sars/external_databases"
+
+// All species-relevant variables, for now only expected genus for kraken2
+if ( params.species  == 'SARS-CoV-2' ) {
+genus="Betacoronavirus"
+
+} else if (params.species  == 'Influenza') {
+genus="Alphainfluenzavirus"
+// Betainfluenzavirus for B/ kraken2 for now only undestands one genus
+
+} else if (params.species  == 'RSV') {
+genus="Orthopneumovirus"
+
+} else {
+  println("Incorrect species, avalable options are : SARS-CoV-2, RSV or Influenza")
+  System.exit(0)
+}
 
 // All docker images used by this pipeline
+// All modules require explicit information which of this images they use
 params.main_image = "nf_viral_main:1.0"
 params.manta_image = "nf_viral_manta:1.0"
 params.medaka_image = "ontresearch/medaka:sha447c70a639b8bcf17dc49b51e74dfcde6474837b-amd64"
 
-// Other parameters 
+// High-level parameters 
 params.memory = 4048
 params.threads = 5
 
-// For now machine-specifing parameters are mostly identical
+// All sequencing platform specific parameters
+// Some of them should be made common
 if ( params.machine  == 'Illumina' ) {
 params.min_number_of_reads = 0
 params.expected_genus_value = 5
@@ -55,24 +87,10 @@ params.quality_for_coverage = 10 // Parametr uzywany w modul lowCov
   System.exit(0)
 }
 
-// List of databases
-params.nextclade_db_absolute_path_on_host = "/home/jenkins/workspace/nf_illumina_sars/external_databases/nextclade" 
-params.kraken2_db_absolute_path_on_host = "/home/michall/kraken2/kraken2_db/kraken2_sdb/"
+// Modules section, we can load all module even if we do not plan to use all of them for a given species/platform combination
 
-
-// output dir, by default "results" directory
-params.results_dir = "./results"
-
-// Directory with modules, maybe move the .nf file to the main script to remove one settable parameter ? MUST be indicated by user
-// projectDir is not defined in sars pipeline in nf explicite but is set by bash wrapper 
-params.projectDir = "/home/michall/git/nf_illumina_sars_ml"
-// modules will be a slave to projectDir
-modules = "${params.projectDir}/modules"
-println("module to ${modules}")
-
-// adapters="/home/data/common/adapters/${params.adapters_id}.fa"
-// params.ref_genome_id="MN908947.3"
-
+// More or less common modules
+// In principle all modules could be made common if we write enough if-else statesment with them
 include { kraken2_illumina } from "${modules}/common/kraken2.nf"
 include { kraken2_nanopore } from "${modules}/common/kraken2.nf"
 
@@ -87,14 +105,11 @@ include { fastqc as fastqc_2 } from "${modules}/common/fastqc.nf"
 
 include { trimmomatic } from "${modules}/common/trimmomatic.nf"
 
-include { detect_type_illumina } from "${modules}/rsv/detect_type.nf"
-include { detect_type_nanopore } from "${modules}/rsv/detect_type.nf"
+include { filtering as filtering_one_segment } from "${modules}/sarscov2/filtering.nf" 
 
-include { filtering } from "${modules}/sarscov2/filtering.nf" // Filtering dla SARS i RSV sa identyczne
 include { masking } from "${modules}/common/masking.nf"
-include { merging } from "${modules}/sarscov2/merging.nf" // Ponownie pozyczamy kod z SARS
+include { merging } from "${modules}/sarscov2/merging.nf" 
 include { picard_downsample } from "${modules}/common/picard.nf"
-
 
 include { introduce_SV_with_manta } from "${modules}/common/manta.nf"
 
@@ -105,25 +120,42 @@ include { varScan } from "${modules}/common/varscan.nf"
 include { freeBayes } from "${modules}/common/freeBayes.nf"
 include { lofreq } from "${modules}/common/lofreq.nf"
 include { consensus } from "${modules}/common/consensus.nf"
-include { vcf_for_fasta } from "${modules}/sarscov2/vcf_for_fasta.nf"
 
+// vcf_for_fasta, snpEff and nextclade should be "common" module ? check if they work for influenza 
+include { vcf_for_fasta } from "${modules}/sarscov2/vcf_for_fasta.nf"
 include { snpEff } from "${modules}/rsv/snpEff.nf"
+include { nextclade } from "${modules}/sarscov2/nextclade.nf"
 
 // include { simpleStats } from "${params.modules}/sarscov2/simpleStats.nf"
-include { nextclade } from "${modules}/sarscov2/nextclade.nf"
-// include { pangolin } from "${params.modules}/sarscov2/pangolin.nf"
 // include { modeller } from "${params.modules}/sarscov2/modeller.nf"
 // include { json_aggregator } from "${params.modules}/common/json_aggregator.nf"
 
-// Coinfection line
-// include { freyja } from "${params.modules}/sarscov2/freyja.nf"
-// include { coinfection_ivar } from "${params.modules}/sarscov2/coinfection_ivar.nf"
-// include { coinfection_varscan } from "${params.modules}/sarscov2/coinfection_varscan.nf"
-// include { coinfection_analysis } from "${params.modules}/sarscov2/coinfection_analysis.nf"
+// SARS specific modules
+include { copy_genome_and_primers } from "${modules}/sarscov2/copy_genome_and_primers.nf"
+include { pangolin } from "${modules}/sarscov2/pangolin.nf"
 
+// // Coinfection line for SARS
+include { freyja } from "${params.modules}/sarscov2/freyja.nf"
+include { coinfection_ivar } from "${params.modules}/sarscov2/coinfection_ivar.nf"
+include { coinfection_varscan } from "${params.modules}/sarscov2/coinfection_varscan.nf"
+include { coinfection_analysis } from "${params.modules}/sarscov2/coinfection_analysis.nf"
+
+// INFL-specific modules 
+include { detect_subtype as detect_subtype_influenza_illuumina } from "${modules}/infl/detect_subtype.nf"
+include { reassortment as reassortment_influenza_illumina } from "${modules}/infl/reassortment.nf"
+include { filtering as filtering_multiple_segments} from "${modules}/infl/filtering.nf"
+include { sort_and_index as sort_and_index_influenza_illumina } from "${modules}/infl/sort_and_index.nf"
+include { nextclade as nextclade_influenza } from "${modules}/infl/nextclade.nf"
+include { nextalign } from "${modules}/infl/nextalign.nf"
+include { resistance } from "${modules}/infl/resistance.nf"
+
+// RSV-specific modules
+include { detect_type_rsv_illumina } from "${modules}/rsv/detect_type.nf"
+include { detect_type_rsv_nanopore } from "${modules}/rsv/detect_type.nf"
 
 // Main workflow
 workflow{
+
 if(params.machine == 'Illumina') {
   Channel
     .fromFilePairs(params.reads)
@@ -133,15 +165,25 @@ if(params.machine == 'Illumina') {
 
   // Running kraken2 prediction
   reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
-  kraken2_out = kraken2_illumina(reads_and_qc, "Orthopneumovirus") // Extra input is the name of the expected genus for this species
+  kraken2_out = kraken2_illumina(reads_and_qc, genus) 
   trimmomatic_out = trimmomatic(reads.join(kraken2_out.qcstatus_only, by:0))
   fastqc_filtered_out = fastqc_2(trimmomatic_out.proper_reads_and_qc, "post-filtering")
   
   final_reads_and_final_qc = trimmomatic_out.proper_reads.join(fastqc_filtered_out.qcstatus, by:0)
   
-  // This module will detect RSV type and provide genome files, primers and pairs 
-  detect_type_illumina_out = detect_type_illumina(final_reads_and_final_qc)
-  reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
+  // For all three species selection of reference genome/primers is different 
+  if ( params.species  == 'SARS-CoV-2' ) {
+    detect_type_illumina_out = copy_genome_and_primers(final_reads_and_final_qc)
+    reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
+  
+  } else if (params.species  == 'Influenza') {
+    // TBD
+  } else if (params.species  == 'RSV') {
+    detect_type_illumina_out = detect_type_rsv_illumina(final_reads_and_final_qc)
+    reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
+  }
+  
+ 
   bwa_out = bwa(reads_and_genome)
 
   // Dehumanization
@@ -190,7 +232,7 @@ if(params.machine == 'Illumina') {
   reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
   kraken2_out = kraken2_nanopore(reads_and_qc, "Orthopneumovirus")
   final_reads_and_final_qc = reads.join(kraken2_out.qcstatus_only, by:0)
-  detect_type_nanopore_out = detect_type_nanopore(final_reads_and_final_qc)
+  detect_type_nanopore_out = detect_type_rsv_nanopore(final_reads_and_final_qc)
   reads_and_genome = reads.join(detect_type_nanopore_out.to_minimap2, by:0)
   minimap2_out = minimap2(reads_and_genome)
 

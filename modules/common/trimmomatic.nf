@@ -1,5 +1,6 @@
 process trimmomatic {
     // This module only passes QC to downstream modules
+    container  = params.main_image
     tag "trimmomatic:${sampleId}"
 
     input:

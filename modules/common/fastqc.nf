@@ -2,7 +2,7 @@ process fastqc {
     tag "${prefix}_fastqc:${sampleId}"
     publishDir "${params.results_dir}/${sampleId}/QC", mode: 'copy'
     publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "*.json"
-
+    container  = params.main_image
     input:
     tuple val(sampleId), path(reads), val(QC_STATUS)
     val(prefix)

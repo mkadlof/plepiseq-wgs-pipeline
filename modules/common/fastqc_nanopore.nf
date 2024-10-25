@@ -1,7 +1,9 @@
 process run_fastqc_nanopore {
   // Modification of run_fastqc_illumina
-  // That requires one fastq.gz file
-  tag "fastqc for sample ${x}"
+  // That requires one fastq.gz filei
+
+  tag "fastqc for sample ${sampleId}"
+  container  = params.main_image
   publishDir "${params.results_dir}/${sampleId}/QC", mode: 'copy'
   publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "*.json"
 

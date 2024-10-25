@@ -1,15 +1,16 @@
 process detect_type_illumina {
+  // Determine if we are dealing with RSV A or B based on score ratio after mapping to two genome
   tag "Detecting type for sample:${sampleId}"
   maxForks 5
-// Determine if we are dealing with RSV A or B based on score ratio after mapping to two genomes
-input:
-  tuple val(sampleId), path(reads), val(QC_STATUS)
-output:
-  tuple val(sampleId), path("RSV*"), path("primers.bed"), path("pairs.tsv"), env(TYPE), env(REF_GENOME_ID), env(QC_exit), emit: all
-  tuple val(sampleId), path("RSV*"), env(QC_exit), emit: to_bwa
-  tuple val(sampleId), path("primers.bed"), path("pairs.tsv"), emit: primers_and_pairs
-  tuple val(sampleId), path("genome.fasta"), emit: only_genome // indelqual module requires a variable not a tupple
-  tuple val(sampleId), env(TYPE), emit: json
+  container  = params.main_image
+  input:
+    tuple val(sampleId), path(reads), val(QC_STATUS)
+  output:
+    tuple val(sampleId), path("RSV*"), path("primers.bed"), path("pairs.tsv"), env(TYPE), env(REF_GENOME_ID), env(QC_exit), emit: all
+    tuple val(sampleId), path("RSV*"), env(QC_exit), emit: to_bwa
+    tuple val(sampleId), path("primers.bed"), path("pairs.tsv"), emit: primers_and_pairs
+    tuple val(sampleId), path("genome.fasta"), emit: only_genome // indelqual module requires a variable not a tupple
+    tuple val(sampleId), env(TYPE), emit: json
 script:
 """
 # genome jest w kontenerze
@@ -69,15 +70,16 @@ fi
 }
 
 process detect_type_nanopore {
+  // Determine if we are dealing with RSV A or B based on score ratio after mapping to two genomes
   tag "Detecting type for sample:${sampleId}"
   maxForks 5
-// Determine if we are dealing with RSV A or B based on score ratio after mapping to two genomes
-input:
-  tuple val(sampleId), path(reads), val(QC_STATUS)
-output:
-  tuple val(sampleId), path("RSV*"), path("primers.bed"), path("pairs.tsv"), env(TYPE), env(REF_GENOME_ID), env(QC_exit), emit: all
-  tuple val(sampleId), path("RSV*"), env(QC_exit), emit: to_minimap2
-  tuple val(sampleId), env(TYPE), emit: json
+  container  = params.main_image
+  input:
+    tuple val(sampleId), path(reads), val(QC_STATUS)
+  output:
+    tuple val(sampleId), path("RSV*"), path("primers.bed"), path("pairs.tsv"), env(TYPE), env(REF_GENOME_ID), env(QC_exit), emit: all
+    tuple val(sampleId), path("RSV*"), env(QC_exit), emit: to_minimap2
+    tuple val(sampleId), env(TYPE), emit: json
 script:
 """
 # genome jest w kontenerze

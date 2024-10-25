@@ -7,7 +7,9 @@ process kraken2_illumina {
     // belongs)
     tag "kraken2:${sampleId}"
     
-    containerOptions "--volume ${params.kraken2_db_absolute_path_on_host}:/home/external_databases/kraken2"
+    container  = params.main_image
+    containerOptions "--volume ${params.external_databases_path}:/home/external_databases/"
+    
     maxForks 4
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "Summary_kraken*"
     publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "contaminations.json"
@@ -31,7 +33,7 @@ process kraken2_illumina {
         json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s nie -m "\${ERR_MSG}" -o contaminations.json
 
     else
-        kraken2 --db /home/external_databases/kraken2 \
+        kraken2 --db /home/external_databases/kraken \
                 --report report_kraken2.txt \
                 --threads ${params.threads} \
                 --gzip-compressed \
@@ -83,7 +85,8 @@ process kraken2_nanopore {
     // This process only differ from illumina in kraken2 execution
     tag "kraken2:${sampleId}"
 
-    containerOptions "--volume ${params.kraken2_db_absolute_path_on_host}:/home/external_databases/kraken2"
+    container  = params.main_image
+    containerOptions "--volume ${params.external_databases_path}:/home/external_databases/"
     maxForks 4
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "Summary_kraken*"
     publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "contaminations.json"
@@ -107,7 +110,7 @@ process kraken2_nanopore {
         json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s nie -m "\${ERR_MSG}" -o contaminations.json
 
     else
-        kraken2 --db /home/external_databases/kraken2 \
+        kraken2 --db /home/external_databases/kraken \
                 --report report_kraken2.txt \
                 --threads ${params.threads} \
                 --gzip-compressed \

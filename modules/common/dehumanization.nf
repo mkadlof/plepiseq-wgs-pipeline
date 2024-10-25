@@ -1,7 +1,7 @@
 process dehumanization_illumina  {
     tag "dehumanization:${sampleId}"
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy'
-
+    container  = params.main_image
     input:
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), val(QC_status), path(reads)
 
@@ -31,7 +31,7 @@ process dehumanization_illumina  {
 process dehumanization_nanopore {
     tag "dehumanization:${sampleId}"
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy'
-
+    container  = params.main_image
     input:
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), val(QC_status), path(reads)
 

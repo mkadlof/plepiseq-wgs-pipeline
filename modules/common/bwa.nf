@@ -1,7 +1,7 @@
 process bwa {
     tag "bwa:${sampleId}"
     maxForks 5
-
+    container  = params.main_image
     input:
     tuple val(sampleId), path(reads), path(ref_genome_with_index), val(QC_status)
 
