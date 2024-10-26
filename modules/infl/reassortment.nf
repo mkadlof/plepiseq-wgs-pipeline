@@ -31,34 +31,43 @@ process reassortment {
             fi
         done
     }
-    # REF_GENOME_ID is defined here again, 'cause I am lazy 
-    REF_GENOME_ID="${REF_GENOME_ID_entry}"
-    ALL_GENOMES=(`ls /home/data/infl/genomes`)
-    ALL_SEGMENTS=(PB2 PB1 PA HA NP NA MP NS)
-    genomes="/home/data/infl/genomes" # path to genomes WITHIN container
-    primers="/home/data/infl/primers" # path to primers WITHIN container
+    # REF_GENOME_ID is defined here again, 'cause I am lazy
 
-    cat \${genomes}/\${REF_GENOME_ID}/\${REF_GENOME_ID}.fasta | \
-        awk -v ID=\${REF_GENOME_ID} '{if (substr(\$0, 1, 1)==">") {filename=(ID"_"substr(\$0,2) ".fasta"); print \$0"_"ID >> filename } else {print toupper(\$0)  >> filename}}'
+    if [ ${QC_status} == "nie" ]; then
+      touch hybrid_primers.bed
+      touch hybrid_genome.fasta
+      touch hybrid_genome.fasta.fai
+      touch pairs.tsv
+      REF_GENOME_ID="unk"
+      QC_exit="nie"
+    else 
+      REF_GENOME_ID="${REF_GENOME_ID_entry}"
+      ALL_GENOMES=(`ls /home/data/infl/genomes`)
+      ALL_SEGMENTS=(PB2 PB1 PA HA NP NA MP NS)
+      genomes="/home/data/infl/genomes" # path to genomes WITHIN container
+      primers="/home/data/infl/primers" # path to primers WITHIN container
 
-    # For each segment, we analyze the file subtype_scores_each_segment.txt. This file holds a matrix where
-    # rows represent subtypes, and columns mapping scores to segments from a given subtype .
+      cat \${genomes}/\${REF_GENOME_ID}/\${REF_GENOME_ID}.fasta | \
+      awk -v ID=\${REF_GENOME_ID} '{if (substr(\$0, 1, 1)==">") {filename=(ID"_"substr(\$0,2) ".fasta"); print \$0"_"ID >> filename } else {print toupper(\$0)  >> filename}}'
 
-    SEGMENTS_REASSORTMENT=()
-    FOUND_SUBTYPES_REASSORTMENT=()
-    FOUND_SUBTYPES_SCORE_RATIO=()
-    FOUND_SUBTYPES_SEQ_SIMILARITY=()
-    FOUND_SUBTYPES_COUNTS=()
+      # For each segment, we analyze the file subtype_scores_each_segment.txt. This file holds a matrix where
+      # rows represent subtypes, and columns mapping scores to segments from a given subtype .
 
-    # These 5 lists should hold, in order: the segment identifier, the subtype with the highest
-    # alignment score  the score of the expected subtype / score of the best subtype, the
-    # similarity between the expected subtype and the found subtype, and the average coverage on
-    # the best segment. These list are only used for internal QC and are printed to intermediate.txt file
+      SEGMENTS_REASSORTMENT=()
+      FOUND_SUBTYPES_REASSORTMENT=()
+      FOUND_SUBTYPES_SCORE_RATIO=()
+      FOUND_SUBTYPES_SEQ_SIMILARITY=()
+      FOUND_SUBTYPES_COUNTS=()
+
+      # These 5 lists should hold, in order: the segment identifier, the subtype with the highest
+      # alignment score  the score of the expected subtype / score of the best subtype, the
+      # similarity between the expected subtype and the found subtype, and the average coverage on
+      # the best segment. These list are only used for internal QC and are printed to intermediate.txt file
    
-    # Basically "expected" subtype is subtype identified based on mapping score for HA and NA only
-    # "Best" is the subtype with highest mapping score for that segment  
+      # Basically "expected" subtype is subtype identified based on mapping score for HA and NA only
+      # "Best" is the subtype with highest mapping score for that segment  
 
-    for segment in \${ALL_SEGMENTS[@]}; do
+      for segment in \${ALL_SEGMENTS[@]}; do
         SEGMENTS_REASSORTMENT+=(\${segment})
 
         # We need to extract data from a file so first we determine in which column the data
@@ -149,21 +158,22 @@ process reassortment {
             rm tmp.fa
             rm *\${SEGMENT_best}_chr*.fasta
         fi
-    done
+      done
 
-    # intermediate file for QC checks
-    rm \${REF_GENOME_ID}_chr*.fasta
-    echo \${SEGMENTS_REASSORTMENT[@]} >> intermediate.txt
-    echo \${FOUND_SUBTYPES_REASSORTMENT[@]} >> intermediate.txt
-    echo \${FOUND_SUBTYPES_SCORE_RATIO[@]} >> intermediate.txt
-    echo \${FOUND_SUBTYPES_SEQ_SIMILARITY[@]} >> intermediate.txt
-    echo \${FOUND_SUBTYPES_COUNTS[@]} >> intermediate.txt
+      # intermediate file for QC checks
+      rm \${REF_GENOME_ID}_chr*.fasta
+      echo \${SEGMENTS_REASSORTMENT[@]} >> intermediate.txt
+      echo \${FOUND_SUBTYPES_REASSORTMENT[@]} >> intermediate.txt
+      echo \${FOUND_SUBTYPES_SCORE_RATIO[@]} >> intermediate.txt
+      echo \${FOUND_SUBTYPES_SEQ_SIMILARITY[@]} >> intermediate.txt
+      echo \${FOUND_SUBTYPES_COUNTS[@]} >> intermediate.txt
 
-    REFERENCE_GENOME_FASTA="hybrid_genome.fasta"
-    bwa index \${REFERENCE_GENOME_FASTA}
-    PRIMERS="hybrid_primers.bed"
-    # Pairs file is subtype independent for influenza
-    cp /home/data/infl/primers/pairs.tsv .
-
+      REFERENCE_GENOME_FASTA="hybrid_genome.fasta"
+      bwa index \${REFERENCE_GENOME_FASTA}
+      PRIMERS="hybrid_primers.bed"
+      # Pairs file is subtype independent for influenza
+      cp /home/data/infl/primers/pairs.tsv .
+      QC_exit="tak"
+   fi #koniec if-a na QC
    """
 }

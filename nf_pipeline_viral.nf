@@ -147,7 +147,7 @@ include { coinfection_analysis } from "${modules}/sarscov2/coinfection_analysis.
 // INFL-specific modules 
 include { detect_subtype_illumina as detect_subtype_influenza_illumina } from "${modules}/infl/detect_subtype.nf"
 include { reassortment as reassortment_influenza } from "${modules}/infl/reassortment.nf"
-include { filtering as filtering_multiple_segments} from "${modules}/infl/filtering.nf"
+include { filtering as filtering_influenza_illumina} from "${modules}/infl/filtering.nf"
 include { sort_and_index as sort_and_index_influenza_illumina } from "${modules}/infl/sort_and_index.nf"
 include { nextclade as nextclade_influenza } from "${modules}/infl/nextclade.nf"
 include { nextalign } from "${modules}/infl/nextalign.nf"
@@ -190,20 +190,22 @@ if(params.machine == 'Illumina') {
     reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
   }
   
- 
+  // Mapping 
   bwa_out = bwa(reads_and_genome)
   // Dehumanization
   dehumanization_illumina_out = dehumanization_illumina(bwa_out.only_bam.join(trimmomatic_out.proper_reads, by:0))
-
-  initial_bam_and_primers = bwa_out.only_bam.join(detect_type_illumina_out.primers_and_pairs, by:0)
   
   if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
+    initial_bam_and_primers = bwa_out.only_bam.join(detect_type_illumina_out.primers_and_pairs, by:0)
     filtering_out = filtering_one_segment(initial_bam_and_primers)
     masking_out = masking(filtering_out.one_amplicon_primers_and_QC)
     merging_out = merging(filtering_out.two_amplicon_only.join(masking_out, by:0))
     pre_final_bam_and_genome = merging_out.join(detect_type_illumina_out.only_genome, by:0)
   } else if (params.species  == 'Influenza') {
-    // TBD filtering and sort_and_index modules
+    initial_bam_and_primers = bwa_out.bam_and_genome.join(reassortment_influenza_out.primers_and_pairs, by:0)
+    filtering_out = filtering_influenza_illumina(initial_bam_and_primers)
+    masking_out = masking(filtering_out.one_amplicon_primers_and_QC)
+    sort_and_index_out = sort_and_index_influenza_illumina(masking_out)
   }
  
   indelQual_out = indelQual(pre_final_bam_and_genome) 
