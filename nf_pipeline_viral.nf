@@ -28,6 +28,7 @@ genus="Betacoronavirus"
 
 } else if (params.species  == 'Influenza') {
 genus="Alphainfluenzavirus"
+params.variant = "UNK"
 // Betainfluenzavirus for B/ kraken2 for now only undestands one genus
 
 } else if (params.species  == 'RSV') {
@@ -144,8 +145,8 @@ include { coinfection_varscan } from "${modules}/sarscov2/coinfection_varscan.nf
 include { coinfection_analysis } from "${modules}/sarscov2/coinfection_analysis.nf"
 
 // INFL-specific modules 
-include { detect_subtype as detect_subtype_influenza_illuumina } from "${modules}/infl/detect_subtype.nf"
-include { reassortment as reassortment_influenza_illumina } from "${modules}/infl/reassortment.nf"
+include { detect_subtype_illumina as detect_subtype_influenza_illumina } from "${modules}/infl/detect_subtype.nf"
+include { reassortment as reassortment_influenza } from "${modules}/infl/reassortment.nf"
 include { filtering as filtering_multiple_segments} from "${modules}/infl/filtering.nf"
 include { sort_and_index as sort_and_index_influenza_illumina } from "${modules}/infl/sort_and_index.nf"
 include { nextclade as nextclade_influenza } from "${modules}/infl/nextclade.nf"
@@ -181,7 +182,9 @@ if(params.machine == 'Illumina') {
     reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
   
   } else if (params.species  == 'Influenza') {
-    // TBD
+    detect_subtype_illumina_out = detect_subtype_influenza_illumina(final_reads_and_final_qc)
+    reassortment_influenza_out =  reassortment_influenza(detect_subtype_illumina_out.segments_scores)
+    reads_and_genome = trimmomatic_out.proper_reads.join(reassortment_influenza_out.to_bwa, by:0)
   } else if (params.species  == 'RSV') {
     detect_type_illumina_out = detect_type_rsv_illumina(final_reads_and_final_qc)
     reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
