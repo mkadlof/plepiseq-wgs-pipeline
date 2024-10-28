@@ -206,17 +206,20 @@ if(params.machine == 'Illumina') {
     filtering_out = filtering_influenza_illumina(initial_bam_and_primers)
     masking_out = masking(filtering_out.one_amplicon_primers_and_QC)
     sort_and_index_out = sort_and_index_influenza_illumina(masking_out)
+    pre_final_bam_and_genome = sort_and_index_out.join(reassortment_influenza_out.only_genome, by:0)
   }
  
   indelQual_out = indelQual(pre_final_bam_and_genome) 
- 
-  final_bam_and_genome = indelQual_out.bam_and_qc.join(detect_type_illumina_out.only_genome, by:0)   
-  
-  freebayes_out = freeBayes(final_bam_and_genome)
-  lofreq_out = lofreq(final_bam_and_genome)
-  lowCov_out = lowCov(final_bam_and_genome) 
-  varScan_out = varScan(final_bam_and_genome)
-  wgsMetrics_out = picard_wgsMetrics(final_bam_and_genome) 
+
+  // do usuniecia, bylo tak zanim uzywam innego emita z indelQaul  
+  // final_bam_and_genome = indelQual_out.bam_and_qc.join(detect_type_illumina_out.only_genome, by:0)   
+  // freebayes_out = freeBayes(final_bam_and_genome)
+
+  freebayes_out = freeBayes(indelQual_out.bam_genome_and_qc)
+  lofreq_out = lofreq(indelQual_out.bam_genome_and_qc)
+  lowCov_out = lowCov(indelQual_out.bam_genome_and_qc) 
+  varScan_out = varScan(indelQual_out.bam_genome_and_qc)
+  wgsMetrics_out = picard_wgsMetrics(indelQual_out.bam_genome_and_qc) 
 
   all_sub_fastas = lowCov_out.fasta.join(varScan_out)
   all_sub_fastas = all_sub_fastas.join(freebayes_out)
