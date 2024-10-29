@@ -8,7 +8,7 @@ process consensus {
 
     output:
     tuple val(sampleId), path("consensus.fasta"), val(QC_status), emit: single_fasta
-    tuple val(sampleId), path("consensus_*.fasta"), emit: multiple_fastas
+    tuple val(sampleId), path("consensus_*.fasta"), val(QC_status), emit: multiple_fastas
     tuple val(sampleId), path("consensus.json"), emit: json
 
     script:
@@ -21,7 +21,6 @@ process consensus {
     else
 
       make_consensus.py ${masked_ref_genome_fa} ${freebayes_fa} ${lofreq_fa} ${varscan_fa}
-
       # get the total length and number of Ns in the consensus
 
       TOTAL_LENGTH=\$(grep -v '>' consensus.fasta | wc -c)

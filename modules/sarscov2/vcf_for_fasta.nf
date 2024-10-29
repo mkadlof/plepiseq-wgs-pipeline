@@ -5,12 +5,18 @@ process vcf_for_fasta {
 
     input:
     tuple val(sampleId), path("consensus.fa"), val(QC_status), path(ref_genome)
-    // path(vcf_template)
+    // tuple val(sampleId), path("consensus.fa"), val(QC_status), path(ref_genome_with_index)
 
     output:
     tuple val(sampleId), path("consensus.vcf.gz"), path("consensus.vcf.gz.tbi"), emit: vcf
 
     script:
+    // def final_index = -1
+    // ref_genome_with_index.eachWithIndex { filename, index ->
+    //    if (filename.toString().endsWith(".fasta")) {
+    //     final_index = index
+    //    }
+    //}
     """
      if [ ${QC_status} == "nie" ]; then
       touch consensus.vcf.gz

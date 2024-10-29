@@ -25,14 +25,16 @@ params.external_databases_path="/home/jenkins/workspace/nf_illumina_sars/externa
 // Furthermore if a user provides a wrong species the pipeline will not execute
 if ( params.species  == 'SARS-CoV-2' ) {
 genus="Betacoronavirus"
-
+params.max_number_for_SV = 200000
 } else if (params.species  == 'Influenza') {
 genus="Alphainfluenzavirus"
 params.variant = "UNK"
+params.max_number_for_SV = 10000
 // Betainfluenzavirus for B/ kraken2 for now only undestands one genus
 
 } else if (params.species  == 'RSV') {
 genus="Orthopneumovirus"
+params.max_number_for_SV = 100000
 
 } else {
   println("Incorrect species, avalable options are : SARS-CoV-2, RSV or Influenza")
@@ -57,7 +59,6 @@ params.expected_genus_value = 5
 params.min_median_quality = 0
 params.quality_initial = 5
 params.length = 90
-params.max_number_for_SV = 200000
 params.max_depth = 600
 params.min_cov = 20
 params.mask = 20
@@ -75,7 +76,6 @@ params.expected_genus_value = 5
 params.min_median_quality = 0
 params.quality_initial = 2 // We are extreamly liberal for nanopore 
 params.length = 90
-params.max_number_for_SV = 200000
 params.max_depth = 600
 params.min_cov = 20
 params.mask = 20
@@ -113,7 +113,7 @@ include { filtering as filtering_one_segment } from "${modules}/sarscov2/filteri
 
 include { masking } from "${modules}/common/masking.nf"
 include { merging } from "${modules}/sarscov2/merging.nf" 
-include { picard_downsample } from "${modules}/common/picard.nf"
+include { picard_downsample_multisegment as picard_downsample } from "${modules}/common/picard.nf"
 
 include { introduce_SV_with_manta } from "${modules}/common/manta.nf"
 
@@ -222,10 +222,6 @@ if(params.machine == 'Illumina') {
  
   indelQual_out = indelQual(pre_final_bam_and_genome) 
 
-  // do usuniecia, bylo tak zanim uzywam innego emita z indelQaul  
-  // final_bam_and_genome = indelQual_out.bam_and_qc.join(detect_type_illumina_out.only_genome, by:0)   
-  // freebayes_out = freeBayes(final_bam_and_genome)
-
   freebayes_out = freeBayes(indelQual_out.bam_genome_and_qc)
   lofreq_out = lofreq(indelQual_out.bam_genome_and_qc)
   lowCov_out = lowCov(indelQual_out.bam_genome_and_qc) 
@@ -244,7 +240,7 @@ if(params.machine == 'Illumina') {
   
   // Predicting SV with manta
   picard_downsample_out = picard_downsample(bwa_out.bam_and_genome)
-  manta_out = introduce_SV_with_manta(picard_downsample_out.to_manta.join(consensus_out.single_fasta, by:0))
+  manta_out = introduce_SV_with_manta(picard_downsample_out.to_manta.join(consensus_out.multiple_fastas, by:0))
   nextclade_out = nextclade(manta_out.fasta_refgenome_and_qc)
  
 } else if (params.machine == 'Nanopore') {
