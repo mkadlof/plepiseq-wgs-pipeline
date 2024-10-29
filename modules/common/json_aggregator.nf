@@ -28,6 +28,5 @@ process json_aggregator {
                        --fastqc_post ${fastqc_post_json_forward} ${fastqc_post_json_reverse} \
                        ${!pangolin_json.contains('/non-existent') ? "--pangolin ${pangolin_json}" : ""} \
                        --nextclade ${nextclade_json}
-
     """
 }

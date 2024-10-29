@@ -14,6 +14,7 @@ process pangolin {
     pangolin --outfile pangolin_lineage.csv \
              --threads ${params.threads} \
              ${consensus_masked_sv_fa}
-    parse_pangolin_output_csv2json.py pangolin_lineage.csv pangolin.json
+    parse_pangolin_output_csv2json.py pangolin_lineage.csv pangolin_sars.json
+    jq -s "." pangolin_sars.json > pangolin.json
     """
 }

@@ -17,7 +17,7 @@ def get_nextclade_db_version(input: str):
     return data['meta']['updated']
 
 
-def parse_nextclade_output_csv2json(input: str, input2: str, output: str):
+def parse_nextclade_output_csv2json(input: str, input2: str, output: str, sequence_source: str):
     if not os.path.exists(input):
         warn(f"File {input} does not exist.")
         output_json = {"status": "nie",
@@ -33,14 +33,18 @@ def parse_nextclade_output_csv2json(input: str, input2: str, output: str):
         with open(input, 'r') as f:
             reader = csv.DictReader(f, delimiter=';')
             data = list(reader)
-        print(data)
+        if data[0]['qc.overallStatus'] == 'good':
+            qc_status = "pass"
+        else:
+            qc_status = "warning"
         output_json = {"status": "tak",
                        "database_name": "Nextclade",
                        "database_version": db_version,
                        "program_name": "Nextclade",
                        "program_version": program_version,
-                       "variant_name": data[0]['clade_nextstrain'],
-                       "variant_qc_status": data[0]['qc.overallStatus']}
+                       "variant_name": data[0]['clade'],
+                       "variant_qc_status": qc_status,
+                       "sequence_source": sequence_source}
         with open(output, 'w') as f:
             json.dump(output_json, f, indent=4)
 
@@ -52,9 +56,10 @@ def main():
     parser.add_argument('input', type=str, help='Input CSV file')
     parser.add_argument('input2', type=str, help='Input file nextclade.auspice.json')
     parser.add_argument('output', type=str, help='Output JSON file')
+    parser.add_argument('sequence_source', type=str, help='Segment id or string "full_genome"')
     args = parser.parse_args()
 
-    parse_nextclade_output_csv2json(args.input, args.input2, args.output)
+    parse_nextclade_output_csv2json(args.input, args.input2, args.output, args.sequence_source)
 
 
 if __name__ == '__main__':

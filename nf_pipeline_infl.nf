@@ -110,7 +110,6 @@ workflow{
         return [sampleId, '/non-existent']
     }
 
-
-    c7 = wgsMetrics.out[1].join(consensus.out[2]).join(kraken2_illumina.out[1]).join(fastqc_1.out[1]).join(fastqc_2.out[1]).join(dummy)
+    c7 = wgsMetrics.out[1].join(consensus.out[2]).join(kraken2_illumina.out[1]).join(fastqc_1.out[1]).join(fastqc_2.out[1]).join(dummy).join(nextclade.out[1])
     json_aggregator(pathogen, version, c7)
 }

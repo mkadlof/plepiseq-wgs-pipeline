@@ -16,6 +16,9 @@ process nextclade {
                   --output-csv nextstrain_lineage.csv \
                   --output-all nextclade_lineages \
                   ${consensus_masked_sv_fa}
-    parse_nextclade_output_csv2json.py nextstrain_lineage.csv nextclade_lineages/nextclade.auspice.json nextstrain_lineage.json
+    parse_nextclade_output_csv2json.py nextstrain_lineage.csv nextclade_lineages/nextclade.auspice.json nextstrain_lineage_sars.json full_genome
+
+    # Combine two jsons in one
+    jq -s "." nextstrain_lineage_*.json > nextstrain_lineage.json
     """
 }
