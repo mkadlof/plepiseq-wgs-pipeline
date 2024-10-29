@@ -139,10 +139,10 @@ include { copy_genome_and_primers } from "${modules}/sarscov2/copy_genome_and_pr
 include { pangolin } from "${modules}/sarscov2/pangolin.nf"
 
 // // Coinfection line for SARS
-include { freyja } from "${modules}/sarscov2/freyja.nf"
-include { coinfection_ivar } from "${modules}/sarscov2/coinfection_ivar.nf"
-include { coinfection_varscan } from "${modules}/sarscov2/coinfection_varscan.nf"
-include { coinfection_analysis } from "${modules}/sarscov2/coinfection_analysis.nf"
+include { freyja as freyja_sars} from "${modules}/sarscov2/freyja.nf"
+include { coinfection_ivar as coinfection_ivar_sars } from "${modules}/sarscov2/coinfection_ivar.nf"
+include { coinfection_varscan as coinfection_varscan_sars } from "${modules}/sarscov2/coinfection_varscan.nf"
+include { coinfection_analysis as coinfection_analysis_sars } from "${modules}/sarscov2/coinfection_analysis.nf"
 
 // INFL-specific modules 
 include { detect_subtype_illumina as detect_subtype_influenza_illumina } from "${modules}/infl/detect_subtype.nf"
@@ -195,6 +195,17 @@ if(params.machine == 'Illumina') {
   // Dehumanization
   dehumanization_illumina_out = dehumanization_illumina(bwa_out.only_bam.join(trimmomatic_out.proper_reads, by:0))
   
+  // coinfection analysis for SARS ONLY !
+  if ( params.species  == 'SARS-CoV-2' ) {
+ 
+    coinfection_ivar_sars_out = coinfection_ivar_sars(bwa_out.to_coinfection)
+    freyja_out =  freyja_sars(coinfection_ivar_sars_out.to_freyja)
+    coinfection_varscan_out = coinfection_varscan_sars(coinfection_ivar_sars_out.to_custom_analysis)
+    coinfection_analysis_sars_out = coinfection_analysis_sars(coinfection_varscan_out) 
+  }
+  
+
+
   if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
     initial_bam_and_primers = bwa_out.only_bam.join(detect_type_illumina_out.primers_and_pairs, by:0)
     filtering_out = filtering_one_segment(initial_bam_and_primers)

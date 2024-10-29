@@ -3,11 +3,12 @@ process bwa {
     maxForks 5
     container  = params.main_image
     input:
-    tuple val(sampleId), path(reads), path(ref_genome_with_index), val(QC_status)
+    tuple val(sampleId), path(reads), path(ref_genome_with_index), path("primers.bed"), val(QC_status)
 
     output:
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), env(QC_exit), emit: only_bam
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), path(ref_genome_with_index), env(QC_exit), emit: bam_and_genome
+    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), path(ref_genome_with_index), path("primers.bed"), env(QC_exit), emit: to_coinfection
 
     script:
     // Check the index of a file with fasta extension in ref_genome_with_index list

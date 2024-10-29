@@ -11,7 +11,7 @@ process reassortment {
 
     output:
     tuple val(sampleId), path("hybrid_genome.fasta*"), path("hybrid_primers.bed"), path("pairs.tsv"), env(REF_GENOME_ID), env(QC_exit), emit: all
-    tuple val(sampleId), path("hybrid_genome.fasta*"), env(QC_exit), emit: to_bwa
+    tuple val(sampleId), path("hybrid_genome.fasta*"), path("hybrid_primers.bed"), env(QC_exit), emit: to_bwa
     tuple val(sampleId), path("hybrid_primers.bed"), path("pairs.tsv"), emit: primers_and_pairs
     tuple val(sampleId), path("hybrid_genome.fasta"), emit: only_genome // indelqual module requires a variable not a tupple
 
