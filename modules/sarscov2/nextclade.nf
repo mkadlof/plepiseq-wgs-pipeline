@@ -9,7 +9,7 @@ process nextclade {
 
     output:
     tuple val(sampleId), path("nextclade_lineages"), path('nextstrain_lineage.csv'), emit: to_pubdir
-    tuple val(sampleId), path('nextclade_lineages/nextclade.cds_translation.S.fasta'), optional: true, emit:to_modeller
+    tuple val(sampleId), path('nextclade_lineages/nextclade.cds_translation.S.fasta'), env(QC_status_exit), emit:to_modeller
 
     script:
     def final_index = -1
@@ -21,11 +21,13 @@ process nextclade {
 
     """
     if [ ${QC_status} == "nie" ]; then
-       mkdir nextclade_lineages
        touch nextstrain_lineage.csv
+       mkdir nextclade_lineages
+       touch nextclade_lineages/nextclade.cds_translation.S.fasta
+       QC_status_exit="nie"
     else
-      # We assueme that we dont't now which pipeline uses his module and guess that by checking reference
-      # sequence header
+      # This module need to handel both RSV and SARS, Influenza has a separate module  due to specific requirements
+      # WE guess the correct nextclade file by checking fasta header
       HEADER=`head -1 ${ref_genome_with_index[final_index]} | tr -d ">"`
       if [[ "\${HEADER}" == "MN"* ]]; then
         NEXCLADE_FILE="sars-cov-2.zip"
@@ -39,6 +41,14 @@ process nextclade {
                     --output-csv nextstrain_lineage.csv \
                     --output-all nextclade_lineages \
                     consensus_masked_SV.fa
+      
+      if [ -e nextclade_lineages/nextclade.cds_translation.S.fasta ]; then
+        QC_status_exit="tak"
+      else
+        # tworzymy pusty plik ale modeller dostanie QC zeby sie nie wykonywal
+        touch nextclade_lineages/nextclade.cds_translation.S.fasta
+        QC_status_exit="nie"
+      fi
     fi
     """
 }

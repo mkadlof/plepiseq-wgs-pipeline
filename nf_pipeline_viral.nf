@@ -10,7 +10,7 @@ params.species = "" // Required, name of a species expected to be analyzed with 
 params.results_dir = "./results"
 
 // projectDir is not defined in sars pipeline explicite but is set by bash wrapper
-// so we define it here
+// so we define it here, it can be used for version control
 // Modules are just a subdirectory to projectDir and this cannot be changed
 
 params.projectDir = "/home/michall/git/nf_illumina_sars_ml"
@@ -23,9 +23,10 @@ params.external_databases_path="/home/jenkins/workspace/nf_illumina_sars/externa
 
 // All species-relevant variables, for now only expected genus for kraken2
 // Furthermore if a user provides a wrong species the pipeline will not execute
+
 if ( params.species  == 'SARS-CoV-2' ) {
 genus="Betacoronavirus"
-params.max_number_for_SV = 200000
+params.max_number_for_SV = 200000 
 } else if (params.species  == 'Influenza') {
 genus="Alphainfluenzavirus"
 params.variant = "UNK"
@@ -91,10 +92,12 @@ params.quality_for_coverage = 10 // Parametr uzywany w modul lowCov
   System.exit(0)
 }
 
-// Modules section, we can load all module even if we do not plan to use all of them for a given species/platform combination
+// Modules section
+// we load all the modules even if we do not plan to use all of them for a given species/platform combination
 
 // More or less common modules
 // In principle all modules could be made common if we write enough if-else statesment with them
+
 include { kraken2_illumina } from "${modules}/common/kraken2.nf"
 include { kraken2_nanopore } from "${modules}/common/kraken2.nf"
 
@@ -127,11 +130,11 @@ include { consensus } from "${modules}/common/consensus.nf"
 
 // vcf_for_fasta, snpEff and nextclade should be "common" module ? check if they work for influenza 
 include { vcf_for_fasta } from "${modules}/sarscov2/vcf_for_fasta.nf"
-include { snpEff } from "${modules}/rsv/snpEff.nf"
-include { nextclade } from "${modules}/sarscov2/nextclade.nf"
+include { snpEff } from "${modules}/sarscov2/snpEff.nf"
+include { nextclade as nextclade_noninfluenza } from "${modules}/sarscov2/nextclade.nf"
 
 // include { simpleStats } from "${params.modules}/sarscov2/simpleStats.nf"
-// include { modeller } from "${params.modules}/sarscov2/modeller.nf"
+include { modeller } from "${modules}/sarscov2/modeller.nf"
 // include { json_aggregator } from "${params.modules}/common/json_aggregator.nf"
 
 // SARS specific modules
@@ -176,7 +179,8 @@ if(params.machine == 'Illumina') {
   
   final_reads_and_final_qc = trimmomatic_out.proper_reads.join(fastqc_filtered_out.qcstatus, by:0)
   
-  // For all three species selection of reference genome/primers is different 
+  // For all three species selection of reference genome/primers is different
+   
   if ( params.species  == 'SARS-CoV-2' ) {
     detect_type_illumina_out = copy_genome_and_primers(final_reads_and_final_qc)
     reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
@@ -192,6 +196,7 @@ if(params.machine == 'Illumina') {
   
   // Mapping 
   bwa_out = bwa(reads_and_genome)
+  
   // Dehumanization
   dehumanization_illumina_out = dehumanization_illumina(bwa_out.only_bam.join(trimmomatic_out.proper_reads, by:0))
   
@@ -203,9 +208,8 @@ if(params.machine == 'Illumina') {
     coinfection_varscan_out = coinfection_varscan_sars(coinfection_ivar_sars_out.to_custom_analysis)
     coinfection_analysis_sars_out = coinfection_analysis_sars(coinfection_varscan_out) 
   }
-  
-
-
+ 
+  // Filtering script is different for one-segment and multiple-segments organisms 
   if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
     initial_bam_and_primers = bwa_out.only_bam.join(detect_type_illumina_out.primers_and_pairs, by:0)
     filtering_out = filtering_one_segment(initial_bam_and_primers)
@@ -233,16 +237,26 @@ if(params.machine == 'Illumina') {
   all_sub_fastas = all_sub_fastas.join(lofreq_out)
   
   consensus_out = consensus(all_sub_fastas) 
-  genome_sequence_and_ref = consensus_out.single_fasta.join(detect_type_illumina_out.only_genome, by:0)
-  vcf_for_fasta_out = vcf_for_fasta(genome_sequence_and_ref)
 
-  snpEff_out = snpEff(vcf_for_fasta_out.vcf.join(indelQual_out.bam_genome_and_qc, by:0))
   
   // Predicting SV with manta
   picard_downsample_out = picard_downsample(bwa_out.bam_and_genome)
   manta_out = introduce_SV_with_manta(picard_downsample_out.to_manta.join(consensus_out.multiple_fastas, by:0))
-  nextclade_out = nextclade(manta_out.fasta_refgenome_and_qc)
+
+  if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {   
+    nextclade_out = nextclade_noninfluenza(manta_out.fasta_refgenome_and_qc)
+    modeller(nextclade_out.to_modeller)    
+  } else if (params.species  == 'Influenza') {
+    // nextclade_influenza process is not yet ready
+    //nextclade_out = nextclade_influenza(manta_out.fasta_refgenome_and_qc) 
+  }
  
+  pangolin_out = pangolin(manta_out.fasta_refgenome_and_qc)
+
+  // final vcf + snpEFF
+  vcf_for_fasta_out = vcf_for_fasta(manta_out.fasta_refgenome_and_qc)
+  snpEff_out = snpEff(vcf_for_fasta_out.vcf.join(indelQual_out.bam_genome_and_qc, by:0))
+
 } else if (params.machine == 'Nanopore') {
   Channel
   .fromPath(params.reads)

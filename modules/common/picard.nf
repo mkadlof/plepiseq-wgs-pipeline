@@ -57,6 +57,7 @@ process picard_downsample_multisegment {
     if [ ${QC_status} == "nie" ]; then
       touch downsample.bam
       touch downsample.bam.bai
+      touch mediana_per_segment.txt
       QC_exit="nie"
     else
       MEDIAN_ALL=()

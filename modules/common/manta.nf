@@ -55,6 +55,7 @@ process introduce_SV_with_manta {
       cat *SV.fasta >> output_consensus_masked_SV.fa
  
     else
+      QC_status_exit="tak"
       # For, at least, one segment we need to run manta ... however we do not know for which segment
       # for now we analyze each segment separetly (running  manta , introducing mutations and so on)
       # for future reference maybe we can combine these individual steps into one ?

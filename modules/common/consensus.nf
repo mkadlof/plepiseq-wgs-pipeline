@@ -15,7 +15,7 @@ process consensus {
     """
     if [ ${QC_status} == "nie" ]; then
       touch consensus.fasta
-      touch consensus_A.fasta
+      touch consensus_dummy_segment.fasta
       touch consensus.json
 
     else
