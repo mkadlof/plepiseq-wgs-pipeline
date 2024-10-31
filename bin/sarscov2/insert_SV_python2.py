@@ -57,12 +57,11 @@ if __name__ == '__main__':
     target_name = open(plik2).readlines()[0].split()[0]
 
     sekwencja_with_n = ''
-    with open(out_name, 'a') as f:
+    with open(out_name, 'w') as f:
         aln = align_fasta(plik1, plik2)
         # teraz lecimy po
         target = aln[target_name]
         ref = aln[ref_name]
-
         for i in range(len(ref)):
             if target[i] == '-':
                 sekwencja_with_n += '-'
