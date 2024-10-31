@@ -27,13 +27,13 @@ process nextclade {
       KNOWN='H1N1 H3N2 Yamagata Victoria'
       if [[ \${KNOWN[@]} =~ ${SAMPLE_SUBTYPE} ]]; then
         nextclade run \
-            --input-dataset /home/external_databases/nextclade_db/\${SAMPLE_SUBTYPE}_HA.zip \
+            --input-dataset /home/external_databases/nextclade/${SAMPLE_SUBTYPE}_HA.zip \
             --output-csv nextclade_lineage_HA.csv \
             --output-all nextclade_linages_HA \
             sample_chr4_HA.fasta
         # for all this subtypes, save, Yamagata, we can also analyze NA
         if [ ${SAMPLE_SUBTYPE} != 'Yamagata' ]; then
-            nextclade run --input-dataset /home/external_databases/nextclade_db/\${SAMPLE_SUBTYPE}_NA.zip \
+            nextclade run --input-dataset /home/external_databases/nextclade/${SAMPLE_SUBTYPE}_NA.zip \
                 --output-csv nextclade_lineage_NA.csv \
                 --output-all nextclade_linages_NA \
                 sample_chr6_NA.fasta
