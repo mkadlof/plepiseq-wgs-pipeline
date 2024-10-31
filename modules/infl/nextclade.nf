@@ -1,46 +1,51 @@
 process nextclade {
-    tag "nextclade:${sampleId}"
+    
+    tag "nextclade for ${SEGMENT}:${sampleId}"
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "nextstrain_lineage.csv"
-    containerOptions "--volume ${params.nextclade_db_absolute_path_on_host}:/home/external_databases/nextclade_db"
+    
+    container  = params.main_image
+    containerOptions "--volume ${params.external_databases_path}:/home/external_databases/"
 
     input:
-    tuple val(sampleId), env("REF_GENOME_ID_MINI"), path("consensus_*.fasta")
+    tuple val(sampleId), path('output_consensus_masked_SV.fa'), path(ref_genome_with_index), val(QC_status), val(SAMPLE_SUBTYPE)
 
     output:
-    tuple val(sampleId), path("nextstrain_lineage_HA.csv"), path("nextclade_lineages_HA"), path('nextstrain_lineage_NA.csv'), path("nextclade_lineages_NA")
+    tuple val(sampleId), path("nextclade_lineage_*.csv"), emit: to_pubdir
+    tuple val(sampleId), path("nextclade.json"), emit: json
 
     script:
     """
-    # === This workaround because nextflow replace glob patterns with numbers ===
-    # It goal is to rename symlinks to their targets names.
-    for link in \$(find . -maxdepth 1 -type l); do
-        target=\$(readlink "\$link")
-        base_target=\$(basename "\$target")
-        mv "\$link" "\$base_target"
-    done
-    # === End of workaround ===
+    # we split final genome into segments
+    if [ ${QC_status} == "nie" ]; then
+      touch nextclade_lineage_dummy.csv
+      touch nextclade.json
+    else
 
-    touch nextstrain_lineage_HA.csv
-    touch nextclade_lineages_HA
-    touch nextstrain_lineage_NA.csv
-    touch nextclade_lineages_NA
-
-    echo "REF_GENOME_ID_MINI: \${REF_GENOME_ID_MINI}"
-
-    KNOWN='H1N1 H3N2 Yamagata Victoria'
-    if [[ \${KNOWN[@]} =~ \${REF_GENOME_ID_MINI} ]]; then
+      cat output_consensus_masked_SV.fa | awk '{if (substr(\$0, 1, 1)==">") { new_name=\$0; gsub("\\\\.", "_", new_name); gsub("/", "_", new_name);  gsub("_SV", "", new_name);  filename=("sample_"substr(new_name,2) ".fasta"); print \$0 >> filename } else {print toupper(\$0)  >> filename}}'
+   
+      # For this subtypes nextclade provides a database
+      KNOWN='H1N1 H3N2 Yamagata Victoria'
+      if [[ \${KNOWN[@]} =~ ${SAMPLE_SUBTYPE} ]]; then
         nextclade run \
-            --input-dataset /home/external_databases/nextclade_db/\${REF_GENOME_ID_MINI}_HA.zip \
-            --output-csv nextstrain_lineage_HA.csv \
+            --input-dataset /home/external_databases/nextclade_db/\${SAMPLE_SUBTYPE}_HA.zip \
+            --output-csv nextclade_lineage_HA.csv \
             --output-all nextclade_linages_HA \
-            consensus_HA.fasta
-
-        if [ \${REF_GENOME_ID_MINI} != 'Yamagata' ]; then
-            nextclade run --input-dataset /home/external_databases/nextclade_db/\${REF_GENOME_ID_MINI}_NA.zip \
-                --output-csv nextstrain_lineage_NA.csv \
+            sample_chr4_HA.fasta
+        # for all this subtypes, save, Yamagata, we can also analyze NA
+        if [ ${SAMPLE_SUBTYPE} != 'Yamagata' ]; then
+            nextclade run --input-dataset /home/external_databases/nextclade_db/\${SAMPLE_SUBTYPE}_NA.zip \
+                --output-csv nextclade_lineage_NA.csv \
                 --output-all nextclade_linages_NA \
-                consensus_NA.fasta
+                sample_chr6_NA.fasta
+      
         fi
-    fi
+        # placeholder for json 
+        touch nextclade.json
+      else
+        # json with message that for provided subtype there is no nextclade database
+        touch nextclade_lineage_dummy.csv
+        touch nextclade.json    
+      fi # koniec if-a na subtypes w nextclade
+    fi # koniec if-a na QC
     """
 }

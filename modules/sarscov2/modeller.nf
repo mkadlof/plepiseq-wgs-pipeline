@@ -12,14 +12,14 @@ process modeller {
     script:
     """
     modeller_data="/home/data/sarscov2/modeller/"
-    if [ ${QC_status} != "nie" ] ; then
+    if [[ ${QC_status} == "nie" || ${params.species} != "SARS-CoV-2" ]]; then
+        touch alignment.pir
+        touch ${sampleId}_spike.pdb
+    else
         cp \${modeller_data}/7dwz.pdb .
         modpy.sh modeller_create_alignment.py ${target_fasta}
         modpy.sh modeller_build_model.py alignment.pir
-        cp target.B99990001.pdb ${sampleId}_spike.pdb 
-    else
-        touch alignment.pir
-        touch ${sampleId}_spike.pdb
+        cp target.B99990001.pdb ${sampleId}_spike.pdb
     fi
     """
 }

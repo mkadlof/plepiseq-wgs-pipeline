@@ -153,8 +153,8 @@ include { reassortment as reassortment_influenza } from "${modules}/infl/reassor
 include { filtering as filtering_influenza_illumina} from "${modules}/infl/filtering.nf"
 include { sort_and_index as sort_and_index_influenza_illumina } from "${modules}/infl/sort_and_index.nf"
 include { nextclade as nextclade_influenza } from "${modules}/infl/nextclade.nf"
-include { nextalign } from "${modules}/infl/nextalign.nf"
-include { resistance } from "${modules}/infl/resistance.nf"
+include { nextalign as nextalign_influenza } from "${modules}/infl/nextalign.nf"
+include { resistance as resistance_influenza } from "${modules}/infl/resistance.nf"
 
 // RSV-specific modules
 include { detect_type_illumina as detect_type_rsv_illumina } from "${modules}/rsv/detect_type.nf"
@@ -223,7 +223,8 @@ if(params.machine == 'Illumina') {
     sort_and_index_out = sort_and_index_influenza_illumina(masking_out)
     pre_final_bam_and_genome = sort_and_index_out.join(reassortment_influenza_out.only_genome, by:0)
   }
- 
+
+  // Predicting sample's genome is identical  
   indelQual_out = indelQual(pre_final_bam_and_genome) 
 
   freebayes_out = freeBayes(indelQual_out.bam_genome_and_qc)
@@ -243,19 +244,27 @@ if(params.machine == 'Illumina') {
   picard_downsample_out = picard_downsample(bwa_out.bam_and_genome)
   manta_out = introduce_SV_with_manta(picard_downsample_out.to_manta.join(consensus_out.multiple_fastas, by:0))
 
+  // This if should be pushed to the modules
   if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {   
     nextclade_out = nextclade_noninfluenza(manta_out.fasta_refgenome_and_qc)
+    // modeller is species-aware
     modeller(nextclade_out.to_modeller)    
   } else if (params.species  == 'Influenza') {
-    // nextclade_influenza process is not yet ready
-    //nextclade_out = nextclade_influenza(manta_out.fasta_refgenome_and_qc) 
+    manta_out.fasta_refgenome_and_qc.join(detect_subtype_illumina_out.subtype_id, by:0)
+
+    final_genome_and_influenza_subtype = manta_out.fasta_refgenome_and_qc.join(detect_subtype_illumina_out.subtype_id, by:0)
+    nextclade_out = nextclade_influenza(final_genome_and_influenza_subtype) 
+    nextalign_out = nextalign_influenza(final_genome_and_influenza_subtype)
+    resistance_out = resistance_influenza(nextalign_out)
   }
- 
+
+  // Pangolin only for SARS, module is species-aware 
   pangolin_out = pangolin(manta_out.fasta_refgenome_and_qc)
 
-  // final vcf + snpEFF
+  // final vcf + snpEFF, snpEFF is species-aware
   vcf_for_fasta_out = vcf_for_fasta(manta_out.fasta_refgenome_and_qc)
   snpEff_out = snpEff(vcf_for_fasta_out.vcf.join(indelQual_out.bam_genome_and_qc, by:0))
+
 
 } else if (params.machine == 'Nanopore') {
   Channel
