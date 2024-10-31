@@ -11,7 +11,7 @@ process sort_and_index {
     def newBam = "${bam.baseName}_sorted.bam"
     """
     if [ ${QC_status} == "nie" ]; then
-      tocuh "${bam.baseName}_sorted.bam"
+      touch "${bam.baseName}_sorted.bam"
       touch "${bam.baseName}_sorted.bam.bai"
     else
       samtools sort -o ${newBam} ${bam}
