@@ -18,7 +18,7 @@ usage() {
     echo "  all       - Update all databases. Default path: ./external_databases"
     echo "  pangolin  - Update the pangolin database. Default path: ./external_databases/pangolin"
     echo "  nextclade - Update the nextclade database. Default path: ./external_databases/nextclade"
-    echo "  kraken    - Update the kraken database. Default path: ./external_databases/kraken"
+    echo "  kraken2   - Update the kraken database. Default path: ./external_databases/kraken2"
     echo "  freyja    - Update the freyja database. Default path: ./external_databases/freyja"
     echo "  PATH      - Optional path to the database directory"
 }
@@ -33,8 +33,8 @@ if [ -z "$container_id" ]; then
 fi
 
 # Check if argument is valid
-if [ "$1" != "nextclade" ] && [ "$1" != "pangolin" ] && [ "$1" != "kraken" ] && [ "$1" != "freyja" ] && [ "$1" != "all" ]; then
-    echo "Invalid argument supplied. Please provide one of the following: all, nextclade, pangolin, kraken, freyja"
+if [ "$1" != "nextclade" ] && [ "$1" != "pangolin" ] && [ "$1" != "kraken2" ] && [ "$1" != "freyja" ] && [ "$1" != "all" ]; then
+    echo "Invalid argument supplied. Please provide one of the following: all, nextclade, pangolin, kraken2, freyja"
     usage
     exit 1
 fi

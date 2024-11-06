@@ -15,6 +15,9 @@ update_nextclade() {
     /opt/nextclade/bin/nextclade dataset get --name='flu_vic_ha' --output-zip "${db_path}/Victoria_HA.zip"
     /opt/nextclade/bin/nextclade dataset get --name='flu_vic_na' --output-zip "${db_path}/Victoria_NA.zip"
     /opt/nextclade/bin/nextclade dataset get --name='flu_yam_ha' --output-zip "${db_path}/Yamagata_HA.zip"
+    # RSV
+    /opt/nextclade/bin/nextclade dataset get --name='rsv_a' --output-zip "${db_path}/RSV_A.zip"
+    /opt/nextclade/bin/nextclade dataset get --name='rsv_b' --output-zip "${db_path}/RSV_B.zip"
     return $?
 }
 
@@ -61,7 +64,7 @@ update_database() {
         update_nextclade "$db_path"
     elif [ "$db_name" == "pangolin" ]; then
         update_pangolin "$db_path"
-    elif [ "$db_name" == "kraken" ]; then
+    elif [ "$db_name" == "kraken2" ]; then
         update_kraken "$db_path"
     elif [ "$db_name" == "freyja" ]; then
         update_freyja "$db_path"
@@ -70,13 +73,13 @@ update_database() {
 
 # Check if argument is provided
 if [ -z "$1" ]; then
-    echo "No argument supplied. Please provide one of the following: nextclade, pangolin, kraken, freyja or all"
+    echo "No argument supplied. Please provide one of the following: nextclade, pangolin, kraken2, freyja or all"
     exit 1
 fi
 
 # Check if argument is valid
-if [ "$1" != "nextclade" ] && [ "$1" != "pangolin" ] && [ "$1" != "kraken" ] && [ "$1" != "freyja" ] && [ "$1" != "all" ]; then
-    echo "Invalid argument supplied. Please provide one of the following: nextclade, pangolin, kraken, freyja or all"
+if [ "$1" != "nextclade" ] && [ "$1" != "pangolin" ] && [ "$1" != "kraken2" ] && [ "$1" != "freyja" ] && [ "$1" != "all" ]; then
+    echo "Invalid argument supplied. Please provide one of the following: nextclade, pangolin, kraken2, freyja or all"
     exit 1
 fi
 
@@ -84,7 +87,7 @@ fi
 if [ "$1" == "all" ]; then
     update_database "nextclade"
     update_database "pangolin"
-    update_database "kraken"
+    update_database "kraken2"
     update_database "freyja"
     exit 0
 fi

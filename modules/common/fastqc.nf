@@ -2,6 +2,7 @@ process fastqc {
     tag "${prefix}_fastqc:${sampleId}"
     publishDir "${params.results_dir}/${sampleId}/QC", mode: 'copy'
     publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "*.json"
+    container  = params.main_image
 
     input:
     tuple val(sampleId), path(reads), val(QC_STATUS)
@@ -20,6 +21,7 @@ process fastqc {
     # does not meet predeifned criteria. The script returns to values status (tak, nie, blad) and total numberof bases in fastqfile (0 if status is not tak)
     if [ ${QC_STATUS} == "nie" ]; then
       ERROR_MSG="Initial QC received by this module was nie"
+      touch dummy.csv
     else
       ERROR_MSG=""
     fi

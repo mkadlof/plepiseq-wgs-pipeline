@@ -1,27 +1,39 @@
 process coinfection_ivar {
     tag "coinfection_ivar:${sampleId}"
+    container  = params.main_image
 
     input:
-    tuple val(sampleId), path(mapped_reads), path(mapped_reads_bai), path(ref_genome), path(primers)
+    tuple val(sampleId), path(mapped_reads), path(mapped_reads_bai), path(ref_genome_with_index), path(primers), val(QC_status)
 
     output:
-    tuple val(sampleId), path('for_contamination_sorted.bam'), path('for_contamination_sorted.bam.bai')
-    tuple val(sampleId), path('for_contamination.mpileup')
+    tuple val(sampleId), path('for_contamination_sorted.bam'), path('for_contamination_sorted.bam.bai'), path(ref_genome_with_index), val(QC_status), emit: to_freyja
+    tuple val(sampleId), path('for_contamination.mpileup'), val(QC_status), emit: to_custom_analysis
 
     script:
+    def final_index = -1
+    ref_genome_with_index.eachWithIndex { filename, index ->
+        if (filename.toString().endsWith(".fasta")) {
+         final_index = index
+        }
+    }
     """
-    ivar trim -i ${mapped_reads} \
-              -b ${primers} \
-              -m ${params.length} \
-              -q ${params.quality_initial} \
-              -e \
-              -p for_contamination
+    if [ ${QC_status} == "nie" ]; then
+      touch for_contamination_sorted.bam for_contamination_sorted.bam.bai
+      touch for_contamination.mpileup
+    else
+      ivar trim -i ${mapped_reads} \
+                -b ${primers} \
+                -m ${params.length} \
+                -q ${params.quality_initial} \
+                -e \
+                -p for_contamination
 
-    samtools sort -@ ${params.threads} -o for_contamination_sorted.bam for_contamination.bam
-    samtools index for_contamination_sorted.bam
-    samtools mpileup -B --max-depth 20000 \
-                 --fasta-ref ${ref_genome} \
-                 --min-BQ ${params.quality_snp} \
-                 for_contamination_sorted.bam >> for_contamination.mpileup
+      samtools sort -@ ${params.threads} -o for_contamination_sorted.bam for_contamination.bam
+      samtools index for_contamination_sorted.bam
+      samtools mpileup -B --max-depth 20000 \
+                   --fasta-ref  ${ref_genome_with_index[final_index]} \
+                   --min-BQ ${params.quality_snp} \
+                   for_contamination_sorted.bam >> for_contamination.mpileup
+    fi
     """
 }

@@ -6,11 +6,12 @@ process kraken2_illumina {
     // criteria for now are extreamly liberal (at leat 5% of reads originate from a genus to which intendent species
     // belongs)
     tag "kraken2:${sampleId}"
-
-    containerOptions "--volume ${params.kraken2_db_absolute_path_on_host}:/home/external_databases/kraken2"
+    container  = params.main_image
+    containerOptions "--volume ${params.external_databases_path}:/home/external_databases/:ro"
     maxForks 4
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "Summary_kraken*"
     publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "contaminations.json"
+
     input:
     tuple val(sampleId), path(reads), val(QC_STATUS)
     val(EXPECTED_GENUS)
@@ -20,6 +21,7 @@ process kraken2_illumina {
     tuple val(sampleId), path('contaminations.json'), emit: json
     tuple val(sampleId), env(QC_status_contaminations), emit: qcstatus_only
     tuple val(sampleId), env(FINAL_GENUS), env(QC_status_contaminations), emit: species_and_qcstatus
+
     script:
     """
     if [ ${QC_STATUS} == "nie" ]; then
@@ -29,7 +31,6 @@ process kraken2_illumina {
         touch  report_kraken2.txt
         ERR_MSG="This module recieved wrong QC status and did not produce any valid output"
         json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s nie -m "\${ERR_MSG}" -o contaminations.json
-
     else
         kraken2 --db /home/external_databases/kraken2 \
                 --report report_kraken2.txt \
@@ -38,8 +39,7 @@ process kraken2_illumina {
                 --minimum-base-quality ${params.quality_initial} \
                 --use-names ${reads[0]} ${reads[1]} >> report_kraken2_individualreads.txt 2>&1
 
-        # parse kraken extract two most abundant Genus and Ssecies for json output
-        # This
+        # Parse kraken extract two most abundant Genus and Ssecies for json output
         LEVEL="G" # G - genus, S - species
         GENUS1=`cat report_kraken2.txt | awk '{if(\$1 != 0.00) print \$0}' | grep -w \${LEVEL} | sort -rnk 1 | head -1 | tr -s " " | cut -f6 | tr -d "="`
         GENUS2=`cat report_kraken2.txt | awk '{if(\$1 != 0.00) print \$0}' | grep -w \${LEVEL} | sort -rnk 1 | head -2 | tail -1 | tr -s " " | cut -f6 | tr -d "="`
@@ -66,24 +66,22 @@ process kraken2_illumina {
             FINAL_GENUS="${EXPECTED_GENUS}"
             ERR_MSG="Number of reads associated with the expected genus is below threshold set to: ${params.expected_genus_value} %"
             json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s blad -m "\${ERR_MSG}" -o contaminations.json
-
         else
             FINAL_GENUS="unknown"
             QC_status_contaminations="tak"
             json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s tak -o contaminations.json
-
         fi
-
-
     fi
     """
 }
+
 
 process kraken2_nanopore {
     // This process only differ from illumina in kraken2 execution
     tag "kraken2:${sampleId}"
 
-    containerOptions "--volume ${params.kraken2_db_absolute_path_on_host}:/home/external_databases/kraken2"
+    container  = params.main_image
+    containerOptions "--volume ${params.external_databases_path}:/home/external_databases/:ro"
     maxForks 4
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "Summary_kraken*"
     publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "contaminations.json"
@@ -139,12 +137,12 @@ process kraken2_nanopore {
         # all downstream modules will not execute and produce dummy values
         if [ \${GENUS_EXPECTED_ILE} -lt ${params.expected_genus_value} ]; then
             QC_status_contaminations="nie"
-            FINAL_GENUS="${EXPECTED_GENUS}"
+            FINAL_GENUS="unk"
             ERR_MSG="Number of reads associated with the expected genus is below threshold set to: ${params.expected_genus_value} %"
             json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s blad -m "\${ERR_MSG}" -o contaminations.json
 
         else
-            FINAL_GENUS="unknown"
+            FINAL_GENUS="${EXPECTED_GENUS}"
             QC_status_contaminations="tak"
             json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s tak -o contaminations.json
 

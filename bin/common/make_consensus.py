@@ -79,41 +79,49 @@ def align_fasta(fasta1_file: str, *args, **kwargs) -> Dict:
 
 def get_fastas(input_fasta, program):
     """
-    Skrypt rozdziela dwa pliki fasta do podplikow o nazwie program_segment.fasta
+    Skrypt rozdziela pliki fasta do podplikow o nazwie program_segment.fasta
+    W przypadku wystapienia w nazwie segmentu symboli "." lub "/" zostana
+    one zastaione "_" w NAZWIE PLIKU
     :return:
+    Dwie SPAROWANE listy jedna z nazwami segmentow bez dziwnych znakow, druga lista zwiera po prostu string do headera fasty
     """
     lista_plikow = []
+    lista_nazw = []
     record = SeqIO.parse(input_fasta, 'fasta')
     for r in record:
-        with open(f'{program}_{r.id}.fasta', 'w') as file:
+        segement_name = r.id
+        with open(f'{program}_{segement_name.replace("/", "_").replace(".", "_")}.fasta', 'w') as file:
             file.write(f'>{r.id}_{program}\n')
             file.write(f'{str(r.seq)}\n')
-        lista_plikow.append(f'{program}_{r.id}.fasta')
-    return lista_plikow
+        lista_plikow.append(f'{program}_{segement_name.replace("/", "_").replace(".", "_")}.fasta')
+        lista_nazw.append(f"{r.id}")
+    return lista_plikow, lista_nazw
 
 
 def split_final_fasta(input_fasta, prefix):
     record = SeqIO.parse(input_fasta, 'fasta')
     for r in record:
-        with open(f'{prefix}_{r.id}.fasta', 'w') as file:
+        with open(f'{prefix}_{r.id.replace("/", "_").replace(".", "_")}.fasta', 'w') as file:
             file.write(f'>{r.id}\n')
             file.write(f'{str(r.seq)}\n')
 
 
 if __name__ == '__main__':
-    lista_plikow_masked = get_fastas(sys.argv[1], 'reference')
-    lista_plikow_varsacan = get_fastas(sys.argv[2], 'varscan')
-    lista_plikow_freebayes = get_fastas(sys.argv[3], 'freebyes')
-    lista_plikow_lofreq = get_fastas(sys.argv[4], 'lofreq')
+    lista_plikow_masked, _ = get_fastas(sys.argv[1], 'reference')
+    lista_plikow_varsacan, lista_nazw_varscan = get_fastas(sys.argv[2], 'varscan')
+    lista_plikow_freebayes, _ = get_fastas(sys.argv[3], 'freebayes')
+    lista_plikow_lofreq, _ = get_fastas(sys.argv[4], 'lofreq')
 
     # 1 runda tworzenie sekwencji konsensusowe
-    for masked, varscan, freebayes, lofreq in zip(lista_plikow_masked, lista_plikow_varsacan, lista_plikow_freebayes, lista_plikow_lofreq):
+    for masked, varscan, freebayes, lofreq, fasta_header in zip(lista_plikow_masked, lista_plikow_varsacan, lista_plikow_freebayes, lista_plikow_lofreq, lista_nazw_varscan) :
         # workaround for the cases when there is only one field in fasta ID
-        tmp = varscan.split('_')
-        if len(tmp) == 3:
-            segment = tmp[2].split('.')[0]
-        else:
-            segment = tmp[1].split('.')[0]
+        #print(varscan)
+        segment = "_".join(varscan.split('.')[0].split('_')[1:]) # segment_name_file is used for file names we drop "." and "/" from fasta header
+        #tmp = varscan.split('_')
+        #if len(tmp) == 3:
+        #    segment = tmp[2].split('.')[0].replace("/", "_")
+        #else:
+        #    segment = tmp[1].split('.')[0].replace("/", "_")
         # end of workaround
         slownik_segmentu = align_fasta(varscan, freebayes, lofreq)
         with open('tmp.fasta', 'w') as f:
@@ -133,7 +141,7 @@ if __name__ == '__main__':
                     sekwencja_with_n += target[i].upper()
 
             sekwencja_with_n = ''.join([element for element in sekwencja_with_n if element != 'X'])
-            f.write(f'>{segment}\n')
+            f.write(f'>{fasta_header}\n')
             f.write(f'{sekwencja_with_n}\n')
         os.remove(masked)
         os.remove(varscan)

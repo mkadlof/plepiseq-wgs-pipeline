@@ -1,21 +1,25 @@
 process masking {
     tag "masking:${sampleId}"
-
+    container  = params.main_image
     input:
-    tuple val(sampleId), path(bam), path(bai), path(primers_and_pairs)
+    tuple val(sampleId), path(bam), path(bai), path(primers), path(pairs), val(QC_status)
 
     output:
-    tuple val(sampleId), path('ivar_trimmed_all.bam')
+    tuple val(sampleId), path('ivar_trimmed_all.bam'), val(QC_status)
 
     script:
     """
-    length=`echo "${params.length} - 40" | bc -l`
-    ivar trim -i ${bam} \
-             -b ${primers_and_pairs[0]} \
-             -m \${length} \
-             -f ${primers_and_pairs[1]} \
-             -q ${params.quality_initial} \
-             -e \
-             -p ivar_trimmed_all
+    if [ ${QC_status} == "nie" ]; then
+      touch ivar_trimmed_all.bam
+    else
+      length=`echo "${params.length} - 40" | bc -l`
+      ivar trim -i ${bam} \
+               -b ${primers} \
+               -m \${length} \
+               -f ${pairs} \
+               -q ${params.quality_initial} \
+               -e \
+               -p ivar_trimmed_all 
+    fi
     """
 }
