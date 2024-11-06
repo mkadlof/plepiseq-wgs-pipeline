@@ -6,8 +6,8 @@ params.primers_id = "" // Organism specific, e.g V0 or V1 for RSV
 params.adapters_id="TruSeq3-PE-2" // Can be user-provided, there is a default
 params.species = "" // Required, name of a species expected to be analyzed with this pipeline can be either "SARS-CoV-2", "RSV" or "Influenza" 
 
-// Output Dir by default "results" directory 
-params.results_dir = "./results"
+// Output Directory
+params.results_dir = "."
 
 // projectDir is not defined in sars pipeline explicite but is set by bash wrapper
 // so we define it here, it can be used for version control
