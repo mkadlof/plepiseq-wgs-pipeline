@@ -164,126 +164,111 @@ include { detect_type_nanopore as detect_type_rsv_nanopore } from "${modules}/rs
 workflow{
 
 if(params.machine == 'Illumina') {
-  Channel
-    .fromFilePairs(params.reads)
-    .set {reads}
-  
-  // Initail fastqc
-  fastqc_initial_out = fastqc_1(reads, "pre-filtering")
+    Channel
+      .fromFilePairs(params.reads)
+      .set {reads}
 
-  // Running kraken2 prediction
-  reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
-  kraken2_out = kraken2_illumina(reads_and_qc, genus) 
-  trimmomatic_out = trimmomatic(reads.join(kraken2_out.qcstatus_only, by:0))
-  fastqc_filtered_out = fastqc_2(trimmomatic_out.proper_reads_and_qc, "post-filtering")
-  
-  final_reads_and_final_qc = trimmomatic_out.proper_reads.join(fastqc_filtered_out.qcstatus, by:0)
-  
-  // For all three species selection of reference genome/primers is different
-   
-  if ( params.species  == 'SARS-CoV-2' ) {
-    detect_type_illumina_out = copy_genome_and_primers(final_reads_and_final_qc)
-    reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
-  
-  } else if (params.species  == 'Influenza') {
-    detect_subtype_illumina_out = detect_subtype_influenza_illumina(final_reads_and_final_qc)
-    reassortment_influenza_out =  reassortment_influenza(detect_subtype_illumina_out.segments_scores)
-    reads_and_genome = trimmomatic_out.proper_reads.join(reassortment_influenza_out.to_bwa, by:0)
-  } else if (params.species  == 'RSV') {
-    detect_type_illumina_out = detect_type_rsv_illumina(final_reads_and_final_qc)
-    reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
-  }
-  
-  // Mapping 
-  bwa_out = bwa(reads_and_genome)
-  
-  // Dehumanization
-  dehumanization_illumina_out = dehumanization_illumina(bwa_out.only_bam.join(trimmomatic_out.proper_reads, by:0))
-  
-  // coinfection analysis for SARS ONLY !
-  if ( params.species  == 'SARS-CoV-2' ) {
- 
-    coinfection_ivar_sars_out = coinfection_ivar_sars(bwa_out.to_coinfection)
-    freyja_out =  freyja_sars(coinfection_ivar_sars_out.to_freyja)
-    coinfection_varscan_out = coinfection_varscan_sars(coinfection_ivar_sars_out.to_custom_analysis)
-    coinfection_analysis_sars_out = coinfection_analysis_sars(coinfection_varscan_out) 
-  }
- 
-  // Filtering script is different for one-segment and multiple-segments organisms 
-  if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
-    initial_bam_and_primers = bwa_out.only_bam.join(detect_type_illumina_out.primers_and_pairs, by:0)
-    filtering_out = filtering_one_segment(initial_bam_and_primers)
-    masking_out = masking(filtering_out.one_amplicon_primers_and_QC)
-    merging_out = merging(filtering_out.two_amplicon_only.join(masking_out, by:0))
-    pre_final_bam_and_genome = merging_out.join(detect_type_illumina_out.only_genome, by:0)
-  } else if (params.species  == 'Influenza') {
-    initial_bam_and_primers = bwa_out.bam_and_genome.join(reassortment_influenza_out.primers_and_pairs, by:0)
-    filtering_out = filtering_influenza_illumina(initial_bam_and_primers)
-    masking_out = masking(filtering_out.one_amplicon_primers_and_QC)
-    sort_and_index_out = sort_and_index_influenza_illumina(masking_out)
-    pre_final_bam_and_genome = sort_and_index_out.join(reassortment_influenza_out.only_genome, by:0)
-  }
+    // Initail fastqc
+    fastqc_initial_out = fastqc_1(reads, "pre-filtering")
 
-  // Predicting sample's genome is identical  
-  indelQual_out = indelQual(pre_final_bam_and_genome) 
+    // Running kraken2 prediction
+    reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
+    kraken2_out = kraken2_illumina(reads_and_qc, genus)
+    trimmomatic_out = trimmomatic(reads.join(kraken2_out.qcstatus_only, by:0))
+    fastqc_filtered_out = fastqc_2(trimmomatic_out.proper_reads_and_qc, "post-filtering")
+    final_reads_and_final_qc = trimmomatic_out.proper_reads.join(fastqc_filtered_out.qcstatus, by:0)
 
-  freebayes_out = freeBayes(indelQual_out.bam_genome_and_qc)
-  lofreq_out = lofreq(indelQual_out.bam_genome_and_qc)
-  lowCov_out = lowCov(indelQual_out.bam_genome_and_qc) 
-  varScan_out = varScan(indelQual_out.bam_genome_and_qc)
-  wgsMetrics_out = picard_wgsMetrics(indelQual_out.bam_genome_and_qc) 
+    // For all three species selection of reference genome/primers is different
+    if ( params.species  == 'SARS-CoV-2' ) {
+        detect_type_illumina_out = copy_genome_and_primers(final_reads_and_final_qc)
+        reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
+    } else if (params.species  == 'Influenza') {
+        detect_subtype_illumina_out = detect_subtype_influenza_illumina(final_reads_and_final_qc)
+        reassortment_influenza_out =  reassortment_influenza(detect_subtype_illumina_out.segments_scores)
+        reads_and_genome = trimmomatic_out.proper_reads.join(reassortment_influenza_out.to_bwa, by:0)
+    } else if (params.species  == 'RSV') {
+        detect_type_illumina_out = detect_type_rsv_illumina(final_reads_and_final_qc)
+        reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
+    }
 
-  all_sub_fastas = lowCov_out.fasta.join(varScan_out)
-  all_sub_fastas = all_sub_fastas.join(freebayes_out)
-  all_sub_fastas = all_sub_fastas.join(lofreq_out)
-  
-  consensus_out = consensus(all_sub_fastas) 
+    // Mapping
+    bwa_out = bwa(reads_and_genome)
 
-  
-  // Predicting SV with manta
-  picard_downsample_out = picard_downsample(bwa_out.bam_and_genome)
-  manta_out = introduce_SV_with_manta(picard_downsample_out.to_manta.join(consensus_out.multiple_fastas, by:0))
+    // Dehumanization
+    dehumanization_illumina_out = dehumanization_illumina(bwa_out.only_bam.join(trimmomatic_out.proper_reads, by:0))
 
-  // This if should be pushed to the modules
-  if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {   
-    nextclade_out = nextclade_noninfluenza(manta_out.fasta_refgenome_and_qc)
-    // modeller is species-aware
-    modeller(nextclade_out.to_modeller)    
-  } else if (params.species  == 'Influenza') {
-    manta_out.fasta_refgenome_and_qc.join(detect_subtype_illumina_out.subtype_id, by:0)
+    // coinfection analysis for SARS ONLY !
+    if ( params.species  == 'SARS-CoV-2' ) {
+        coinfection_ivar_sars_out = coinfection_ivar_sars(bwa_out.to_coinfection)
+        freyja_out =  freyja_sars(coinfection_ivar_sars_out.to_freyja)
+        coinfection_varscan_out = coinfection_varscan_sars(coinfection_ivar_sars_out.to_custom_analysis)
+        coinfection_analysis_sars_out = coinfection_analysis_sars(coinfection_varscan_out)
+    }
 
-    final_genome_and_influenza_subtype = manta_out.fasta_refgenome_and_qc.join(detect_subtype_illumina_out.subtype_id, by:0)
-    nextclade_out = nextclade_influenza(final_genome_and_influenza_subtype) 
-    nextalign_out = nextalign_influenza(final_genome_and_influenza_subtype)
-    resistance_out = resistance_influenza(nextalign_out)
-  }
+    // Filtering script is different for one-segment and multiple-segments organisms
+    if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
+        initial_bam_and_primers = bwa_out.only_bam.join(detect_type_illumina_out.primers_and_pairs, by:0)
+        filtering_out = filtering_one_segment(initial_bam_and_primers)
+        masking_out = masking(filtering_out.one_amplicon_primers_and_QC)
+        merging_out = merging(filtering_out.two_amplicon_only.join(masking_out, by:0))
+        pre_final_bam_and_genome = merging_out.join(detect_type_illumina_out.only_genome, by:0)
+    } else if (params.species  == 'Influenza') {
+        initial_bam_and_primers = bwa_out.bam_and_genome.join(reassortment_influenza_out.primers_and_pairs, by:0)
+        filtering_out = filtering_influenza_illumina(initial_bam_and_primers)
+        masking_out = masking(filtering_out.one_amplicon_primers_and_QC)
+        sort_and_index_out = sort_and_index_influenza_illumina(masking_out)
+        pre_final_bam_and_genome = sort_and_index_out.join(reassortment_influenza_out.only_genome, by:0)
+    }
 
-  // Pangolin only for SARS, module is species-aware 
-  pangolin_out = pangolin(manta_out.fasta_refgenome_and_qc)
+    // Predicting sample's genome is identical
+    indelQual_out = indelQual(pre_final_bam_and_genome)
+    freebayes_out = freeBayes(indelQual_out.bam_genome_and_qc)
+    lofreq_out = lofreq(indelQual_out.bam_genome_and_qc)
+    lowCov_out = lowCov(indelQual_out.bam_genome_and_qc)
+    varScan_out = varScan(indelQual_out.bam_genome_and_qc)
+    wgsMetrics_out = picard_wgsMetrics(indelQual_out.bam_genome_and_qc)
+    all_sub_fastas = lowCov_out.fasta.join(varScan_out)
+    all_sub_fastas = all_sub_fastas.join(freebayes_out)
+    all_sub_fastas = all_sub_fastas.join(lofreq_out)
+    consensus_out = consensus(all_sub_fastas)
 
-  // final vcf + snpEFF, snpEFF is species-aware
-  vcf_for_fasta_out = vcf_for_fasta(manta_out.fasta_refgenome_and_qc)
-  snpEff_out = snpEff(vcf_for_fasta_out.vcf.join(indelQual_out.bam_genome_and_qc, by:0))
+    // Predicting SV with manta
+    picard_downsample_out = picard_downsample(bwa_out.bam_and_genome)
+    manta_out = introduce_SV_with_manta(picard_downsample_out.to_manta.join(consensus_out.multiple_fastas, by:0))
 
+    // This if should be pushed to the modules
+    if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
+        nextclade_out = nextclade_noninfluenza(manta_out.fasta_refgenome_and_qc)
+        // modeller is species-aware
+        modeller(nextclade_out.to_modeller)
+    } else if (params.species  == 'Influenza') {
+        manta_out.fasta_refgenome_and_qc.join(detect_subtype_illumina_out.subtype_id, by:0)
+        final_genome_and_influenza_subtype = manta_out.fasta_refgenome_and_qc.join(detect_subtype_illumina_out.subtype_id, by:0)
+        nextclade_out = nextclade_influenza(final_genome_and_influenza_subtype)
+        nextalign_out = nextalign_influenza(final_genome_and_influenza_subtype)
+        resistance_out = resistance_influenza(nextalign_out)
+    }
 
-} else if (params.machine == 'Nanopore') {
-  Channel
-  .fromPath(params.reads)
-  .map {it -> tuple(it.getName().split("\\.")[0], it)}
-  .set {reads}
- 
-  fastqc_initial_out = run_fastqc_nanopore_1(reads, "pre-filtering")
- 
-  reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
-  kraken2_out = kraken2_nanopore(reads_and_qc, "Orthopneumovirus")
-  final_reads_and_final_qc = reads.join(kraken2_out.qcstatus_only, by:0)
-  detect_type_nanopore_out = detect_type_rsv_nanopore(final_reads_and_final_qc)
-  reads_and_genome = reads.join(detect_type_nanopore_out.to_minimap2, by:0)
-  minimap2_out = minimap2(reads_and_genome)
+    // Pangolin only for SARS, module is species-aware
+    pangolin_out = pangolin(manta_out.fasta_refgenome_and_qc)
 
-  // Dehumanization
-  dehumanization_nanopore_out = dehumanization_nanopore(minimap2_out.join(reads, by:0))
+    // final vcf + snpEFF, snpEFF is species-aware
+    vcf_for_fasta_out = vcf_for_fasta(manta_out.fasta_refgenome_and_qc)
+    snpEff_out = snpEff(vcf_for_fasta_out.vcf.join(indelQual_out.bam_genome_and_qc, by:0))
+    } else if (params.machine == 'Nanopore') {
+        Channel
+            .fromPath(params.reads)
+            .map {it -> tuple(it.getName().split("\\.")[0], it)}
+            .set {reads}
+        fastqc_initial_out = run_fastqc_nanopore_1(reads, "pre-filtering")
+        reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
+        kraken2_out = kraken2_nanopore(reads_and_qc, "Orthopneumovirus")
+        final_reads_and_final_qc = reads.join(kraken2_out.qcstatus_only, by:0)
+        detect_type_nanopore_out = detect_type_rsv_nanopore(final_reads_and_final_qc)
+        reads_and_genome = reads.join(detect_type_nanopore_out.to_minimap2, by:0)
+        minimap2_out = minimap2(reads_and_genome)
 
-}
-
+        // Dehumanization
+        dehumanization_nanopore_out = dehumanization_nanopore(minimap2_out.join(reads, by:0))
+    }
 }

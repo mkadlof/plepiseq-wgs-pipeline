@@ -38,6 +38,7 @@ data/sarscov2/freyja
 # file with key
 third-party/modeller/config.py
 
+python_tests/__pycache__
 
 
 
