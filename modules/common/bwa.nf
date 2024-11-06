@@ -36,7 +36,7 @@ process bwa {
         samtools sort -@ ${params.threads} -o mapped_reads.bam -
         samtools index mapped_reads.bam
         NO_READS=`samtools view mapped_reads.bam | wc -l`
-        if [ \${NO_READS} -lt 1 ]; then
+        if [ \${NO_READS} -lt ${params.min_number_of_reads} ]; then
           QC_exit="nie"
         else
           QC_exit="tak"

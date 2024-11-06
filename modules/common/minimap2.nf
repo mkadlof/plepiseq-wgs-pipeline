@@ -4,10 +4,13 @@ process minimap2 {
     maxForks 5
 
     input:
-    tuple val(sampleId), path(reads), path(ref_genome_with_index), val(QC_status)
+    tuple val(sampleId), path(reads), path(ref_genome_with_index), path("primers.bed"), val(QC_status)
 
     output:
-    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), env(QC_exit)
+    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), env(QC_exit), emit: only_bam
+    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), path(ref_genome_with_index), env(QC_exit), emit: bam_and_genome
+    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), path(ref_genome_with_index), path("primers.bed"), env(QC_exit), emit: to_coinfection
+
 
     script:
     // Check the index of a file with fasta extension in ref_genome_with_index list
@@ -36,7 +39,7 @@ process minimap2 {
         samtools index mapped_reads.bam
         rm tmp.sam
         NO_READS=`samtools view mapped_reads.bam | wc -l`
-        if [ \${NO_READS} -lt 1 ]; then
+        if [ \${NO_READS} -lt ${params.min_number_of_reads} ]; then
           QC_exit="nie"
         else
           QC_exit="tak"

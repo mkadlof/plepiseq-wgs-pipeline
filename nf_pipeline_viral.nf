@@ -55,7 +55,7 @@ params.threads = 5
 // All sequencing platform specific parameters
 // Some of them should be made common
 if ( params.machine  == 'Illumina' ) {
-params.min_number_of_reads = 0
+params.min_number_of_reads = 1
 params.expected_genus_value = 5
 params.min_median_quality = 0
 params.quality_initial = 5
@@ -71,15 +71,24 @@ params.window_size = 50 // Window size in which we equalize the coverage
 params.min_mapq = 30
 params.quality_for_coverage = 10 // Parametr uzywany w modul lowCov
 } else if (params.machine  == 'Nanopore') {
-params.model_medaka = "r941_min_hac_g507" // Flow cell v9.4.1
-params.min_number_of_reads = 0
+params.bed_offset=10 // for filtering
+params.extra_bed_offset=10 // for filtering
+params.min_mapq = 30 // for_filtering
+
+params.medaka_model = "r941_min_hac_g507" // Flow cell v9.4.1
+params.medaka_chunk_size = 800  // Flow cell v9.4.1
+params.medaka_chunk_overlap = 400 // Flow cell v9.4.1
+
+params.min_number_of_reads = 1 // Stop the analysis if after mapping step bam has less than that number of reads
+
 params.expected_genus_value = 5
 params.min_median_quality = 0
 params.quality_initial = 2 // We are extreamly liberal for nanopore 
-params.length = 90
+params.length = 200
 params.max_depth = 600
-params.min_cov = 20
-params.mask = 20
+params.min_cov = 50
+params.mask = 50
+
 params.quality_snp = 15
 params.pval = 0.05
 params.lower_ambig = 0.45
@@ -113,6 +122,7 @@ include { fastqc as fastqc_2 } from "${modules}/common/fastqc.nf"
 include { trimmomatic } from "${modules}/common/trimmomatic.nf"
 
 include { filtering as filtering_one_segment } from "${modules}/sarscov2/filtering.nf" 
+include { filtering_nanopore as filtering_one_segment_nanopore } from "${modules}/sarscov2/filtering.nf"
 
 include { masking } from "${modules}/common/masking.nf"
 include { merging } from "${modules}/sarscov2/merging.nf" 
@@ -159,6 +169,20 @@ include { resistance as resistance_influenza } from "${modules}/infl/resistance.
 // RSV-specific modules
 include { detect_type_illumina as detect_type_rsv_illumina } from "${modules}/rsv/detect_type.nf"
 include { detect_type_nanopore as detect_type_rsv_nanopore } from "${modules}/rsv/detect_type.nf"
+
+// Sub workflows
+
+
+workflow predict_genome_nanopore {
+take:
+initial_fastq
+initial_genome_and_primers
+
+main:
+
+emit:
+}
+
 
 // Main workflow
 workflow{
@@ -264,11 +288,23 @@ if(params.machine == 'Illumina') {
         reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
         kraken2_out = kraken2_nanopore(reads_and_qc, "Orthopneumovirus")
         final_reads_and_final_qc = reads.join(kraken2_out.qcstatus_only, by:0)
-        detect_type_nanopore_out = detect_type_rsv_nanopore(final_reads_and_final_qc)
+        
+
+        detect_type_nanopore_out = detect_type_rsv_nanopore(final_reads_and_final_qc) //RSV only
+
+        // PLACEHOLDER HERE WE SHOULD START SUBWORKFLOW FOR TWO STEP ANALYSIS OF NANOPORE DATA
+        
         reads_and_genome = reads.join(detect_type_nanopore_out.to_minimap2, by:0)
         minimap2_out = minimap2(reads_and_genome)
+        
+        if ( params.species  == 'SARS-CoV-2' ) {
+        filteing_put = filtering_one_segment_nanopore(minimap2_out.to_coinfection) 
+        }
 
-        // Dehumanization
-        dehumanization_nanopore_out = dehumanization_nanopore(minimap2_out.join(reads, by:0))
+
+        // END of PLACEHOLDER 
+
+        // Dehumanization, that shou
+        dehumanization_nanopore_out = dehumanization_nanopore(minimap2_out.only_bam.join(reads, by:0))
     }
 }
