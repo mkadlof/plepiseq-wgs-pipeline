@@ -127,6 +127,39 @@ def read_amplicon_scheme_influenza(bed):
     return slownik_amplikonow_outer, slownik_amplikonow_inner, \
         slownik_amplikonow_uzycie, slownik_amplikonow_uzycie_left, slownik_amplikonow_uzycie_right
 
+def get_primer_usage(initial_bam, slownik_amplikonow_outer, slownik_amplikonow_inner):
+    """
+    Funkcja do wyciagania informacji o ilosci odczytow mapujacych sie na dany region  wgenomie
+    odpowiadajacy lokalizacji primerow
+    @param initial_bam: Sciezka do pliku bam do anlizy
+    @type initial_bam: basestring
+    @param slownik_amplikonow_outer: slownik z informacja o granicach primerow (wartosci blizsze 3' i 5' koncom)
+    @type slownik_amplikonow_outer: dict
+    @param slownik_amplikonow_inner: slownik z informacja o granicach primerow (wartosc idalsze od 3' i 5')
+    @type slownik_amplikonow_inner: dict
+    @return: slownik z informacja jakie jest uzycie danego primeru
+    @rtype: dict
+    """
+
+    uzycie_primerow = {}
+    all_reads = pysam.AlignmentFile(initial_bam, "rb")
+    for contig in slownik_amplikonow_outer.keys():
+        left_priner_start, left_primer_end =   (slownik_amplikonow_outer[contig]['LEFT'],
+                                                slownik_amplikonow_inner[contig]['LEFT'])
+        right_priner_start, right_primer_end = (slownik_amplikonow_inner[contig]['RIGHT'],
+                                                slownik_amplikonow_outer[contig]['RIGHT'])
+        reads_left_primer = all_reads.fetch(contig=contig, start=left_priner_start, stop=left_primer_end)
+        reads_right_primer = all_reads.fetch(contig=contig, start=right_priner_start, stop=right_primer_end)
+        primer_usage = 0
+        for x in reads_left_primer:
+            primer_usage += 1
+        for x in reads_right_primer:
+            primer_usage += 1
+
+        uzycie_primerow[contig] = primer_usage
+
+    return uzycie_primerow
+
 
 def filter_reads(initial_bam, final_bam_forward, final_bam_reverse, statystyki, min_length=90, mapq=30):
     all_reads = pysam.AlignmentFile(initial_bam, "rb")
@@ -196,6 +229,10 @@ if __name__ == '__main__':
 
     # 2 Usuwanie odczytow za krotkich lub slabo mapujacych sie
 
+    slownik_uzycie_primerow = get_primer_usage(initial_bam=all_read,
+                                               slownik_amplikonow_inner=slownik_amplikonow_inner,
+                                               slownik_amplikonow_outer=slownik_amplikonow_outer)
+
     filter_reads(initial_bam=all_read,
                  final_bam_forward='all_reads_forward_filtered.bam',
                  final_bam_reverse='all_reads_reverse_filtered.bam',
@@ -235,6 +272,13 @@ if __name__ == '__main__':
                 reference_start = read.reference_start
                 reference_end = read.reference_end
                 reference_name = read.reference_name
+
+                if reference_start < slownik_amplikonow_outer[read.reference_name]['LEFT']:
+                    slownik_amplikonow_uzycie_left[read.reference_name] += 1
+
+                if reference_end >= slownik_amplikonow_outer[read.reference_name]['RIGHT']:
+                    slownik_amplikonow_uzycie_right[read.reference_name] += 1
+
                 moj_odczyt_zakres = set(range(reference_start, reference_end))
                 done = False
                 # patrzymy na jakie sa pokrycia w oknach ktore obejmuje read jesli mapuje sie na slabe okno
@@ -280,3 +324,13 @@ if __name__ == '__main__':
     pysam.merge('to_clip.bam', *window_smoothing_bam)
     pysam.sort('-o', 'to_clip_sorted.bam', 'to_clip.bam')
     pysam.index('to_clip_sorted.bam')
+
+    # Uzycie primerow
+    with open('Primer_usage.txt', "w") as f:
+        f.write('Segment\tPrimer_number\tPrimare_usage\n')
+        for klucz,wartosc in slownik_uzycie_primerow.items():
+            f.write(f'{klucz}\t1\t{wartosc}\n')
+
+    # for klucz in slownik_amplikonow_uzycie_left_primer.keys():
+    #     statystyki.write(f'{klucz}\t{slownik_amplikonow_uzycie_left_primer[klucz]}\t'
+    #                      f'{slownik_amplikonow_uzycie_right_primer[klucz]}\n')
