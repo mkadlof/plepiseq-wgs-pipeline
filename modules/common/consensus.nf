@@ -25,7 +25,8 @@ process consensus {
       TOTAL_LENGTH=\$(grep -v '>' consensus.fasta | wc -c)
       NUMBER_OF_N=\$(grep -v '>' consensus.fasta | grep N -o | wc -l)
 
-      echo -e '{"total_length_value": \${TOTAL_LENGTH}\n"number_of_Ns_value": \${NUMBER_OF_N}}' >> consensus.json
+      echo -e "{\\"total_length_value\\": \${TOTAL_LENGTH},\n\\"number_of_Ns_value\\": \${NUMBER_OF_N}}" >> consensus.json
+
       ls consensus_*.fasta > list_of_fasta_files.txt
     fi
     """

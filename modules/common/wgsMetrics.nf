@@ -25,7 +25,6 @@ process picard_wgsMetrics {
                                                          --INPUT ${bam} \
                                                          --OUTPUT picard_statistics.txt
 
-
       bedtools genomecov -d -ibam ${bam} > genomecov.bedgraph
 
       cat  genomecov.bedgraph | awk '{
