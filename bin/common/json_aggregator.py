@@ -114,12 +114,23 @@ def fill_viral_classification_data(file_path, output):
             output["output"]["viral_classification_data"].append(i)
 
 
+def normalize_pathogen(pathogen: str) -> str:
+    if pathogen.lower() in ["sars2", "sars-cov-2"]:
+        return "sars2"
+    elif pathogen.lower() in ["influenza", "infl"]:
+        return "influenza"
+    elif pathogen.lower() in ["rsv"]:
+        return "rsv"
+    else:
+        return pathogen
+
+
 def json_aggregator(args):
     output = {"output": {}}
 
     # Fields independent of modules output
     output["output"]["pipeline_version"] = args.version
-    output["output"]["pathogen"] = args.pathogen
+    output["output"]["pathogen"] = normalize_pathogen(args.pathogen)
     output["output"]["sampleId"] = args.sampleId
     output["output"]["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
