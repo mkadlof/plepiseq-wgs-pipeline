@@ -7,19 +7,19 @@ params.adapters_id="TruSeq3-PE-2" // Can be user-provided, there is a default
 params.species = "" // Required, name of a species expected to be analyzed with this pipeline can be either "SARS-CoV-2", "RSV" or "Influenza" 
 
 // Output Directory
-params.results_dir = "."
+params.results_dir = "./results/"
 
 // projectDir is not defined in sars pipeline explicite but is set by bash wrapper
 // so we define it here, it can be used for version control
 // Modules are just a subdirectory to projectDir and this cannot be changed
 
-params.projectDir = "${projectDir}"
+params.projectDir = "/home/michall/git/nf_illumina_sars/git_repo"
 modules = "${params.projectDir}/modules" // Modules are part of the projectDir
 
 // External databases with PREDEFINED structure
 // When we use EXTERNAL database within a module we mount this path 
 // and the module itself will access the relevant database for a relevant species
-params.external_databases_path=""
+params.external_databases_path="/home/jenkins/workspace/nf_illumina_sars/external_databases"
 
 // All species-relevant variables, for now only expected genus for kraken2
 // Furthermore if a user provides a wrong species the pipeline will not execute
@@ -44,8 +44,8 @@ params.max_number_for_SV = 100000
 
 // All docker images used by this pipeline
 // All modules now require explicit information which of these images they use
-params.main_image = ""
-params.manta_image = ""
+params.main_image = "nf_viral_main:1.1"
+params.manta_image = "nf_viral_manta:1.0"
 params.medaka_image = "ontresearch/medaka:sha447c70a639b8bcf17dc49b51e74dfcde6474837b-amd64"
 
 // High-level parameters 
@@ -73,7 +73,10 @@ params.quality_for_coverage = 10 // Parametr uzywany w modul lowCov
 } else if (params.machine  == 'Nanopore') {
 params.bed_offset=10 // for filtering
 params.extra_bed_offset=10 // for filtering
-params.min_mapq = 30 // for_filtering
+params.min_mapq = 30 // for filtering
+params.window_size = 50 // for filtering window size in which we equalize the coverage 
+params.length = 0.49 // for filtering, nanopore min length is relative to the expected segment/amplikon length
+
 
 params.medaka_model = "r941_min_hac_g507" // Flow cell v9.4.1
 params.medaka_chunk_size = 800  // Flow cell v9.4.1
@@ -83,8 +86,7 @@ params.min_number_of_reads = 1 // Stop the analysis if after mapping step bam ha
 
 params.expected_genus_value = 5
 params.min_median_quality = 0
-params.quality_initial = 2 // We are extreamly liberal for nanopore 
-params.length = 200
+params.quality_initial = 2 // We are extreamly lenient for nanopore 
 params.max_depth = 600
 params.min_cov = 50
 params.mask = 50
@@ -93,8 +95,6 @@ params.quality_snp = 15
 params.pval = 0.05
 params.lower_ambig = 0.45
 params.upper_ambig = 0.55
-params.window_size = 50 // Window size in which we equalize the coverage
-params.min_mapq = 30
 params.quality_for_coverage = 10 // Parametr uzywany w modul lowCov
 } else {
   println("Incorrect sequnecing platform, avalable options are : Illumina and Nanopore")
@@ -161,10 +161,13 @@ include { coinfection_analysis as coinfection_analysis_sars } from "${modules}/s
 
 // INFL-specific modules 
 include { detect_subtype_illumina as detect_subtype_influenza_illumina } from "${modules}/infl/detect_subtype.nf"
-include { detect_subtype_nanopore as detect_subtype_influenza_nanopore } from "${modules}/infl/detect_subtype.nf"
+include { detect_subtype_nanopore as detect_subtype_influenza_nanopore } from "${modules}/infl/detect_subtype_nanopore.nf"
+
 
 include { reassortment as reassortment_influenza } from "${modules}/infl/reassortment.nf"
 include { filtering as filtering_influenza_illumina} from "${modules}/infl/filtering.nf"
+include { filtering_nanopore as filtering_influenza_nanopore} from "${modules}/infl/filtering.nf"
+
 include { sort_and_index as sort_and_index_influenza_illumina } from "${modules}/infl/sort_and_index.nf"
 include { nextclade as nextclade_influenza } from "${modules}/infl/nextclade.nf"
 include { nextalign as nextalign_influenza } from "${modules}/infl/nextalign.nf"
@@ -282,7 +285,7 @@ if(params.machine == 'Illumina') {
     } else if (params.machine == 'Nanopore') {
         Channel
             .fromPath(params.reads)
-            .map {it -> tuple(it.getName().split("\\.")[0], it)}
+            .map {it -> tuple(it.getName().split("\\.")[0..<(-2)].join('_'), it)}
             .set {reads}
         fastqc_initial_out = run_fastqc_nanopore_1(reads, "pre-filtering")
         reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
@@ -290,39 +293,30 @@ if(params.machine == 'Illumina') {
         final_reads_and_final_qc = reads.join(kraken2_out.qcstatus_only, by:0)
         
 
-        detect_type_nanopore_out = detect_type_rsv_nanopore(final_reads_and_final_qc) //RSV only
-
         // Get initial reference genome and primers
         if ( params.species  == 'SARS-CoV-2' ) {
           // For SARS2 we only need to copy data
           detect_type_nanopore_out = copy_genome_and_primers(final_reads_and_final_qc)
         } else if (params.species  == 'Influenza') {
-          detect_subtype_nanopore_out = detect_subtype_nanopore(final_reads_and_final_qc)
-          detect_type_nanopore_out =  reassortment_influenza(detect_subtype_illumina_out.segments_scores)
+          detect_subtype_nanopore_out = detect_subtype_influenza_nanopore(final_reads_and_final_qc)
+          detect_type_nanopore_out =  reassortment_influenza(detect_subtype_nanopore_out.segments_scores)
         } else if (params.species  == 'RSV') {
           detect_type_nanopore_out = detect_type_rsv_nanopopre(final_reads_and_final_qc)
         }
   
         reads_and_genome = reads.join(detect_type_nanopore_out.all_nanopore, by:0)
  
-        // Firdt iteration only allow introduction of SNPs into reference genome 
-        nanopore_first_run = predict_genome_nanopore(final_reads_and_final_qc, genome_and_primers)
-        
-	// Second iteration - allw introduction of addinoal SNPs and SVs
-        nanopore_first_run = predict_genome_nanopore(final_reads_and_final_qc, nanopore_first_run)
-
-        reads_and_genome = reads.join(detect_type_nanopore_out.to_minimap2, by:0)
         minimap2_out = minimap2(reads_and_genome)
         
         if ( params.species  == 'SARS-CoV-2' ||  params.species  == 'RSV') {
-        filteing_put = filtering_one_segment_nanopore(minimap2_out.bam_and_genome_and_primers) 
+          filteing_out = filtering_one_segment_nanopore(minimap2_out.bam_and_genome_and_primers) 
         } else if (params.species  == 'Influenza') {
-
+          filtering_out = filtering_influenza_nanopore(minimap2_out.bam_and_genome_and_primers)
         }
 
 
 
         // Dehumanization, that shou
-        dehumanization_nanopore_out = dehumanization_nanopore(minimap2_out.only_bam.join(reads, by:0))
+        // dehumanization_nanopore_out = dehumanization_nanopore(minimap2_out.only_bam.join(reads, by:0))
     }
 }

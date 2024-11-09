@@ -1,11 +1,11 @@
-process detect_subtype_illumina {
+process detect_subtype_nanopore {
+    // This process is virtually identical to illumina
+    // but we use minimap2 instead of bwa and reads variable is not a tuple
     tag "detect_subtype:${sampleId}"
     container  = params.main_image
-    maxForks 5
-
+    maxForks = 5
     input:
     tuple val(sampleId), path(reads), val(QC_STATUS)
-
     output:
     tuple val(sampleId), path("subtype_mean_coverage_each_segment.txt"), path("subtype_scores_each_segment.txt"), env(REF_GENOME_ID), val(QC_STATUS), emit: segments_scores
     tuple val(sampleId), env(REF_GENOME_ID_MINI), emit: subtype_id
@@ -13,15 +13,17 @@ process detect_subtype_illumina {
     script:
     """
     # Functions
+    run_minimap() {
+    for GENOME in "${@}"; do
+        minimap2 -a -x map-ont -t ${params.threads} -o \${GENOME}.sam /home/data/infl/genomes/\${GENOME}/\${GENOME}.fasta ${reads}
+        samtools view -bS -F 2052 \${GENOME}.sam > \${GENOME}.bam
+        samtools sort -o \${GENOME}_sorted.bam \${GENOME}.bam
+        mv \${GENOME}_sorted.bam \${GENOME}.bam
+        samtools index \${GENOME}.bam
+        rm \${GENOME}.sam
+    done
 
-    run_bwa() {
-        for GENOME in "\${@}"; do
-            bwa mem -t ${params.threads} -T 30 /home/data/infl/genomes/\${GENOME}/\${GENOME}.fasta ${reads[0]} ${reads[1]} | \
-                samtools view -@ ${params.threads} -Sb -f 3 -F 2048 - | \
-                samtools sort -@ ${params.threads} -o \${GENOME}.bam -
-            samtools index \${GENOME}.bam
-        done
-    }
+   }
 
     find_max() {
         local GENOMES=("\${!1}")
@@ -40,7 +42,7 @@ process detect_subtype_illumina {
         done
         echo \${GENOMES[\${max_index}]}
     }
-    
+
     # Main
 
     if [ ${QC_STATUS} == "nie" ]; then
@@ -58,12 +60,12 @@ process detect_subtype_illumina {
       echo -e "id \${ALL_SEGMENTS[@]}" | tr " " "\t" >> subtype_scores_each_segment.txt
 
       if [ ${params.variant} == 'UNK' ] ;then
-        # User does not known the varaint of his influenza sample 
+        # User does not known the varaint of his influenza sample
         # we need to predict it ourselves
         # We map our sequences to each of the references and count the number of reads mapping to
         # the HA and NA segments. The reference with most reads is selceted.
 
-        run_bwa \${ALL_GENOMES[@]}
+        run_minimap \${ALL_GENOMES[@]}
 
         for GENOME in \${ALL_GENOMES[@]}; do
             alignment_score+=(`get_alignment_score.py \${GENOME}.bam chr6_NA,chr4_HA`)
@@ -81,10 +83,6 @@ process detect_subtype_illumina {
         # echo \${result}
         result_mini=`echo \${result} | cut -d "_" -f1`
 
-        # Not used by any downstream module
-        # "Final" genome and primers are selected in the reassortment module
-        # PRIMERS="/home/data/infl/primers/\${result}/\${result}_primers.bed"
-        # REF_GENOME_FASTA="/home/data/infl/genomes/\${result}/\${result}.fasta"
       else
         # The procedure is mostly identical to "UNK", however we only analyze genomes
         # for a particulat user-specified subtype, in our case for some, popular subtypes
@@ -97,7 +95,7 @@ process detect_subtype_illumina {
             fi
         done
 
-        run_bwa \${SAMPLE_GENOMES[@]}
+        run_minimap \${SAMPLE_GENOMES[@]}
 
         alignment_score=()
         for GENOME in \${SAMPLE_GENOMES[@]}; do
@@ -112,12 +110,11 @@ process detect_subtype_illumina {
 
         result=`find_max SAMPLE_GENOMES[@] alignment_score[@]`
         result_mini=`echo \${result} | cut -d "_" -f1`
-        
+
       fi # koniec if-a na nieznany wariant
       REF_GENOME_ID=\${result}
       REF_GENOME_ID_MINI=`echo \${result} | cut -d "_" -f1`
       rm *bam*
-    fi # koniec if-a na zle QC 
+    fi # koniec if-a na zle QC
     """
 }
-

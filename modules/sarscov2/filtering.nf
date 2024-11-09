@@ -38,24 +38,24 @@ process filtering_nanopore {
     tag "filtering:${sampleId}"
     container  = params.main_image
     input:
-    // emit to_coinfection z minimap2 
-    tuple val(sampleId), path(bam), path(bai),  path(ref_genome_with_index), path(primers), val(QC_status)
+    // emit bam_and_genome_and_primers z minimap2 
+    tuple val(sampleId), path(bam), path(bai),  path("ref_genome.fasta"), path("primers.bed"), val(QC_status)
 
     output:
-    tuple val(sampleId), path('to_classical_masking.bam'), path('to_overshot_masking.bam'), path(ref_genome_with_index), path(primers), val(QC_status), emit: to_masking
+    tuple val(sampleId), path('to_classical_masking.bam'), path("ref_genome.fasta"), path("primers.bed"), val(QC_status), emit: to_normal_masking
+    tuple val(sampleId), path('to_overshot_masking.bam'),  path("ref_genome.fasta"), path("primers.bed"), val(QC_status), emit: to_overshot_masking
 
     script:
     """
     if [ ${QC_status} == "nie" ]; then
-      touch reads_inner_strict.bam
-      touch first_pass_sorted.bam.bai
-      touch two_amplicons_sorted.bam
-      QC_exit="nie"
+      touch to_classical_masking.bam
+      touch to_overshot_masking.bam
     else
-      masking_cap=`echo "${params.mask} + 10" | bc -l` #  do jakiej maksymalnej warotosci podbijac coverage w regionach w ktorych brakowalo oczekiwanych jedno-amplikonowych odczytow
+      MASKING_CAP=`echo "${params.mask} + 10" | bc -l` #  do jakiej maksymalnej warotosci podbijac coverage w regionach w ktorych brakowalo oczekiwanych jedno-amplikonowych odczytow
       # jako ze korzystamy z odczytow o niejasnym pochodzeniu (najczesciej odczty z fuzji amplikonow)
       # to dobijamy tylk odo wartosci tak aby podbic zeby region nie byl maskowany
-      simple_filter_nanopore_final_with_windowstep.py ${bam} primers.bed ${params.bed_offset} ${params.max_depth} ${params.length} ${params.min_mapq} ${params.extra_bed_offset} \${masking_cap} ${params.window_size}
+      
+      simple_filter_nanopore_final_with_windowstep.py ${bam} primers.bed ${params.bed_offset} ${params.max_depth} ${params.length} ${params.min_mapq} ${params.extra_bed_offset} \${MASKING_CAP} ${params.window_size}
 
       # Skrypt wyzej zwraca bardzo duzo plikow, niestety aktualnie ich powstawanie jest zalezne od danych (zawsze bedzie reads_inner_strict.bam, reszta jest opcjonalna)
       # POPRAWIC TO W KOD REVIEW
@@ -71,6 +71,7 @@ process filtering_nanopore {
         rm reads_two_amplicons_*
         rm reads_inner_strict.bam
       else
+        # Nie ma odczytow two_amplicons, podmieniamy tylko nazwe pliku  reads_inner_strict.bam
         mv reads_inner_strict.bam to_classical_masking.bam
         
       fi

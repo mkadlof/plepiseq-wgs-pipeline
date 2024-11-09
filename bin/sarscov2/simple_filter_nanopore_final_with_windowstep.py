@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 prosty parser puszczamy ivar-a 2 razy - pierwszy raz w opcji strict tak by zapisywal tylko
 te ready ktore mapuja sie na priner
@@ -831,6 +832,7 @@ if __name__ == '__main__':
     mapq = int(sys.argv[6])
     extra_bed_offset = int(sys.argv[7])
     cap_smieci=int(sys.argv[8])  # cap na smieci czyli ready nie obejmujace dwoch primerow
+    windos_size = int(sys.argv[8])
     statystyki = open('Statystyki.txt', 'w')
 
     #1 Slownik z ampikonami i uzyciami amplkionow
@@ -1006,7 +1008,7 @@ if __name__ == '__main__':
     del(slownik_amplikonow_with_alt_outer[max_amplikon + 2])
     slownik_pokrycia_w_oknach = get_amplikon_coverage_in_windows(slownik_amplikonow = slownik_amplikonow_with_alt_outer,
                                                                  slownik_cap = slownik_amplikonow_uzycie,
-                                                                 szerokosc_okna = 50)
+                                                                 szerokosc_okna = windos_size)
     print(slownik_pokrycia_w_oknach)
     slownik_pokrycia_w_oknach, slownik_amplikonow_uzycie_left, slownik_amplikonow_uzycie_right, \
         first_pass_sorted_name, first_reject_sorted_name = \
@@ -1051,7 +1053,7 @@ if __name__ == '__main__':
         for klucz, wartosc in slownik_amplikonow_uzycie.items():
             amplion_usage = slownik_amplikonow_uzycie_left[klucz] + slownik_amplikonow_uzycie_right[klucz]
             f.write(f'{ref_name}\t{klucz}\t{amplion_usage}\n')
-:
+
     #pysam.index('reads_partial_strict.bam')
 
 
