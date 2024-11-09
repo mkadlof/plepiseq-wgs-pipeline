@@ -78,8 +78,9 @@ process filtering_nanopore {
 
       # odczyty reads_overshot.bam nie sa wlaczane bo beda filtrowane tak by uciac ich "nadmiarowa" sekwencje tak by byly przyciete do primerow
       # na potrzeby nextflow musimy stworzyc ten plik jesli go nie ma
+      # Musi to byc valid plik bam
       if [ ! -e reads_overshot.bam ]; then
-        touch to_overshot_masking.bam
+        samtools view -H -o to_overshot_masking.bam  reads_inner_strict.bam
       else
         mv reads_overshot.bam to_overshot_masking.bam
       fi

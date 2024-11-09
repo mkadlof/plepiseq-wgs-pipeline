@@ -125,7 +125,12 @@ include { filtering as filtering_one_segment } from "${modules}/sarscov2/filteri
 include { filtering_nanopore as filtering_one_segment_nanopore } from "${modules}/sarscov2/filtering.nf"
 
 include { masking } from "${modules}/common/masking.nf"
+include { masking_nanopore as masking_nanopore_strict } from "${modules}/common/masking.nf"
+include { masking_nanopore as masking_nanopore_overshot } from "${modules}/common/masking.nf"
+
 include { merging } from "${modules}/sarscov2/merging.nf" 
+
+include { merging_nanopore } from "${modules}/common/merging_nanopore.nf"
 include { picard_downsample_multisegment as picard_downsample } from "${modules}/common/picard.nf"
 
 include { introduce_SV_with_manta } from "${modules}/common/manta.nf"
@@ -176,7 +181,6 @@ include { resistance as resistance_influenza } from "${modules}/infl/resistance.
 // RSV-specific modules
 include { detect_type_illumina as detect_type_rsv_illumina } from "${modules}/rsv/detect_type.nf"
 include { detect_type_nanopore as detect_type_rsv_nanopore } from "${modules}/rsv/detect_type.nf"
-
 // Main workflow
 workflow{
 
@@ -301,7 +305,7 @@ if(params.machine == 'Illumina') {
           detect_subtype_nanopore_out = detect_subtype_influenza_nanopore(final_reads_and_final_qc)
           detect_type_nanopore_out =  reassortment_influenza(detect_subtype_nanopore_out.segments_scores)
         } else if (params.species  == 'RSV') {
-          detect_type_nanopore_out = detect_type_rsv_nanopopre(final_reads_and_final_qc)
+          detect_type_nanopore_out = detect_type_rsv_nanopore(final_reads_and_final_qc)
         }
   
         reads_and_genome = reads.join(detect_type_nanopore_out.all_nanopore, by:0)
@@ -309,11 +313,16 @@ if(params.machine == 'Illumina') {
         minimap2_out = minimap2(reads_and_genome)
         
         if ( params.species  == 'SARS-CoV-2' ||  params.species  == 'RSV') {
-          filteing_out = filtering_one_segment_nanopore(minimap2_out.bam_and_genome_and_primers) 
+          filteing_out = filtering_one_segment_nanopore(minimap2_out.bam_and_genome_and_primers)
+          normal_masking_out = masking_nanopore_strict(filteing_out.to_normal_masking, 1, 0)
+          overshot_masking_out = masking_nanopore_overshot(filteing_out.to_overshot_masking, 10, 0)
+          merging_out = merging_nanopore(normal_masking_out.bam_and_genome.join(overshot_masking_out.bam_only))
+          to_medaka = merging_out.to_medaka
         } else if (params.species  == 'Influenza') {
           filtering_out = filtering_influenza_nanopore(minimap2_out.bam_and_genome_and_primers)
+          normal_masking_out = masking_nanopore_strict(filtering_out.to_normal_masking, 1, 0)
+          to_medaka = normal_masking_out.bam_and_genome
         }
-
 
 
         // Dehumanization, that shou

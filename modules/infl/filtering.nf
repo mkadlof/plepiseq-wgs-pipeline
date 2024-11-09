@@ -36,7 +36,6 @@ process filtering_nanopore {
     tag "filtering:${sampleId}"
     container  = params.main_image
     input:
-    // emit bam_and_genome_and_primers z minimap2
     tuple val(sampleId), path(bam), path(bai),  path("ref_genome.fasta"), path("primers.bed"), val(QC_status)
 
     output:
