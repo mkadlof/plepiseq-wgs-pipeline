@@ -55,7 +55,7 @@ process filtering_nanopore {
       masking_cap=`echo "${params.mask} + 10" | bc -l` #  do jakiej maksymalnej warotosci podbijac coverage w regionach w ktorych brakowalo oczekiwanych jedno-amplikonowych odczytow
       # jako ze korzystamy z odczytow o niejasnym pochodzeniu (najczesciej odczty z fuzji amplikonow)
       # to dobijamy tylk odo wartosci tak aby podbic zeby region nie byl maskowany
-      simple_filter_nanopore_final_with_windowstep.py ${bam} primers.bed ${params.bed_offset} ${params.max_depth} ${params.length} ${params.min_mapq} ${params.extra_bed_offset} \${masking_cap}
+      simple_filter_nanopore_final_with_windowstep.py ${bam} primers.bed ${params.bed_offset} ${params.max_depth} ${params.length} ${params.min_mapq} ${params.extra_bed_offset} \${masking_cap} ${params.window_size}
 
       # Skrypt wyzej zwraca bardzo duzo plikow, niestety aktualnie ich powstawanie jest zalezne od danych (zawsze bedzie reads_inner_strict.bam, reszta jest opcjonalna)
       # POPRAWIC TO W KOD REVIEW

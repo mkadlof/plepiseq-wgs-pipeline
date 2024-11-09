@@ -159,6 +159,8 @@ include { coinfection_analysis as coinfection_analysis_sars } from "${modules}/s
 
 // INFL-specific modules 
 include { detect_subtype_illumina as detect_subtype_influenza_illumina } from "${modules}/infl/detect_subtype.nf"
+include { detect_subtype_nanopore as detect_subtype_influenza_nanopore } from "${modules}/infl/detect_subtype.nf"
+
 include { reassortment as reassortment_influenza } from "${modules}/infl/reassortment.nf"
 include { filtering as filtering_influenza_illumina} from "${modules}/infl/filtering.nf"
 include { sort_and_index as sort_and_index_influenza_illumina } from "${modules}/infl/sort_and_index.nf"
@@ -169,20 +171,6 @@ include { resistance as resistance_influenza } from "${modules}/infl/resistance.
 // RSV-specific modules
 include { detect_type_illumina as detect_type_rsv_illumina } from "${modules}/rsv/detect_type.nf"
 include { detect_type_nanopore as detect_type_rsv_nanopore } from "${modules}/rsv/detect_type.nf"
-
-// Sub workflows
-
-
-workflow predict_genome_nanopore {
-take:
-initial_fastq
-initial_genome_and_primers
-
-main:
-
-emit:
-}
-
 
 // Main workflow
 workflow{
@@ -292,17 +280,35 @@ if(params.machine == 'Illumina') {
 
         detect_type_nanopore_out = detect_type_rsv_nanopore(final_reads_and_final_qc) //RSV only
 
-        // PLACEHOLDER HERE WE SHOULD START SUBWORKFLOW FOR TWO STEP ANALYSIS OF NANOPORE DATA
+        // Get initial reference genome and primers
+        if ( params.species  == 'SARS-CoV-2' ) {
+          // For SARS2 we only need to copy data
+          detect_type_nanopore_out = copy_genome_and_primers(final_reads_and_final_qc)
+        } else if (params.species  == 'Influenza') {
+          detect_subtype_nanopore_out = detect_subtype_nanopore(final_reads_and_final_qc)
+          detect_type_nanopore_out =  reassortment_influenza(detect_subtype_illumina_out.segments_scores)
+        } else if (params.species  == 'RSV') {
+          detect_type_nanopore_out = detect_type_rsv_nanopopre(final_reads_and_final_qc)
+        }
+  
+        reads_and_genome = reads.join(detect_type_nanopore_out.all_nanopore, by:0)
+ 
+        // Firdt iteration only allow introduction of SNPs into reference genome 
+        nanopore_first_run = predict_genome_nanopore(final_reads_and_final_qc, genome_and_primers)
         
+	// Second iteration - allw introduction of addinoal SNPs and SVs
+        nanopore_first_run = predict_genome_nanopore(final_reads_and_final_qc, nanopore_first_run)
+
         reads_and_genome = reads.join(detect_type_nanopore_out.to_minimap2, by:0)
         minimap2_out = minimap2(reads_and_genome)
         
-        if ( params.species  == 'SARS-CoV-2' ) {
-        filteing_put = filtering_one_segment_nanopore(minimap2_out.to_coinfection) 
+        if ( params.species  == 'SARS-CoV-2' ||  params.species  == 'RSV') {
+        filteing_put = filtering_one_segment_nanopore(minimap2_out.bam_and_genome_and_primers) 
+        } else if (params.species  == 'Influenza') {
+
         }
 
 
-        // END of PLACEHOLDER 
 
         // Dehumanization, that shou
         dehumanization_nanopore_out = dehumanization_nanopore(minimap2_out.only_bam.join(reads, by:0))
