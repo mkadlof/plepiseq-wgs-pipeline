@@ -114,12 +114,23 @@ def fill_viral_classification_data(file_path, output):
             output["output"]["viral_classification_data"].append(i)
 
 
+def normalize_pathogen(pathogen: str) -> str:
+    if pathogen.lower() in ["sars2", "sars-cov-2"]:
+        return "sars2"
+    elif pathogen.lower() in ["influenza", "infl"]:
+        return "influenza"
+    elif pathogen.lower() in ["rsv"]:
+        return "rsv"
+    else:
+        return pathogen
+
+
 def json_aggregator(args):
     output = {"output": {}}
 
     # Fields independent of modules output
     output["output"]["pipeline_version"] = args.version
-    output["output"]["pathogen"] = args.pathogen
+    output["output"]["pathogen"] = normalize_pathogen(args.pathogen)
     output["output"]["sampleId"] = args.sampleId
     output["output"]["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
@@ -146,10 +157,12 @@ def json_aggregator(args):
 
     # fill json sections that depend on pathogen
     fill_viral_genome_data(args, output)
-    if output["output"]["pathogen"] == "sars2":
+    if output["output"]["pathogen"].lower() in ["sars2", "sars-cov-2"]:
         fill_sars_data(args, output)
-    elif output["output"]["pathogen"] == "influenza":
+    elif output["output"]["pathogen"].lower() in ["influenza"]:
         fill_infl_data(args, output)
+    elif output["output"]["pathogen"].lower() in ["rsv"]:
+        raise NotImplementedError("RSV is not implemented yet")
 
     fill_sequencing_summary_data(args, output)
 

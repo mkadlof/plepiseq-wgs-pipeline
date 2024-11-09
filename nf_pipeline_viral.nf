@@ -137,6 +137,8 @@ include { varScan } from "${modules}/common/varscan.nf"
 include { freeBayes } from "${modules}/common/freeBayes.nf"
 include { lofreq } from "${modules}/common/lofreq.nf"
 include { consensus } from "${modules}/common/consensus.nf"
+include { json_aggregator } from "${modules}/common/json_aggregator.nf"
+
 
 // vcf_for_fasta, snpEff and nextclade should be "common" module ? check if they work for influenza 
 include { vcf_for_fasta } from "${modules}/sarscov2/vcf_for_fasta.nf"
@@ -267,6 +269,16 @@ if(params.machine == 'Illumina') {
     // final vcf + snpEFF, snpEFF is species-aware
     vcf_for_fasta_out = vcf_for_fasta(manta_out.fasta_refgenome_and_qc)
     snpEff_out = snpEff(vcf_for_fasta_out.vcf.join(indelQual_out.bam_genome_and_qc, by:0))
+
+    // json_aggregator
+    for_json_aggregator = wgsMetrics_out.json.join(consensus_out.json)
+    for_json_aggregator = for_json_aggregator.join(kraken2_out.json)
+    for_json_aggregator = for_json_aggregator.join(fastqc_initial_out.json)
+    for_json_aggregator = for_json_aggregator.join(fastqc_filtered_out.json)
+    for_json_aggregator = for_json_aggregator.join(pangolin_out.json)
+    for_json_aggregator = for_json_aggregator.join(nextclade_out.json)
+    json_aggregator(for_json_aggregator)
+
     } else if (params.machine == 'Nanopore') {
         Channel
             .fromPath(params.reads)

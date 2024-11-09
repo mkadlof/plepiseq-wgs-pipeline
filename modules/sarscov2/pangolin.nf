@@ -14,8 +14,12 @@ process pangolin {
     # Nie wiem jak ale pangolin po zamontowaniu external databases wie ze ma pobranego pangolin data
     if [[ ${QC_status} == "nie" || ${params.species} != "SARS-CoV-2" ]]; then
         touch pangolin_lineage.csv
-        touch pangolin.json # wrong species or failed QC
-        #TODO: add error message with upstream error
+        cat <<EOF > pangolin.json
+{
+  \"status\": \"nie\",
+  \"error_message\": \"Error occurred somewhere earlier.\"
+}
+EOF
     else
         pangolin --outfile pangolin_lineage.csv \
                --threads ${params.threads} \

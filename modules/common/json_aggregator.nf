@@ -1,10 +1,10 @@
 process json_aggregator {
     tag "json_aggregator:${sampleId}"
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "output.json"
+    container  = params.main_image
+    containerOptions "--volume ${params.projectDir}:/home/projectDir:ro"
 
     input:
-    val pathogen
-    val pipeline_version
     tuple val(sampleId), path(wgsMetrics_json),
         path(segment_bedgraphs_files_txt),
         path(consensus_json), path(list_of_fasta_files),
@@ -18,7 +18,10 @@ process json_aggregator {
 
     script:
     """
-    json_aggregator.py ${pipeline_version} ${pathogen} ${sampleId} ${params.results_dir}/${sampleId}\
+    branch=master
+    version=\$(cat /home/projectDir/.git/refs/heads/\${branch})
+    version=\${version:0:7}
+    json_aggregator.py \${version} ${params.species} ${sampleId} ${params.results_dir}/${sampleId} \
                        --wgsMetrics ${wgsMetrics_json} \
                        --segment_bedgraphs_files ${segment_bedgraphs_files_txt} \
                        --consensus ${consensus_json} \
