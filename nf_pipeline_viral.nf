@@ -79,7 +79,7 @@ params.length = 0.49 // for filtering, nanopore min length is relative to the ex
 
 
 params.medaka_model = "r941_min_hac_g507" // Flow cell v9.4.1
-params.medaka_chunk_size = 800  // Flow cell v9.4.1
+params.medaka_chunk_len = 800  // Flow cell v9.4.1
 params.medaka_chunk_overlap = 400 // Flow cell v9.4.1
 
 params.min_number_of_reads = 1 // Stop the analysis if after mapping step bam has less than that number of reads
@@ -92,7 +92,8 @@ params.min_cov = 50
 params.mask = 50
 
 params.quality_snp = 15
-params.pval = 0.05
+params.first_round_pval = 0.25 
+params.second_round_pval = 0.05
 params.lower_ambig = 0.45
 params.upper_ambig = 0.55
 params.quality_for_coverage = 10 // Parametr uzywany w modul lowCov
@@ -181,6 +182,9 @@ include { resistance as resistance_influenza } from "${modules}/infl/resistance.
 // RSV-specific modules
 include { detect_type_illumina as detect_type_rsv_illumina } from "${modules}/rsv/detect_type.nf"
 include { detect_type_nanopore as detect_type_rsv_nanopore } from "${modules}/rsv/detect_type.nf"
+
+include { medaka } from "${modules}/common/medaka.nf"
+
 // Main workflow
 workflow{
 
@@ -324,6 +328,8 @@ if(params.machine == 'Illumina') {
           to_medaka = normal_masking_out.bam_and_genome
         }
 
+        // First round of medaka
+        medaka_out = medaka(to_medaka, 1)
 
         // Dehumanization, that shou
         // dehumanization_nanopore_out = dehumanization_nanopore(minimap2_out.only_bam.join(reads, by:0))

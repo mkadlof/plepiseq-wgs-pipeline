@@ -1,21 +1,38 @@
-process medaka_nanopore {
+process medaka {
     // Ten proces laczy wyniki maskowania dla sciezki z nanopore dla SARS i RSV
     // Gdzie mamy oddzielne mmapowania dla odczytow strict i overshoot
     tag "merging:${sampleId}"
     container  = params.medaka_image
     input:
     tuple val(sampleId), path('trimmed.bam'), path('trimmed.bam.bai'),  path('genome.fasta'), val(QC_status)
-
+    val(round)
     output:
-    tuple val(sampleId), path('merged.bam'), path('merged.bam.bai'), path(genome), val(QC_status), emit: to_medaka
+    tuple val(sampleId), path('medaka_annotated_filtered.vcf.gz'), path('medaka_annotated_filtered.vcf.gz.tbi'), val(QC_status), emit: vcf
 
     script:
     """
     if [ ${QC_status} == "nie" ]; then
-      # TBD
+      touch medaka_annotated_filtered.vcf.gz
+      touch medaka_annotated_filtered.vcf.gz.tbi
     else
-       medaka consensus --model ${medaka_model} --threads ${cpu} --chunk_len ${chunk_size} --chunk_ovlp ${chunk_overlap} ${prefix}_forvariants.bam ${prefix}_forvariants.hdf >> ${log} 2>&1                                                                                                                                                                                    echo "medaka variant ${input_genome} ${prefix}_forvariants.hdf ${prefix}_medaka.vcf" >> ${log}                          medaka variant ${input_genome} ${prefix}_forvariants.hdf ${prefix}_medaka.vcf >> ${log} 2>&1                                                                                                                                                    #echo "medaka tools annotate ${prefix}_medaka.vcf ${input_genome} ${prefix}_forvariants.bam ${prefix}_medaka_annotated.vcf" >> ${log}                                                                                                           #medaka tools annotate ${prefix}_medaka.vcf ${input_genome} ${prefix}_forvariants.bam ${prefix}_medaka_annotated.vcf >> ${log} 2>&1                                                                                                                                                                                                                                     # podmiana na plik przed maskowaniem primerow do liczenia pokrycia mutacji                                              # bo w samplach 07-09 mamy sytache gdzie delecja jedt na pierwszej pozycji za zamaskowanym primer                       # ,utacja jest wykrywana ale liczac pokrycie delecji program annotate bierze pozycje -1 przed delecja                   # ktora w pliku forvariant jest zamaskowana i ma pokrycie 0                                                             echo "medaka tools annotate ${prefix}_medaka.vcf ${input_genome} ${prefix}_to_clip_sorted.bam ${prefix}_medaka_annotated.vcf" >> ${log}                                                                                                         medaka tools annotate ${prefix}_medaka.vcf ${input_genome} ${prefix}_to_clip_sorted.bam ${prefix}_medaka_annotated.vcf >> ${log} 2>&1
+      medaka inference --model ${params.medaka_model} \
+                       --threads ${params.threads} \
+                       --chunk_len ${params.medaka_chunk_len} \
+                       --chunk_ovlp ${params.medaka_chunk_overlap} \
+                       trimmed.bam forvariants.hdf
+     
+      medaka vcf forvariants.hdf genome.fasta medaka_initial.vcf
+      medaka tools annotate medaka_initial.vcf genome.fasta trimmed.bam medaka_annotated.vcf
 
+      bgzip medaka_annotated.vcf; tabix medaka_annotated.vcf.gz
+      if [ ${round} -eq 1 ]; then
+        QUAL=`echo ${params.first_round_pval} | awk '{print 10*-log(\$1)/log(10)}'` # dodanie int powodowalo blad w zaookraglaniu, teraz dla 0.1 program poprawnie zwoci wartosc 10
+      else
+        QUAL=`echo ${params.second_round_pval} | awk '{print 10*-log(\$1)/log(10)}'`
+      fi
+
+      bcftools filter -O z -o medaka_annotated_filtered.vcf.gz -i "GQ >= \${QUAL} && DP >= ${params.min_cov}" medaka_annotated.vcf.gz
+      tabix medaka_annotated_filtered.vcf.gz
     fi
     """
 }
