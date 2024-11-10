@@ -32,7 +32,7 @@ process masking_nanopore {
     tag "masking:${sampleId}"
     container  = params.main_image
     input:
-    tuple val(sampleId), path(bam), path(genome), path(primers), val(QC_status)
+    tuple val(sampleId), path(bam), path(bai), path(genome), path(primers), val(QC_status)
     val(tolerance)
     val(skip_trimming)
 

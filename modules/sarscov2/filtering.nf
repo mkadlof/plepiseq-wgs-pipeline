@@ -42,8 +42,8 @@ process filtering_nanopore {
     tuple val(sampleId), path(bam), path(bai),  path("ref_genome.fasta"), path("primers.bed"), val(QC_status)
 
     output:
-    tuple val(sampleId), path('to_classical_masking.bam'), path("ref_genome.fasta"), path("primers.bed"), val(QC_status), emit: to_normal_masking
-    tuple val(sampleId), path('to_overshot_masking.bam'),  path("ref_genome.fasta"), path("primers.bed"), val(QC_status), emit: to_overshot_masking
+    tuple val(sampleId), path('to_classical_masking.bam'), path('to_classical_masking.bam.bai'), path("ref_genome.fasta"), path("primers.bed"), val(QC_status), emit: to_normal_masking
+    tuple val(sampleId), path('to_overshot_masking.bam'), path('to_overshot_masking.bam.bai'), path("ref_genome.fasta"), path("primers.bed"), val(QC_status), emit: to_overshot_masking
 
     script:
     """
@@ -57,32 +57,60 @@ process filtering_nanopore {
       
       simple_filter_nanopore_final_with_windowstep.py ${bam} primers.bed ${params.bed_offset} ${params.max_depth} ${params.length} ${params.min_mapq} ${params.extra_bed_offset} \${MASKING_CAP} ${params.window_size}
 
-      # Skrypt wyzej zwraca bardzo duzo plikow, niestety aktualnie ich powstawanie jest zalezne od danych (zawsze bedzie reads_inner_strict.bam, reszta jest opcjonalna)
-      # POPRAWIC TO W KOD REVIEW
-      # reads_inner_strict.bam odczyty mapujace sie na jeden amplikon (najlepsze jakosciowo)
-      # reads_two_amplicons*bam - lista odczytow ktore powstaly na skutek wypadniecia danego amplikonu (a wiec lacza amplikony sasiednie z POOL-a primerow, biologicznie mozliwe)
-      # reads_overshot.bam - odczyty mapujace sie na raczej jeden primer ale ktore "przestrzlily" swoj amplikon ( ready nieprwadopodobnie biologicznie, ale w skrajnych przypadkach uzywane)
+      # Skrypt wyzej zwraca bardzo duzo plikow, niestety aktualnie ich powstawanie jest zalezne od danych 
+      # (zawsze bedzie reads_inner_strict.bam, reszta jest opcjonalna)
 
-      # Odczyty pochodzace z dwoch amplikonow sa w oddzielnych plikach nalezy je polaczyc w jeden plik razem z plikiem reads_inner_strict.bam zawierajacym "dobre" odczyty
-      # Te odczyty beda filtrowane z wykorzystaniem informacji o granicach primerow z pliku bed
-      TO_MERGE_OVER=`ls -l  reads_two_amplicons_*.bam | tr -s " " |  cut -d " " -f9 | tr "\n" " "`
-      if [ `ls -l  reads_two_amplicons*bam | wc -l` -gt 0 ];then
-        samtools merge -o to_classical_masking.bam \${TO_MERGE_OVER} reads_inner_strict.bam
-        rm reads_two_amplicons_*
-        rm reads_inner_strict.bam
+      TO_MERGE_CLASSICAL=()
+      TO_MERGE_EXTRA=()
+      
+      # Odczyty najlepsze
+      if [ -e reads_inner_strict.bam ]; then
+        TO_MERGE_CLASSICAL+=('reads_inner_strict.bam')
       else
-        # Nie ma odczytow two_amplicons, podmieniamy tylko nazwe pliku  reads_inner_strict.bam
-        mv reads_inner_strict.bam to_classical_masking.bam
-        
+        # To by oznaczalo ze cos jest bardzo zle
+        touch dummy.txt
       fi
 
-      # odczyty reads_overshot.bam nie sa wlaczane bo beda filtrowane tak by uciac ich "nadmiarowa" sekwencje tak by byly przyciete do primerow
-      # na potrzeby nextflow musimy stworzyc ten plik jesli go nie ma
-      # Musi to byc valid plik bam
-      if [ ! -e reads_overshot.bam ]; then
-        samtools view -H -o to_overshot_masking.bam  reads_inner_strict.bam
+      # Odczyty mapujace sie na jeden primer, moga byc ale nie zawsze
+      if [ -e reads_partial_strict_sort.bam ]; then
+        TO_MERGE_CLASSICAL+=('reads_partial_strict_sort.bam')
+      fi
+
+      # Odczyty tylko w protokole midnight, truden do okreselenie pochodzenie
+      # Uzywane do podbicia pokrycia w sytuacji ratunkowej
+      if [ -e reads_smieci_sorted.bam ]; then
+        TO_MERGE_CLASSICAL+=('reads_smieci_sorted.bam')
+      fi 
+      
+      # Laczenie plikow ktore beda maskowane z ta sama tolerancja, sortowanie i indeksowanie 
+      samtools merge -o to_classical_masking_initial.bam \${TO_MERGE_CLASSICAL[@]}
+      samtools sort -o to_classical_masking.bam to_classical_masking_initial.bam
+      samtools index to_classical_masking.bam
+
+      # Odczyty pochodzace z dwoch amplikonow sa w oddzielnych plikach nalezy je polaczyc w jeden 
+      # plik razem z plikiem reads_inner_strict.bam zawierajacym "dobre" odczyty
+      
+      if [ `ls -l  reads_two_amplicons*bam | wc -l` -gt 0 ];then
+         for PLIK in `ls reads_two_amplicons*bam`; do
+           TO_MERGE_EXTRA+=("\${PLIK}")
+         done 
+      fi
+
+      if [ -e reads_overshot.bam ]; then
+        TO_MERGE_EXTRA+=("reads_overshot.bam")
+      fi
+
+      
+      #  Laczenie plikow ktore beda maskowane z wyzsza tolerancja, ich sortowanie i indeksowanie
+      # Tych plikow moze nie byc stas sa pod if-em
+      if [ "\${#TO_MERGE_EXTRA[@]}" -gt 0 ]; then
+        samtools merge -o to_overshot_masking_initial.bam \${TO_MERGE_EXTRA[@]}
+        samtools sort -o to_overshot_masking.bam to_overshot_masking_initial.bam
+        samtools index to_overshot_masking.bam
       else
-        mv reads_overshot.bam to_overshot_masking.bam
+        # Stworzmy pliki bam 
+        samtools view -H -o to_overshot_masking.bam reads_inner_strict.bam
+        samtools index to_overshot_masking.bam
       fi
 
     fi

@@ -39,7 +39,7 @@ process filtering_nanopore {
     tuple val(sampleId), path(bam), path(bai),  path("ref_genome.fasta"), path("primers.bed"), val(QC_status)
 
     output:
-      tuple val(sampleId), path('to_classical_masking.bam'), path("ref_genome.fasta"), path("primers.bed"), val(QC_status), emit: to_normal_masking
+    tuple val(sampleId), path('to_classical_masking.bam'), path('to_classical_masking.bam.bai'), path("ref_genome.fasta"), path("primers.bed"), val(QC_status), emit: to_normal_masking
    
     script:
     """
@@ -60,6 +60,7 @@ process filtering_nanopore {
       # W grypie nie ma readow overshot, mergow kilku amplikonow powstaje jeden plik ktory idzie do maskowania
       # Jest on juz tez posortowany w moim skrypcie
       mv to_clip_sorted.bam to_classical_masking.bam 
+      samtools index to_classical_masking.bam
     fi
     """
 }

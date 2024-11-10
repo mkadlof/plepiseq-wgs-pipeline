@@ -311,16 +311,16 @@ if(params.machine == 'Illumina') {
         reads_and_genome = reads.join(detect_type_nanopore_out.all_nanopore, by:0)
  
         minimap2_out = minimap2(reads_and_genome)
-        
+       
         if ( params.species  == 'SARS-CoV-2' ||  params.species  == 'RSV') {
           filteing_out = filtering_one_segment_nanopore(minimap2_out.bam_and_genome_and_primers)
-          normal_masking_out = masking_nanopore_strict(filteing_out.to_normal_masking, 1, 0)
-          overshot_masking_out = masking_nanopore_overshot(filteing_out.to_overshot_masking, 10, 0)
+          normal_masking_out = masking_nanopore_strict(filteing_out.to_normal_masking, params.bed_offset, 0)
+          overshot_masking_out = masking_nanopore_overshot(filteing_out.to_overshot_masking, params.bed_offset + params.extra_bed_offset, 0)
           merging_out = merging_nanopore(normal_masking_out.bam_and_genome.join(overshot_masking_out.bam_only))
           to_medaka = merging_out.to_medaka
         } else if (params.species  == 'Influenza') {
           filtering_out = filtering_influenza_nanopore(minimap2_out.bam_and_genome_and_primers)
-          normal_masking_out = masking_nanopore_strict(filtering_out.to_normal_masking, 1, 0)
+          normal_masking_out = masking_nanopore_strict(filtering_out.to_normal_masking, params.bed_offset, 0)
           to_medaka = normal_masking_out.bam_and_genome
         }
 
