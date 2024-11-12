@@ -91,7 +91,8 @@ params.max_depth = 600
 params.min_cov = 50
 params.mask = 50
 
-params.quality_snp = 15
+params.quality_snp = 5 // We are extreamly lenient for nanopore
+
 params.first_round_pval = 0.25 
 params.second_round_pval = 0.05
 params.pval = 0.05 // For varscan
@@ -200,8 +201,8 @@ include { detect_type_nanopore as detect_type_rsv_nanopore } from "${modules}/rs
 include { medaka_first_round as medaka_1 } from "${modules}/common/medaka.nf"
 include { medaka_second_round as medaka_2 } from "${modules}/common/medaka.nf"
 
-include { medaka_varscan_integration as medaka_varscan_integration_1 } from "${modules}/common/integrate_medaka_and_varscan.nf"
-include { medaka_varscan_integration as medaka_varscan_integration_2 } from "${modules}/common/integrate_medaka_and_varscan.nf"
+include { medaka_varscan_integration_first_round } from "${modules}/common/integrate_medaka_and_varscan.nf"
+include { medaka_varscan_integration_second_round } from "${modules}/common/integrate_medaka_and_varscan.nf"
 
 include { filter_out_non_SNPs as filter_out_non_SNPs_1 } from "${modules}/common/filter_out_non_SNPs.nf"
 
@@ -371,7 +372,7 @@ if(params.machine == 'Illumina') {
         medaka_1_out = medaka_1(to_medaka_1)
         varScan_1_out = varScan_1(to_medaka_1)
 
-        medaka_varscan_integration_1_out = medaka_varscan_integration_1(medaka_1_out.vcf.join(varScan_1_out.pre_vcf))
+        medaka_varscan_integration_1_out = medaka_varscan_integration_first_round(medaka_1_out.vcf.join(varScan_1_out.pre_vcf))
         filter_out_non_SNPs_1_out = filter_out_non_SNPs_1(medaka_varscan_integration_1_out.vcf)
         novel_genome =  make_genome_from_vcf_1(medaka_varscan_integration_1_out.reference_genome.join(filter_out_non_SNPs_1_out.vcf))
  
@@ -400,10 +401,10 @@ if(params.machine == 'Illumina') {
           to_medaka_2 = normal_masking_2_out.bam_and_genome
          }
 
-         medaka_out_2 = medaka_2(to_medaka_2)
-         // varScan_out = varScan(to_medaka)
+         medaka_2_out = medaka_2(to_medaka_2)
+         varScan_2_out = varScan_2(to_medaka_2)
 
-         // medaka_varscan_integration_out = medaka_varscan_integration_1(medaka_out.vcf.join(varScan_out.pre_vcf))
+         medaka_varscan_integration_2_out = medaka_varscan_integration_second_round(medaka_2_out.vcf.join(varScan_2_out.pre_vcf))
          // filter_out_non_SNPs_out = filter_out_non_SNPs(medaka_varscan_integration_out.vcf)
          // novel_genome =  make_genome_from_vcf(medaka_varscan_integration_out.reference_genome.join(filter_out_non_SNPs_out.vcf))
    

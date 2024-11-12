@@ -40,7 +40,7 @@ process medaka_second_round {
     input:
     tuple val(sampleId), path('trimmed.bam'), path('trimmed.bam.bai'), val(QC_status), path('genome.fasta')
     output:
-    tuple val(sampleId), path('medaka_annotated_filtered.vcf.gz'), path('medaka_annotated_filtered.vcf.gz.tbi'),  path('genome.fasta'), val(QC_status), emit: vcf
+    tuple val(sampleId), path('medaka_annotated_filtered.vcf.gz'), path('medaka_annotated_filtered.vcf.gz.tbi'), path('medaka_annotated.vcf.gz'), path('medaka_annotated.vcf.gz.tbi'), path('genome.fasta'), val(QC_status), emit: vcf
 
     script:
     """
@@ -98,11 +98,12 @@ process medaka_second_round {
       bcftools concat -a "\${ALL_VCF[@]}" | bcftools sort >> medaka_initial.vcf
     
       medaka tools annotate medaka_initial.vcf genome.fasta trimmed.bam medaka_annotated.vcf
+      bgzip medaka_annotated.vcf; tabix medaka_annotated.vcf.gz
+
       QUAL=`echo ${params.second_round_pval} | awk '{print int(10*-log(\$1)/log(10))}'` 
 
-      bcftools filter -O z -o medaka_annotated_filtered.vcf.gz -i "GQ >= \${QUAL} && DP >= ${params.min_cov}" medaka_annotated.vcf
+      bcftools filter -O z -o medaka_annotated_filtered.vcf.gz -i "GQ >= \${QUAL} && DP >= ${params.min_cov}" medaka_annotated.vcf.gz
       tabix medaka_annotated_filtered.vcf.gz
-
 
     fi
     """

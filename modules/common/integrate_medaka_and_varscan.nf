@@ -1,4 +1,4 @@
-process medaka_varscan_integration {
+process medaka_varscan_integration_first_round {
     // This module integrates medaka vcf and SPECIFIC parts of varscan prediction
     // i.e. SNPs with over 80% usage (according to varscan) that are not predicted as valid SNPs according to medaka
     // due to complex underlying genotype of a region
@@ -29,6 +29,37 @@ process medaka_varscan_integration {
     
 
 
+    fi
+    """
+}
+
+
+process medaka_varscan_integration_second_round {
+    // This module integrates medaka vcf and SPECIFIC parts of varscan prediction
+    // In second round varscan is used to introduce ambigous nucleotides
+    tag "programs integration:${sampleId}"
+    container  = params.main_image
+
+    input:
+    tuple val(sampleId), path('medaka_annotated_filtered.vcf.gz'), path('medaka_annotated_filtered.vcf.gz.tbi'), path('medaka_annotated.vcf.gz'), path('medaka_annotated.vcf.gz.tbi'), path('genome.fasta'), val(QC_status),  path('detected_variants_varscan.txt')
+
+    output:
+    tuple val(sampleId), path('medaka_and_varscan_final.vcf.gz'), path('medaka_and_varscan_final.vcf.gz.tbi'), val(QC_status), emit: vcf
+    tuple val(sampleId),  path('genome.fasta'),  val(QC_status), emit: reference_genome
+
+    script:
+    """
+    if [ ${QC_status} == "nie" ]; then
+      touch medaka_and_varscan_final.vcf.gz
+      touch medaka_and_varscan_final.vcf.gz.tbi
+    else
+      # This script requires two vcf from medaka filtered and unfiltered
+     
+      merge_varscan_with_medaka_final_INFL.py medaka_annotated_filtered.vcf.gz detected_variants_varscan.txt ${params.upper_ambig} medaka_and_varscan.vcf medaka_annotated.vcf.gz ${params.min_cov}
+
+      bcftools sort medaka_and_varscan.vcf |  bcftools norm -c w -d all -f genome.fasta | bcftools norm -c w -m -indels -f genome.fasta | bcftools filter -O z -o medaka_and_varscan_final.vcf.gz -i "QUAL >= 0 && INFO/DP >= 1"
+
+      tabix medaka_and_varscan_final.vcf.gz 
     fi
     """
 }
