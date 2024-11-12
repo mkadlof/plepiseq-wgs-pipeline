@@ -78,9 +78,9 @@ params.window_size = 50 // for filtering window size in which we equalize the co
 params.length = 0.49 // for filtering, nanopore min length is relative to the expected segment/amplikon length
 
 
-params.medaka_model = "r941_min_hac_g507" // Flow cell v9.4.1
-params.medaka_chunk_len = 800  // Flow cell v9.4.1
-params.medaka_chunk_overlap = 400 // Flow cell v9.4.1
+params.medaka_model = "r941_min_hac_variant_g507" // Flow cell v9.4.1, for first round of medaka for the second round we use r941_min_hac_g507
+params.medaka_chunk_len = 1000  // Flow cell v9.4.1
+params.medaka_chunk_overlap = 500 // Flow cell v9.4.1
 
 params.min_number_of_reads = 1 // Stop the analysis if after mapping step bam has less than that number of reads
 
@@ -126,15 +126,22 @@ include { fastqc as fastqc_2 } from "${modules}/common/fastqc.nf"
 include { trimmomatic } from "${modules}/common/trimmomatic.nf"
 
 include { filtering as filtering_one_segment } from "${modules}/sarscov2/filtering.nf" 
-include { filtering_nanopore as filtering_one_segment_nanopore } from "${modules}/sarscov2/filtering.nf"
+
+include { filtering_nanopore as filtering_one_segment_nanopore_1 } from "${modules}/sarscov2/filtering.nf"
+include { filtering_nanopore as filtering_one_segment_nanopore_2 } from "${modules}/sarscov2/filtering.nf"
 
 include { masking } from "${modules}/common/masking.nf"
-include { masking_nanopore as masking_nanopore_strict } from "${modules}/common/masking.nf"
-include { masking_nanopore as masking_nanopore_overshot } from "${modules}/common/masking.nf"
+include { masking_nanopore as masking_nanopore_strict_1 } from "${modules}/common/masking.nf"
+include { masking_nanopore as masking_nanopore_strict_2 } from "${modules}/common/masking.nf"
+
+include { masking_nanopore as masking_nanopore_overshot_1 } from "${modules}/common/masking.nf"
+include { masking_nanopore as masking_nanopore_overshot_2 } from "${modules}/common/masking.nf"
 
 include { merging } from "${modules}/sarscov2/merging.nf" 
 
-include { merging_nanopore } from "${modules}/common/merging_nanopore.nf"
+include { merging_nanopore as merging_nanopore_1 } from "${modules}/common/merging_nanopore.nf"
+include { merging_nanopore as merging_nanopore_2 } from "${modules}/common/merging_nanopore.nf"
+
 include { picard_downsample_multisegment as picard_downsample } from "${modules}/common/picard.nf"
 
 include { introduce_SV_with_manta } from "${modules}/common/manta.nf"
@@ -175,9 +182,13 @@ include { detect_subtype_nanopore as detect_subtype_influenza_nanopore } from "$
 
 include { reassortment as reassortment_influenza } from "${modules}/infl/reassortment.nf"
 include { filtering as filtering_influenza_illumina} from "${modules}/infl/filtering.nf"
-include { filtering_nanopore as filtering_influenza_nanopore} from "${modules}/infl/filtering.nf"
+
+include { filtering_nanopore as filtering_influenza_nanopore_1 } from "${modules}/infl/filtering.nf"
+include { filtering_nanopore as filtering_influenza_nanopore_2 } from "${modules}/infl/filtering.nf"
 
 include { sort_and_index as sort_and_index_influenza_illumina } from "${modules}/infl/sort_and_index.nf"
+
+
 include { nextclade as nextclade_influenza } from "${modules}/infl/nextclade.nf"
 include { nextalign as nextalign_influenza } from "${modules}/infl/nextalign.nf"
 include { resistance as resistance_influenza } from "${modules}/infl/resistance.nf"
@@ -186,11 +197,19 @@ include { resistance as resistance_influenza } from "${modules}/infl/resistance.
 include { detect_type_illumina as detect_type_rsv_illumina } from "${modules}/rsv/detect_type.nf"
 include { detect_type_nanopore as detect_type_rsv_nanopore } from "${modules}/rsv/detect_type.nf"
 
-include { medaka } from "${modules}/common/medaka.nf"
+include { medaka_first_round as medaka_1 } from "${modules}/common/medaka.nf"
+include { medaka_second_round as medaka_2 } from "${modules}/common/medaka.nf"
+
 include { medaka_varscan_integration as medaka_varscan_integration_1 } from "${modules}/common/integrate_medaka_and_varscan.nf"
 include { medaka_varscan_integration as medaka_varscan_integration_2 } from "${modules}/common/integrate_medaka_and_varscan.nf"
-include { filter_out_non_SNPs } from "${modules}/common/filter_out_non_SNPs.nf"
-include { make_genome_from_vcf } from "${modules}/common/make_genome_from_vcf.nf"
+
+include { filter_out_non_SNPs as filter_out_non_SNPs_1 } from "${modules}/common/filter_out_non_SNPs.nf"
+
+include { make_genome_from_vcf as make_genome_from_vcf_1 } from "${modules}/common/make_genome_from_vcf.nf"
+include { make_genome_from_vcf as make_genome_from_vcf_2 } from "${modules}/common/make_genome_from_vcf.nf"
+
+include { varScan as varScan_1 } from "${modules}/common/varscan.nf"
+include { varScan as varScan_2 } from "${modules}/common/varscan.nf"
 
 process dummy {
 input:
@@ -333,28 +352,28 @@ if(params.machine == 'Illumina') {
   
         reads_and_genome_and_primers = reads.join(detect_type_nanopore_out.all_nanopore, by:0)
  
-        minimap2_out = minimap2_1(reads_and_genome_and_primers)
+        minimap2_1_out = minimap2_1(reads_and_genome_and_primers)
        
         if ( params.species  == 'SARS-CoV-2' ||  params.species  == 'RSV') {
-          filteing_out = filtering_one_segment_nanopore(minimap2_out.bam_and_genome_and_primers)
-          normal_masking_out = masking_nanopore_strict(filteing_out.to_normal_masking, params.bed_offset, 0)
-          overshot_masking_out = masking_nanopore_overshot(filteing_out.to_overshot_masking, params.bed_offset + params.extra_bed_offset, 0)
-          merging_out = merging_nanopore(normal_masking_out.bam_and_genome.join(overshot_masking_out.bam_only))
-          to_medaka = merging_out.to_medaka
+          filteing_1_out = filtering_one_segment_nanopore_1(minimap2_1_out.bam_and_genome_and_primers)
+          normal_masking_1_out = masking_nanopore_strict_1(filteing_1_out.to_normal_masking, params.bed_offset, 0)
+          overshot_masking_1_out = masking_nanopore_overshot_1(filteing_1_out.to_overshot_masking, params.bed_offset + params.extra_bed_offset, 0)
+          merging_1_out = merging_nanopore_1(normal_masking_1_out.bam_and_genome.join(overshot_masking_1_out.bam_only))
+          to_medaka_1 = merging_1_out.to_medaka
         } else if (params.species  == 'Influenza') {
-          filtering_out = filtering_influenza_nanopore(minimap2_out.bam_and_genome_and_primers)
-          normal_masking_out = masking_nanopore_strict(filtering_out.to_normal_masking, params.bed_offset, 0)
-          to_medaka = normal_masking_out.bam_and_genome
+          filtering_1_out = filtering_influenza_nanopore_1(minimap2_1_out.bam_and_genome_and_primers)
+          normal_masking_1_out = masking_nanopore_strict_1(filtering_1_out.to_normal_masking, params.bed_offset, 0)
+          to_medaka_1 = normal_masking_1_out.bam_and_genome
         }
 
         // First round of medaka
         // Rough approximation of a final genome
-        // "1" below means that we filter vcf using params.first_round_pval
-        medaka_out = medaka(to_medaka, 1)
-        varScan_out = varScan(to_medaka)
-        medaka_varscan_integration_out = medaka_varscan_integration_1(medaka_out.vcf.join(varScan_out.pre_vcf))
-        filter_out_non_SNPs_out = filter_out_non_SNPs(medaka_varscan_integration_out.vcf)
-        novel_genome =  make_genome_from_vcf(medaka_varscan_integration_out.reference_genome.join(filter_out_non_SNPs_out.vcf))
+        medaka_1_out = medaka_1(to_medaka_1)
+        varScan_1_out = varScan_1(to_medaka_1)
+
+        medaka_varscan_integration_1_out = medaka_varscan_integration_1(medaka_1_out.vcf.join(varScan_1_out.pre_vcf))
+        filter_out_non_SNPs_1_out = filter_out_non_SNPs_1(medaka_varscan_integration_1_out.vcf)
+        novel_genome =  make_genome_from_vcf_1(medaka_varscan_integration_1_out.reference_genome.join(filter_out_non_SNPs_1_out.vcf))
  
         // Second round of medaka using genome obtained in round 1
         // Minimap2 requires 
@@ -368,7 +387,27 @@ if(params.machine == 'Illumina') {
         reads_and_updated_genome_and_primers = reads_and_updated_genome_and_primers.join(novel_genome.only_QC, by: 0)
 
         minimap2_2_out = minimap2_2(reads_and_updated_genome_and_primers)
+       
+        if ( params.species  == 'SARS-CoV-2' ||  params.species  == 'RSV') {
+          filteing_2_out = filtering_one_segment_nanopore_2(minimap2_2_out.bam_and_genome_and_primers)
+          normal_masking_2_out = masking_nanopore_strict_2(filteing_2_out.to_normal_masking, params.bed_offset, 0)
+          overshot_masking_2_out = masking_nanopore_overshot_2(filteing_2_out.to_overshot_masking, params.bed_offset + params.extra_bed_offset, 0)
+          merging_2_out = merging_nanopore_2(normal_masking_2_out.bam_and_genome.join(overshot_masking_2_out.bam_only))
+          to_medaka_2 = merging_2_out.to_medaka
+         } else if (params.species  == 'Influenza') {
+          filtering_2_out = filtering_influenza_nanopore_2(minimap2_2_out.bam_and_genome_and_primers)
+          normal_masking_2_out = masking_nanopore_strict_2(filtering_2_out.to_normal_masking, params.bed_offset, 0)
+          to_medaka_2 = normal_masking_2_out.bam_and_genome
+         }
 
+         medaka_out_2 = medaka_2(to_medaka_2)
+         // varScan_out = varScan(to_medaka)
+
+         // medaka_varscan_integration_out = medaka_varscan_integration_1(medaka_out.vcf.join(varScan_out.pre_vcf))
+         // filter_out_non_SNPs_out = filter_out_non_SNPs(medaka_varscan_integration_out.vcf)
+         // novel_genome =  make_genome_from_vcf(medaka_varscan_integration_out.reference_genome.join(filter_out_non_SNPs_out.vcf))
+   
+     
         // Dehumanization, that shou
         // dehumanization_nanopore_out = dehumanization_nanopore(minimap2_out.only_bam.join(reads, by:0))
     }
