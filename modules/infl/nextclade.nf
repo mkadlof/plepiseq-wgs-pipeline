@@ -55,7 +55,8 @@ EOF
                 fi
             fi
         fi
-         # If files where not created by Nextclade then create empty ones.
+
+        # If files where not created by Nextclade then create empty ones.
         if [[ ! -f "nextstrain_lineage_HA.json" ]]; then
             generate_empty_json "HA"
         fi
@@ -67,5 +68,5 @@ EOF
         # Combine two jsons in one
         jq -s "." nextstrain_lineage_HA.json nextstrain_lineage_NA.json > nextstrain_lineage.json
     fi
-       """
+    """
 }

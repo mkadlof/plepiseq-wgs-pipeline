@@ -155,16 +155,18 @@ def json_aggregator(args):
 
     # fill json sections that depend on pathogen
     fill_viral_genome_data(args, output)
-    if output["output"]["pathogen"].lower() in ["sars2", "sars-cov-2"]:
+    if args.pathogen == "sars2":
         fill_sars_data(args, output)
-    elif output["output"]["pathogen"].lower() in ["influenza"]:
+    elif args.pathogen == "influenza":
         fill_infl_data(args, output)
-    elif output["output"]["pathogen"].lower() in ["rsv"]:
+    elif args.pathogen == "rsv":
         raise NotImplementedError("RSV is not implemented yet")
 
     fill_sequencing_summary_data(args, output)
 
-    fill_viral_classification_data(args.pangolin, output)
+    # fill viral classification data
+    if args.pathogen == "sars2":
+        fill_viral_classification_data(args.pangolin, output)
     fill_viral_classification_data(args.nextclade, output)
 
     with open("output.json", "w") as f:
