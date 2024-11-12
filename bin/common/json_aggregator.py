@@ -8,7 +8,6 @@ from warnings import warn
 
 
 def fill_viral_genome_data(args, output):
-    # viral_genome_data
     with open(args.wgsMetrics) as f:
         wgsMetrics = json.load(f)
         average_coverage_value = round(wgsMetrics["average_coverage_value"], 2)
@@ -43,7 +42,6 @@ def fill_viral_genome_data(args, output):
     output["output"]["viral_genome_data"]["primer_usage_data"] = []  # TODO
     output["output"]["viral_genome_data"]["error_message"] = ""  # TODO
     output["output"]["viral_genome_data"]["status"] = "tak"  # TODO
-    # end viral_genome_data
 
 
 def fill_sars_data(args, output):
@@ -190,6 +188,7 @@ def main():
     parser.add_argument('--nextclade', help="JSON from viral classification module (nextclade)")
 
     args = parser.parse_args()
+    args.pathogen = normalize_pathogen(args.pathogen)
 
     json_aggregator(args)
 
