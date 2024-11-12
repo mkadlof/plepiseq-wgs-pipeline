@@ -113,7 +113,9 @@ include { kraken2_illumina } from "${modules}/common/kraken2.nf"
 include { kraken2_nanopore } from "${modules}/common/kraken2.nf"
 
 include { bwa } from "${modules}/common/bwa.nf"
-include { minimap2 } from "${modules}/common/minimap2.nf"
+include { minimap2 as minimap2_1 } from "${modules}/common/minimap2.nf"
+include { minimap2 as minimap2_2 } from "${modules}/common/minimap2.nf"
+
 include { dehumanization_illumina } from "${modules}/common/dehumanization.nf"
 include { dehumanization_nanopore } from "${modules}/common/dehumanization.nf"
 
@@ -189,6 +191,18 @@ include { medaka_varscan_integration as medaka_varscan_integration_1 } from "${m
 include { medaka_varscan_integration as medaka_varscan_integration_2 } from "${modules}/common/integrate_medaka_and_varscan.nf"
 include { filter_out_non_SNPs } from "${modules}/common/filter_out_non_SNPs.nf"
 include { make_genome_from_vcf } from "${modules}/common/make_genome_from_vcf.nf"
+
+process dummy {
+input:
+val(x)
+output:
+stdout
+script:
+"""
+echo ${x} >> variables.txt
+""" 
+
+}
 
 // Main workflow
 workflow{
@@ -317,9 +331,9 @@ if(params.machine == 'Illumina') {
           detect_type_nanopore_out = detect_type_rsv_nanopore(final_reads_and_final_qc)
         }
   
-        reads_and_genome = reads.join(detect_type_nanopore_out.all_nanopore, by:0)
+        reads_and_genome_and_primers = reads.join(detect_type_nanopore_out.all_nanopore, by:0)
  
-        minimap2_out = minimap2(reads_and_genome)
+        minimap2_out = minimap2_1(reads_and_genome_and_primers)
        
         if ( params.species  == 'SARS-CoV-2' ||  params.species  == 'RSV') {
           filteing_out = filtering_one_segment_nanopore(minimap2_out.bam_and_genome_and_primers)
@@ -342,9 +356,18 @@ if(params.machine == 'Illumina') {
         filter_out_non_SNPs_out = filter_out_non_SNPs(medaka_varscan_integration_out.vcf)
         novel_genome =  make_genome_from_vcf(medaka_varscan_integration_out.reference_genome.join(filter_out_non_SNPs_out.vcf))
  
-        // merging varscan wirh medaka
-        // final genome first round
-       
+        // Second round of medaka using genome obtained in round 1
+        // Minimap2 requires 
+        // 1) reads (unchanged since the first round)
+        // 2) genome (updated after first round)
+        // 3) primers (unchanged sence the first round)
+        // 4) QC_status (updated after first round)
+
+        reads_and_updated_genome_and_primers = reads.join(novel_genome.only_fasta, by:0)
+        reads_and_updated_genome_and_primers = reads_and_updated_genome_and_primers.join(detect_type_nanopore_out.primers,  by:0)
+        reads_and_updated_genome_and_primers = reads_and_updated_genome_and_primers.join(novel_genome.only_QC, by: 0)
+
+        minimap2_2_out = minimap2_2(reads_and_updated_genome_and_primers)
 
         // Dehumanization, that shou
         // dehumanization_nanopore_out = dehumanization_nanopore(minimap2_out.only_bam.join(reads, by:0))

@@ -6,7 +6,9 @@ process make_genome_from_vcf {
     tuple val(sampleId),  path('genome.fasta'),  val(QC_status), path('input.vcf.gz'), path('input.vcf.gz.tbi')
 
     output:
-    tuple val(sampleId), path('sample_genome.fa'), val(QC_status), emit: fasta
+    tuple val(sampleId), path('sample_genome.fa'), val(QC_status), emit: fasta  
+    tuple val(sampleId), path('sample_genome.fa'), emit: only_fasta
+    tuple val(sampleId), val(QC_status), emit: only_QC
 
     script:
     """

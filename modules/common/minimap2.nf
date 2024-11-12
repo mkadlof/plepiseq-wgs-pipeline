@@ -4,7 +4,7 @@ process minimap2 {
     maxForks 5
 
     input:
-    tuple val(sampleId), path(reads), path("ref_genome.fasta"), path("primers.bed"), val(REF_GENOME_ID), val(QC_status)
+    tuple val(sampleId), path(reads), path("ref_genome.fasta"), path("primers.bed"), val(QC_status)
 
     output:
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), env(QC_exit), emit: only_bam

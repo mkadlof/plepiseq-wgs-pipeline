@@ -9,6 +9,7 @@ output:
   tuple val(sampleId), path("sars*"), path("primers.bed"), path("pairs.tsv"), env(REF_GENOME_ID), env(QC_exit), emit: all
   tuple val(sampleId), path("sars*"), env(QC_exit), emit: to_bwa
   tuple val(sampleId), path("primers.bed"), path("pairs.tsv"), emit: primers_and_pairs
+  tuple val(sampleId), path("primers.bed"), emit: only_primers // required for nanopore second round
   tuple val(sampleId), path("genome.fasta"), emit: only_genome // indelqual module requires a variable not a tupple
 script:
 """
