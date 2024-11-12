@@ -7,12 +7,14 @@ process varScan {
     tuple val(sampleId), path(bam), path(bai), val(QC_status), path(ref_genome)
 
     output:
-    tuple val(sampleId), path('varscan.fa')
+    tuple val(sampleId), path('varscan.fa'), emit: fasta
+    tuple val(sampleId), path('detected_variants_varscan.txt'), emit: pre_vcf
 
     script:
     """
     if [ ${QC_status} == "nie" ]; then
       touch varscan.fa
+      touch detected_variants_varscan.txt
     else
   
       samtools mpileup -B --max-depth ${params.max_depth} \

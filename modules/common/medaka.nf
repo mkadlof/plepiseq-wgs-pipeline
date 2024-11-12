@@ -4,10 +4,10 @@ process medaka {
     tag "merging:${sampleId}"
     container  = params.medaka_image
     input:
-    tuple val(sampleId), path('trimmed.bam'), path('trimmed.bam.bai'),  path('genome.fasta'), val(QC_status)
+    tuple val(sampleId), path('trimmed.bam'), path('trimmed.bam.bai'), val(QC_status), path('genome.fasta')
     val(round)
     output:
-    tuple val(sampleId), path('medaka_annotated_filtered.vcf.gz'), path('medaka_annotated_filtered.vcf.gz.tbi'), val(QC_status), emit: vcf
+    tuple val(sampleId), path('medaka_annotated_filtered.vcf.gz'), path('medaka_annotated_filtered.vcf.gz.tbi'),  path('genome.fasta'), val(QC_status), emit: vcf
 
     script:
     """

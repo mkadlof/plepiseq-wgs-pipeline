@@ -4,10 +4,10 @@ process merging_nanopore {
     tag "merging:${sampleId}"
     container  = params.main_image
     input:
-    tuple val(sampleId), path('trimmed_first.bam'), path('trimmed_first.bam.bai'),  path(genome), val(QC_status), path('trimmed_second.bam'), path('trimmed_second.bam.bai'),  val(QC_status_2)
+    tuple val(sampleId), path('trimmed_first.bam'), path('trimmed_first.bam.bai'),  val(QC_status), path(genome),  path('trimmed_second.bam'), path('trimmed_second.bam.bai'),  val(QC_status_2)
 
     output:
-    tuple val(sampleId), path('merged.bam'), path('merged.bam.bai'), path(genome), val(QC_status), emit: to_medaka
+    tuple val(sampleId), path('merged.bam'), path('merged.bam.bai'), val(QC_status), path(genome),  emit: to_medaka
 
     script:
     """

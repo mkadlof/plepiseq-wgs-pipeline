@@ -37,7 +37,7 @@ process masking_nanopore {
     val(skip_trimming)
 
     output:
-    tuple val(sampleId), path('trimmed.bam'), path('trimmed.bam.bai'),  path(genome), val(QC_status), emit: bam_and_genome
+    tuple val(sampleId), path('trimmed.bam'), path('trimmed.bam.bai'),  val(QC_status), path(genome), emit: bam_and_genome
     tuple val(sampleId), path('trimmed.bam'), path('trimmed.bam.bai'),  val(QC_status), emit: bam_only
 
     script:

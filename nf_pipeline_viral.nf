@@ -94,6 +94,7 @@ params.mask = 50
 params.quality_snp = 15
 params.first_round_pval = 0.25 
 params.second_round_pval = 0.05
+params.pval = 0.05 // For varscan
 params.lower_ambig = 0.45
 params.upper_ambig = 0.55
 params.quality_for_coverage = 10 // Parametr uzywany w modul lowCov
@@ -184,6 +185,10 @@ include { detect_type_illumina as detect_type_rsv_illumina } from "${modules}/rs
 include { detect_type_nanopore as detect_type_rsv_nanopore } from "${modules}/rsv/detect_type.nf"
 
 include { medaka } from "${modules}/common/medaka.nf"
+include { medaka_varscan_integration as medaka_varscan_integration_1 } from "${modules}/common/integrate_medaka_and_varscan.nf"
+include { medaka_varscan_integration as medaka_varscan_integration_2 } from "${modules}/common/integrate_medaka_and_varscan.nf"
+include { filter_out_non_SNPs } from "${modules}/common/filter_out_non_SNPs.nf"
+include { make_genome_from_vcf } from "${modules}/common/make_genome_from_vcf.nf"
 
 // Main workflow
 workflow{
@@ -252,7 +257,7 @@ if(params.machine == 'Illumina') {
     lowCov_out = lowCov(indelQual_out.bam_genome_and_qc)
     varScan_out = varScan(indelQual_out.bam_genome_and_qc)
     wgsMetrics_out = picard_wgsMetrics(indelQual_out.bam_genome_and_qc)
-    all_sub_fastas = lowCov_out.fasta.join(varScan_out)
+    all_sub_fastas = lowCov_out.fasta.join(varScan_out.fasta)
     all_sub_fastas = all_sub_fastas.join(freebayes_out)
     all_sub_fastas = all_sub_fastas.join(lofreq_out)
     consensus_out = consensus(all_sub_fastas)
@@ -329,7 +334,17 @@ if(params.machine == 'Illumina') {
         }
 
         // First round of medaka
+        // Rough approximation of a final genome
+        // "1" below means that we filter vcf using params.first_round_pval
         medaka_out = medaka(to_medaka, 1)
+        varScan_out = varScan(to_medaka)
+        medaka_varscan_integration_out = medaka_varscan_integration_1(medaka_out.vcf.join(varScan_out.pre_vcf))
+        filter_out_non_SNPs_out = filter_out_non_SNPs(medaka_varscan_integration_out.vcf)
+        novel_genome =  make_genome_from_vcf(medaka_varscan_integration_out.reference_genome.join(filter_out_non_SNPs_out.vcf))
+ 
+        // merging varscan wirh medaka
+        // final genome first round
+       
 
         // Dehumanization, that shou
         // dehumanization_nanopore_out = dehumanization_nanopore(minimap2_out.only_bam.join(reads, by:0))
