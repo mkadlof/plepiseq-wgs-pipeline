@@ -79,7 +79,8 @@ process introduce_SV_with_manta {
           if [ -e Manta_results_\${segment_clean}/results/variants/diploidSV.vcf.gz ]; then
             # Manta produced an output for this segment
             # Wywalamy skomplikowane SV jak translokacje itd typun BND
-            bcftools view -O z -o manta_results_\${segment_clean}.vcf.gz -i '(FILTER="PASS" | FILTER="MaxDepth" | FILTER="NoPairSupport") && SVTYPE != "BND"' Manta_results_\${segment_clean}/results/variants/diploidSV.vcf.gz
+            # Wwywalamy rowniez takie SV ktore nie sa homozygotyczne, niepwene mutacje z GT 0/1 beda usuwane 
+            bcftools view -O z -o manta_results_\${segment_clean}.vcf.gz -i '(FILTER="PASS" | FILTER="MaxDepth" | FILTER="NoPairSupport") && SVTYPE != "BND" && GT!="het"' Manta_results_\${segment_clean}/results/variants/diploidSV.vcf.gz
             tabix manta_results_\${segment_clean}.vcf.gz
             ILE_SV=`zcat manta_results_\${segment_clean}.vcf.gz | grep SVTYPE | grep -v INFO | grep -v bcftools | wc -l`
 
