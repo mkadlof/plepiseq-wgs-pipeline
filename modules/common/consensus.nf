@@ -43,12 +43,12 @@ process consensus_nanopore {
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "consensus_*.fasta"
 
     input:
-    tuple val(sampleId), path(masked_ref_genome_fa), path(sample_genome), val(QC_status)
+    tuple val(sampleId), path(masked_ref_genome_fa), path(sample_genome), val(QC_status), path('genome.fasta')
 
     output:
-    stdout
-    // tuple val(sampleId), path("consensus.fasta"), val(QC_status), emit: single_fasta
-    // tuple val(sampleId), path("consensus_*.fasta"), val(QC_status), emit: multiple_fastas
+    tuple val(sampleId), path("consensus.fasta"), val(QC_status), emit: single_fasta
+    tuple val(sampleId), path("consensus_*.fasta"), val(QC_status), emit: multiple_fastas
+    tuple val(sampleId), path('consensus.fasta'), path('ref_genome.*'), val(QC_status), emit: fasta_refgenome_and_qc
     // tuple val(sampleId), path("consensus.json"), path("list_of_fasta_files.txt"), emit: json
 
     script:
@@ -57,9 +57,17 @@ process consensus_nanopore {
       touch consensus.fasta
       touch consensus_dummy_segment.fasta
       touch consensus.json
+      touch ref_genome.fasta
+      touch ref_genome.fasta.fai
+
+
       ls consensus_*.fasta > list_of_fasta_files.txt
     else
       make_consensus_nanopore.py ${masked_ref_genome_fa} ${sample_genome}
+
+      # This step is required only for integration with downstream illumina modules
+      cp genome.fasta ref_genome.fasta
+      bwa index ref_genome.fasta
       # get the total length and number of Ns in the consensus
 
       #TOTAL_LENGTH=\$(grep -v '>' consensus.fasta | wc -c)

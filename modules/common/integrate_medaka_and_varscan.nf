@@ -45,7 +45,7 @@ process medaka_varscan_integration_second_round {
 
     output:
     tuple val(sampleId), path('genome.fasta'), val(QC_status), path('medaka_and_varscan_final.vcf.gz'), path('medaka_and_varscan_final.vcf.gz.tbi'), emit: vcf
-    tuple val(sampleId),  path('genome.fasta'),  val(QC_status), emit: reference_genome
+    tuple val(sampleId),  path('genome.fasta'), emit: reference_genome
 
     script:
     """

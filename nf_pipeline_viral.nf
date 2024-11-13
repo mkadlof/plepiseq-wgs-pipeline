@@ -228,7 +228,7 @@ echo ${x} >> variables.txt
 // Main workflow
 workflow{
 
-if(params.machine == 'Illumina') {
+  if(params.machine == 'Illumina') {
     Channel
       .fromFilePairs(params.reads)
       .set {reads}
@@ -248,8 +248,8 @@ if(params.machine == 'Illumina') {
         detect_type_illumina_out = copy_genome_and_primers(final_reads_and_final_qc)
         reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
     } else if (params.species  == 'Influenza') {
-        detect_subtype_illumina_out = detect_subtype_influenza_illumina(final_reads_and_final_qc)
-        reassortment_influenza_out =  reassortment_influenza(detect_subtype_illumina_out.segments_scores)
+        detect_subtype_out = detect_subtype_influenza_illumina(final_reads_and_final_qc)
+        reassortment_influenza_out =  reassortment_influenza(detect_subtype_out.segments_scores)
         reads_and_genome = trimmomatic_out.proper_reads.join(reassortment_influenza_out.to_bwa, by:0)
     } else if (params.species  == 'RSV') {
         detect_type_illumina_out = detect_type_rsv_illumina(final_reads_and_final_qc)
@@ -299,38 +299,10 @@ if(params.machine == 'Illumina') {
 
     // Predicting SV with manta
     picard_downsample_out = picard_downsample(bwa_out.bam_and_genome)
-    manta_out = introduce_SV_with_manta(picard_downsample_out.to_manta.join(consensus_out.multiple_fastas, by:0))
+    final_genome_out = introduce_SV_with_manta(picard_downsample_out.to_manta.join(consensus_out.multiple_fastas, by:0))
 
-    // This if should be pushed to the modules
-    if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
-        nextclade_out = nextclade_noninfluenza(manta_out.fasta_refgenome_and_qc)
-        // modeller is species-aware
-        modeller(nextclade_out.to_modeller)
-    } else if (params.species  == 'Influenza') {
-        manta_out.fasta_refgenome_and_qc.join(detect_subtype_illumina_out.subtype_id, by:0)
-        final_genome_and_influenza_subtype = manta_out.fasta_refgenome_and_qc.join(detect_subtype_illumina_out.subtype_id, by:0)
-        nextclade_out = nextclade_influenza(final_genome_and_influenza_subtype)
-        nextalign_out = nextalign_influenza(final_genome_and_influenza_subtype)
-        resistance_out = resistance_influenza(nextalign_out)
-    }
 
-    // Pangolin only for SARS, module is species-aware
-    pangolin_out = pangolin(manta_out.fasta_refgenome_and_qc)
-
-    // final vcf + snpEFF, snpEFF is species-aware
-    vcf_for_fasta_out = vcf_for_fasta(manta_out.fasta_refgenome_and_qc)
-    snpEff_out = snpEff(vcf_for_fasta_out.vcf.join(indelQual_out.bam_genome_and_qc, by:0))
-
-    // json_aggregator
-    for_json_aggregator = wgsMetrics_out.json.join(consensus_out.json)
-    for_json_aggregator = for_json_aggregator.join(kraken2_out.json)
-    for_json_aggregator = for_json_aggregator.join(fastqc_initial_out.json)
-    for_json_aggregator = for_json_aggregator.join(fastqc_filtered_out.json)
-    for_json_aggregator = for_json_aggregator.join(pangolin_out.json)
-    for_json_aggregator = for_json_aggregator.join(nextclade_out.json)
-    json_aggregator(for_json_aggregator)
-
-    } else if (params.machine == 'Nanopore') {
+  } else if (params.machine == 'Nanopore') {
         Channel
             .fromPath(params.reads)
             .map {it -> tuple(it.getName().split("\\.")[0..<(-2)].join('_'), it)}
@@ -346,8 +318,8 @@ if(params.machine == 'Illumina') {
           // For SARS2 we only need to copy data
           detect_type_nanopore_out = copy_genome_and_primers(final_reads_and_final_qc)
         } else if (params.species  == 'Influenza') {
-          detect_subtype_nanopore_out = detect_subtype_influenza_nanopore(final_reads_and_final_qc)
-          detect_type_nanopore_out =  reassortment_influenza(detect_subtype_nanopore_out.segments_scores)
+          detect_subtype_out = detect_subtype_influenza_nanopore(final_reads_and_final_qc)
+          detect_type_nanopore_out =  reassortment_influenza(detect_subtype_out.segments_scores)
         } else if (params.species  == 'RSV') {
           detect_type_nanopore_out = detect_type_rsv_nanopore(final_reads_and_final_qc)
         }
@@ -408,13 +380,47 @@ if(params.machine == 'Illumina') {
         medaka_varscan_integration_2_out = medaka_varscan_integration_second_round(medaka_2_out.vcf.join(varScan_2_out.pre_vcf))
         novel_genome_2_out = make_genome_from_vcf_2(medaka_varscan_integration_2_out.vcf)
         lowCov_out = lowCov(to_medaka_2)
-        consensus_out = consensus_nanopore(lowCov_out.fasta.join(novel_genome_2_out.fasta_and_QC))  
-            
+        to_final_genome = lowCov_out.fasta.join(novel_genome_2_out.fasta_and_QC)
+        to_final_genome = to_final_genome.join(medaka_varscan_integration_2_out.reference_genome)
+        final_genome_out = consensus_nanopore(to_final_genome)  
+        
+        dehumanization_nanopore_out = dehumanization_nanopore(minimap2_2_out.only_bam.join(reads, by:0))
+  }
+  // Post FASTA generation modules mostly common for nanopore and illumina
 
- // maska na niskie pokrycie
-         // Laczenie maski na niskie pokrycie i fasty samplea   
-     
-        // Dehumanization, that shou
-        // dehumanization_nanopore_out = dehumanization_nanopore(minimap2_out.only_bam.join(reads, by:0))
-    }
+  if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
+      nextclade_out = nextclade_noninfluenza(final_genome_out.fasta_refgenome_and_qc)
+      // modeller is species-aware
+      modeller(nextclade_out.to_modeller)
+  } else if (params.species  == 'Influenza') {
+      // manta_out.fasta_refgenome_and_qc.join(detect_subtype_illumina_out.subtype_id, by:0)
+      final_genome_and_influenza_subtype = final_genome_out.fasta_refgenome_and_qc.join(detect_subtype_out.subtype_id, by:0)
+      nextclade_out = nextclade_influenza(final_genome_and_influenza_subtype)
+      nextalign_out = nextalign_influenza(final_genome_and_influenza_subtype)
+      resistance_out = resistance_influenza(nextalign_out)
+  }
+
+  // Pangolin only for SARS, module is species-aware
+  pangolin_out = pangolin(final_genome_out.fasta_refgenome_and_qc)
+
+  // final vcf + snpEFF, snpEFF is species-aware
+  vcf_for_fasta_out = vcf_for_fasta(final_genome_out.fasta_refgenome_and_qc)
+   
+  // illumina/nanopore specific channel 
+  if(params.machine == 'Illumina') {
+    snpEff_out = snpEff(vcf_for_fasta_out.vcf.join(indelQual_out.bam_genome_and_qc, by:0))
+  }
+  else if (params.machine == 'Nanopore') {
+    snpEff_out = snpEff(vcf_for_fasta_out.vcf.join(minimap2_2_out.for_snpeff, by:0))  
+  }
+  
+  // MIGHT NOT work for nanopore, hence should be reanalized by MK
+  // json_aggregator
+  // for_json_aggregator = wgsMetrics_out.json.join(consensus_out.json)
+  // for_json_aggregator = for_json_aggregator.join(kraken2_out.json)
+  // for_json_aggregator = for_json_aggregator.join(fastqc_initial_out.json)
+  // for_json_aggregator = for_json_aggregator.join(fastqc_filtered_out.json)
+  // for_json_aggregator = for_json_aggregator.join(pangolin_out.json)
+  // for_json_aggregator = for_json_aggregator.join(nextclade_out.json)
+  // json_aggregator(for_json_aggregator)
 }
