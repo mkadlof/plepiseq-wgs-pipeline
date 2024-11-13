@@ -16,7 +16,12 @@ process consensus {
     if [ ${QC_status} == "nie" ]; then
       touch consensus.fasta
       touch consensus_dummy_segment.fasta
-      touch consensus.json
+      cat <<EOF > consensus.json
+    {
+      \"status\": \"nie\",
+      \"error_message\":  \"QC failed: an error occurred in a prior processing step.\"
+    }
+EOF
       ls consensus_*.fasta > list_of_fasta_files.txt
     else
       make_consensus.py ${masked_ref_genome_fa} ${freebayes_fa} ${lofreq_fa} ${varscan_fa}

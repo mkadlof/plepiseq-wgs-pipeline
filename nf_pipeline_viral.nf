@@ -121,7 +121,7 @@ include { picard_downsample_multisegment as picard_downsample } from "${modules}
 include { introduce_SV_with_manta } from "${modules}/common/manta.nf"
 
 include { indelQual } from "${modules}/common/indelQual.nf"
-include { picard_wgsMetrics } from "${modules}/common/wgsMetrics.nf"
+include { picard_wgsMetrics } from "${modules}/common/picard_wgsMetrics.nf"
 include { lowCov } from "${modules}/common/lowCov.nf"
 include { varScan } from "${modules}/common/varscan.nf"
 include { freeBayes } from "${modules}/common/freeBayes.nf"
