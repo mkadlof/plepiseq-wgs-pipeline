@@ -15,7 +15,7 @@ process pangolin {
 
     if [[ ${QC_status} == "nie" || ${params.species} != "SARS-CoV-2" ]]; then
         if [[ ${QC_status} == "nie" ]]; then
-            error_message=""QC failed: an error occurred in a prior processing step.""
+            error_message="QC failed: an error occurred in a prior processing step."
         elif [[ ${params.species} != "SARS-CoV-2" ]]; then
             error_message="For organisms other than SARS-CoV-2, the Pangolin database is not queried."
         fi
