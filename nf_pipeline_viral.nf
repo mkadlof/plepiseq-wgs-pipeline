@@ -213,6 +213,8 @@ include { make_genome_from_vcf as make_genome_from_vcf_2 } from "${modules}/comm
 include { varScan as varScan_1 } from "${modules}/common/varscan.nf"
 include { varScan as varScan_2 } from "${modules}/common/varscan.nf"
 
+include { substitute_ref_genome } from "${modules}/sarscov2/substitute_ref.nf"
+
 process dummy {
 input:
 val(x)
@@ -382,8 +384,16 @@ workflow{
         lowCov_out = lowCov(to_medaka_2)
         to_final_genome = lowCov_out.fasta.join(novel_genome_2_out.fasta_and_QC)
         to_final_genome = to_final_genome.join(medaka_varscan_integration_2_out.reference_genome)
-        final_genome_out = consensus_nanopore(to_final_genome)  
-        
+        prefinal_genome_out = consensus_nanopore(to_final_genome)  
+        final_genome_out = substitute_ref_genome(prefinal_genome_out.fasta_refgenome_and_qc.join(detect_type_nanopore_out.only_genome))
+        // Placeholder for coinfection analysis
+        // if ( params.species  == 'SARS-CoV-2' ) {
+          // coinfection_ivar_sars_out = coinfection_ivar_sars(bwa_out.to_coinfection)
+          // freyja_out =  freyja_sars(coinfection_ivar_sars_out.to_freyja)
+          // coinfection_varscan_out = coinfection_varscan_sars(coinfection_ivar_sars_out.to_custom_analysis)
+          // coinfection_analysis_sars_out = coinfection_analysis_sars(coinfection_varscan_out)
+        // }
+ 
         dehumanization_nanopore_out = dehumanization_nanopore(minimap2_2_out.only_bam.join(reads, by:0))
   }
   // Post FASTA generation modules mostly common for nanopore and illumina
