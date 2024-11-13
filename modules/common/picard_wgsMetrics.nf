@@ -16,7 +16,12 @@ process picard_wgsMetrics {
     """
     if [ ${QC_status} == "nie" ]; then
       touch picard_statistics.txt
-      touch wgsMetrics.json
+      cat <<EOF > wgsMetrics.json
+    {
+      \"status\": \"nie\",
+      \"error_message\":  \"QC failed: an error occurred in a prior processing step.\"
+    }
+EOF
       touch segment_bedgraphs_files.txt
     else
       java -jar /opt/picard/picard.jar CollectWgsMetrics --REFERENCE_SEQUENCE ${ref_genome} \

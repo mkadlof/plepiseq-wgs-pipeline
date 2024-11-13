@@ -20,11 +20,15 @@ process nextclade {
     }
     """
     if [ ${QC_status} == "nie" ]; then
-       touch nextstrain_lineage.json
        mkdir nextclade_lineages
        touch nextclade_lineages/nextclade.cds_translation.S.fasta
        QC_status_exit="nie"
-       #TODO: add error_message to json output file.
+      cat <<EOF > nextstrain_lineage.json
+    {
+      \"status\": \"nie\",
+      \"error_message\": \"QC failed: an error occurred in a prior processing step.\"
+    }
+EOF
     else
       # This module need to handel both RSV and SARS, Influenza has a separate module  due to specific requirements
       # WE guess the correct nextclade file by checking fasta header

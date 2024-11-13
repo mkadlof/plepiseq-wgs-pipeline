@@ -10,8 +10,11 @@ from warnings import warn
 def fill_viral_genome_data(args, output):
     with open(args.wgsMetrics) as f:
         wgsMetrics = json.load(f)
-        average_coverage_value = round(wgsMetrics["average_coverage_value"], 2)
-        output["output"]["viral_genome_data"]["average_coverage_value"] = average_coverage_value
+        if "average_coverage_value" in wgsMetrics:
+            average_coverage_value = round(wgsMetrics["average_coverage_value"], 2)
+            output["output"]["viral_genome_data"]["average_coverage_value"] = average_coverage_value
+        else:
+            output["output"]["viral_genome_data"]["average_coverage_value"] = -1
     output["output"]["viral_genome_data"]["coverage_barplot_data"] = []
     with open(args.segment_bedgraphs_files) as f:
         lines = f.readlines()
@@ -37,8 +40,14 @@ def fill_viral_genome_data(args, output):
             "coverage_histogram_data is not implemented for pathogen: " + args.pathogen + ". Fields in output.json are empty.")
     with open(args.consensus) as f:
         consensus = json.load(f)
-        output["output"]["viral_genome_data"]['total_length_value'] = consensus['total_length_value']
-        output["output"]["viral_genome_data"]['number_of_Ns_value'] = consensus['number_of_Ns_value']
+        if "total_length_value" in consensus:
+            output["output"]["viral_genome_data"]['total_length_value'] = consensus['total_length_value']
+        else:
+            output["output"]["viral_genome_data"]['total_length_value'] = -1
+        if "number_of_Ns_value" in consensus:
+            output["output"]["viral_genome_data"]['number_of_Ns_value'] = consensus['number_of_Ns_value']
+        else:
+            output["output"]["viral_genome_data"]['number_of_Ns_value'] = -1
     output["output"]["viral_genome_data"]["primer_usage_data"] = []  # TODO
     output["output"]["viral_genome_data"]["error_message"] = ""  # TODO
     output["output"]["viral_genome_data"]["status"] = "tak"  # TODO
@@ -155,16 +164,18 @@ def json_aggregator(args):
 
     # fill json sections that depend on pathogen
     fill_viral_genome_data(args, output)
-    if output["output"]["pathogen"].lower() in ["sars2", "sars-cov-2"]:
+    if args.pathogen == "sars2":
         fill_sars_data(args, output)
-    elif output["output"]["pathogen"].lower() in ["influenza"]:
+    elif args.pathogen == "influenza":
         fill_infl_data(args, output)
-    elif output["output"]["pathogen"].lower() in ["rsv"]:
+    elif args.pathogen == "rsv":
         raise NotImplementedError("RSV is not implemented yet")
 
     fill_sequencing_summary_data(args, output)
 
-    fill_viral_classification_data(args.pangolin, output)
+    # fill viral classification data
+    if args.pathogen == "sars2":
+        fill_viral_classification_data(args.pangolin, output)
     fill_viral_classification_data(args.nextclade, output)
 
     with open("output.json", "w") as f:
