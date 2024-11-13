@@ -153,7 +153,8 @@ include { lowCov } from "${modules}/common/lowCov.nf"
 include { varScan } from "${modules}/common/varscan.nf"
 include { freeBayes } from "${modules}/common/freeBayes.nf"
 include { lofreq } from "${modules}/common/lofreq.nf"
-include { consensus } from "${modules}/common/consensus.nf"
+include { consensus_illumina } from "${modules}/common/consensus.nf"
+include { consensus_nanopore } from "${modules}/common/consensus.nf"
 include { json_aggregator } from "${modules}/common/json_aggregator.nf"
 
 
@@ -171,7 +172,7 @@ include { copy_genome_and_primers } from "${modules}/sarscov2/copy_genome_and_pr
 include { pangolin } from "${modules}/sarscov2/pangolin.nf"
 
 // // Coinfection line for SARS
-include { freyja as freyja_sars} from "${modules}/sarscov2/freyja.nf"
+include { freyja as freyja_sars } from "${modules}/sarscov2/freyja.nf"
 include { coinfection_ivar as coinfection_ivar_sars } from "${modules}/sarscov2/coinfection_ivar.nf"
 include { coinfection_varscan as coinfection_varscan_sars } from "${modules}/sarscov2/coinfection_varscan.nf"
 include { coinfection_analysis as coinfection_analysis_sars } from "${modules}/sarscov2/coinfection_analysis.nf"
@@ -294,7 +295,7 @@ if(params.machine == 'Illumina') {
     all_sub_fastas = lowCov_out.fasta.join(varScan_out.fasta)
     all_sub_fastas = all_sub_fastas.join(freebayes_out)
     all_sub_fastas = all_sub_fastas.join(lofreq_out)
-    consensus_out = consensus(all_sub_fastas)
+    consensus_out = consensus_illumina(all_sub_fastas)
 
     // Predicting SV with manta
     picard_downsample_out = picard_downsample(bwa_out.bam_and_genome)
@@ -395,19 +396,23 @@ if(params.machine == 'Illumina') {
           overshot_masking_2_out = masking_nanopore_overshot_2(filteing_2_out.to_overshot_masking, params.bed_offset + params.extra_bed_offset, 0)
           merging_2_out = merging_nanopore_2(normal_masking_2_out.bam_and_genome.join(overshot_masking_2_out.bam_only))
           to_medaka_2 = merging_2_out.to_medaka
-         } else if (params.species  == 'Influenza') {
+        } else if (params.species  == 'Influenza') {
           filtering_2_out = filtering_influenza_nanopore_2(minimap2_2_out.bam_and_genome_and_primers)
           normal_masking_2_out = masking_nanopore_strict_2(filtering_2_out.to_normal_masking, params.bed_offset, 0)
           to_medaka_2 = normal_masking_2_out.bam_and_genome
-         }
+        }
 
-         medaka_2_out = medaka_2(to_medaka_2)
-         varScan_2_out = varScan_2(to_medaka_2)
+        medaka_2_out = medaka_2(to_medaka_2)
+        varScan_2_out = varScan_2(to_medaka_2)
 
-         medaka_varscan_integration_2_out = medaka_varscan_integration_second_round(medaka_2_out.vcf.join(varScan_2_out.pre_vcf))
-         // filter_out_non_SNPs_out = filter_out_non_SNPs(medaka_varscan_integration_out.vcf)
-         // novel_genome =  make_genome_from_vcf(medaka_varscan_integration_out.reference_genome.join(filter_out_non_SNPs_out.vcf))
-   
+        medaka_varscan_integration_2_out = medaka_varscan_integration_second_round(medaka_2_out.vcf.join(varScan_2_out.pre_vcf))
+        novel_genome_2_out = make_genome_from_vcf_2(medaka_varscan_integration_2_out.vcf)
+        lowCov_out = lowCov(to_medaka_2)
+        consensus_out = consensus_nanopore(lowCov_out.fasta.join(novel_genome_2_out.fasta_and_QC))  
+            
+
+ // maska na niskie pokrycie
+         // Laczenie maski na niskie pokrycie i fasty samplea   
      
         // Dehumanization, that shou
         // dehumanization_nanopore_out = dehumanization_nanopore(minimap2_out.only_bam.join(reads, by:0))
