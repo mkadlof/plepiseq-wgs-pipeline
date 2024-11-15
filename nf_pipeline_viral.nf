@@ -352,11 +352,7 @@ workflow{
         novel_genome =  make_genome_from_vcf_1(medaka_varscan_integration_1_out.reference_genome.join(filter_out_non_SNPs_1_out.vcf))
  
         // Second round of medaka using genome obtained in round 1
-        // Minimap2 requires 
-        // 1) reads (unchanged since the first round)
-        // 2) genome (updated after first round)
-        // 3) primers (unchanged sence the first round)
-        // 4) QC_status (updated after first round)
+        // at the end of this round we need need yo resote the origunal genome as reference (for snpeff)
 
         reads_and_updated_genome_and_primers = reads.join(novel_genome.only_fasta, by:0)
         reads_and_updated_genome_and_primers = reads_and_updated_genome_and_primers.join(detect_type_nanopore_out.primers,  by:0)

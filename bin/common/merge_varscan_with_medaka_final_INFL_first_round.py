@@ -85,7 +85,7 @@ for CHROM in lines_from_varscan:
         QUAL = 100 # za quality bedzie p-value
         a = vcf.model._Record(CHROM = wiersz[0], \
                 POS = int(wiersz[1]), \
-                ID = '', \
+                ID = '.', \
                 REF = wiersz[2], \
                 ALT = [vcf.model._Substitution(nucleotides = wiersz[3])], # ALT jest lista klasy ._Substitution \
                 QUAL = QUAL, \
