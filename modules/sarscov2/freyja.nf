@@ -25,7 +25,7 @@ process freyja {
       touch coinfections_freyja.json
     else
       mkdir variants_files depth_files demix_files
-      freyja variants mapped_reads.bam --variants variants_files/test.variants.tsv --depths depth_files/test.depth --ref ${ref_genome_with_index[final_index]}
+      freyja variants mapped_reads.bam --minq ${params.freyja_minq} --variants variants_files/test.variants.tsv --depths depth_files/test.depth --ref ${ref_genome_with_index[final_index]}
       freyja demix variants_files/test.variants.tsv depth_files/test.depth --output demix_files/test.output --confirmedonly --barcodes  /home/external_databases/freyja/usher_barcodes.csv
       freyja aggregate demix_files/ --output coinfections.tsv
       touch coinfections_freyja.json

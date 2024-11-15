@@ -70,7 +70,9 @@ params.upper_ambig = 0.55
 params.window_size = 50 // Window size in which we equalize the coverage
 params.min_mapq = 30
 params.quality_for_coverage = 10 // Parametr uzywany w modul lowCov
+params.freyja_minq = 20 
 } else if (params.machine  == 'Nanopore') {
+params.freyja_minq = 2
 params.bed_offset=10 // for filtering
 params.extra_bed_offset=10 // for filtering
 params.min_mapq = 30 // for filtering
@@ -175,9 +177,12 @@ include { pangolin } from "${modules}/sarscov2/pangolin.nf"
 
 // // Coinfection line for SARS
 include { freyja as freyja_sars } from "${modules}/sarscov2/freyja.nf"
-include { coinfection_ivar as coinfection_ivar_sars } from "${modules}/sarscov2/coinfection_ivar.nf"
+include { coinfection_genome_masking_illumina } from "${modules}/sarscov2/coinfection_ivar.nf"
+include { coinfection_genome_masking_nanopore } from "${modules}/sarscov2/coinfection_ivar.nf"
+
 include { coinfection_varscan as coinfection_varscan_sars } from "${modules}/sarscov2/coinfection_varscan.nf"
-include { coinfection_analysis as coinfection_analysis_sars } from "${modules}/sarscov2/coinfection_analysis.nf"
+include { coinfection_analysis_illumina as coinfection_analysis_illumina_sars } from "${modules}/sarscov2/coinfection_analysis.nf"
+include { coinfection_analysis_nanopore as coinfection_analysis_nanopore_sars } from "${modules}/sarscov2/coinfection_analysis.nf"
 
 // INFL-specific modules 
 include { detect_subtype_illumina as detect_subtype_influenza_illumina } from "${modules}/infl/detect_subtype.nf"
@@ -268,10 +273,10 @@ workflow{
 
     // coinfection analysis for SARS ONLY !
     if ( params.species  == 'SARS-CoV-2' ) {
-        coinfection_ivar_sars_out = coinfection_ivar_sars(bwa_out.to_coinfection)
+        coinfection_ivar_sars_out = coinfection_genome_masking_illumina(bwa_out.to_coinfection)
         freyja_out =  freyja_sars(coinfection_ivar_sars_out.to_freyja)
         coinfection_varscan_out = coinfection_varscan_sars(coinfection_ivar_sars_out.to_custom_analysis)
-        coinfection_analysis_sars_out = coinfection_analysis_sars(coinfection_varscan_out)
+        coinfection_analysis_sars_out = coinfection_analysis_illumina_sars(coinfection_varscan_out)
     }
 
     // Filtering script is different for one-segment and multiple-segments organisms
@@ -385,12 +390,13 @@ workflow{
         prefinal_genome_out = consensus_nanopore(to_final_genome)  
         final_genome_out = substitute_ref_genome(prefinal_genome_out.fasta_refgenome_and_qc.join(detect_type_nanopore_out.only_genome))
         // Placeholder for coinfection analysis
-        // if ( params.species  == 'SARS-CoV-2' ) {
-          // coinfection_ivar_sars_out = coinfection_ivar_sars(bwa_out.to_coinfection)
-          // freyja_out =  freyja_sars(coinfection_ivar_sars_out.to_freyja)
-          // coinfection_varscan_out = coinfection_varscan_sars(coinfection_ivar_sars_out.to_custom_analysis)
-          // coinfection_analysis_sars_out = coinfection_analysis_sars(coinfection_varscan_out)
-        // }
+        if ( params.species  == 'SARS-CoV-2' ) {
+          // kanal minimap2_1 jest itenconalnie
+          coinfection_genome_masking_out = coinfection_genome_masking_nanopore(minimap2_1_out.bam_and_genome_and_primers)
+          freyja_out =  freyja_sars(coinfection_genome_masking_out.to_freyja)
+          coinfection_varscan_out = coinfection_varscan_sars(coinfection_genome_masking_out.to_custom_analysis)
+          coinfection_analysis_sars_out = coinfection_analysis_nanopore_sars(coinfection_varscan_out)
+        }
  
         dehumanization_nanopore_out = dehumanization_nanopore(minimap2_2_out.bam_and_qc.join(reads, by:0))
   }
