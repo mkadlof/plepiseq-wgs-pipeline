@@ -160,7 +160,9 @@ include { json_aggregator } from "${modules}/common/json_aggregator.nf"
 
 // vcf_for_fasta, snpEff and nextclade should be "common" module ? check if they work for influenza 
 include { vcf_for_fasta } from "${modules}/sarscov2/vcf_for_fasta.nf"
-include { snpEff } from "${modules}/sarscov2/snpEff.nf"
+include { snpEff_illumina } from "${modules}/sarscov2/snpEff.nf"
+include { snpEff_nanopore } from "${modules}/sarscov2/snpEff.nf"
+
 include { nextclade as nextclade_noninfluenza } from "${modules}/sarscov2/nextclade.nf"
 
 // include { simpleStats } from "${params.modules}/sarscov2/simpleStats.nf"
@@ -390,7 +392,7 @@ workflow{
           // coinfection_analysis_sars_out = coinfection_analysis_sars(coinfection_varscan_out)
         // }
  
-        dehumanization_nanopore_out = dehumanization_nanopore(minimap2_2_out.only_bam.join(reads, by:0))
+        dehumanization_nanopore_out = dehumanization_nanopore(minimap2_2_out.bam_and_qc.join(reads, by:0))
   }
   // Post FASTA generation modules mostly common for nanopore and illumina
 
@@ -414,10 +416,10 @@ workflow{
    
   // illumina/nanopore specific channel 
   if(params.machine == 'Illumina') {
-    snpEff_out = snpEff(vcf_for_fasta_out.vcf.join(indelQual_out.bam_genome_and_qc, by:0))
+    snpEff_out = snpEff_illumina(vcf_for_fasta_out.vcf.join(indelQual_out.bam_and_qc, by:0))
   }
   else if (params.machine == 'Nanopore') {
-    snpEff_out = snpEff(vcf_for_fasta_out.vcf.join(minimap2_2_out.for_snpeff, by:0))  
+    snpEff_out = snpEff_nanopore(vcf_for_fasta_out.vcf.join(minimap2_2_out.bam_and_qc, by:0))  
   }
   
   // MIGHT NOT work for nanopore, hence should be reanalized by MK

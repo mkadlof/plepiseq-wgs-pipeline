@@ -7,7 +7,7 @@ process minimap2 {
     tuple val(sampleId), path(reads), path("ref_genome.fasta"), path("primers.bed"), val(QC_status)
 
     output:
-    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), env(QC_exit), emit: only_bam
+    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), env(QC_exit), emit: bam_and_qc
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), path("ref_genome.fasta"), env(QC_exit), emit: bam_and_genome
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), env(QC_exit), path("ref_genome.fasta"), emit: for_snpeff
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), path("ref_genome.fasta"), path("primers.bed"), env(QC_exit), emit: bam_and_genome_and_primers

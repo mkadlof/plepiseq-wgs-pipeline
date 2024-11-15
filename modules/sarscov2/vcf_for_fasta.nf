@@ -10,7 +10,7 @@ process vcf_for_fasta {
     // tuple val(sampleId), path("consensus.fa"), val(QC_status), path(ref_genome_with_index)
 
     output:
-    tuple val(sampleId), path("${sampleId}_final.vcf.gz"), path("${sampleId}_final.vcf.gz.tbi"), val(QC_status), emit: vcf
+    tuple val(sampleId), path("${sampleId}_final.vcf.gz"), path("${sampleId}_final.vcf.gz.tbi"), path(ref_genome_with_index), val(QC_status), emit: vcf
 
     script:
     def final_index = -1
