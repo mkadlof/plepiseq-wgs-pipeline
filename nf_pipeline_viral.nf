@@ -222,15 +222,6 @@ include { varScan as varScan_2 } from "${modules}/common/varscan.nf"
 
 include { substitute_ref_genome } from "${modules}/sarscov2/substitute_ref.nf"
 
-process dummy {
-input:
-val(x)
-output:
-stdout
-script:
-"""
-echo ${x} >> variables.txt
-""" 
 
 }
 
