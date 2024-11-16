@@ -39,8 +39,11 @@ def test_sample_directory_exists(test_name, sample):
 
 @pytest.mark.parametrize('test_name, sample', get_test_cases())
 def test_fasta_files_exists(test_name, sample):
-    if 'sars' in sample.lower():
+    if 'sars' in test_name:
         file_path = f'work_dirs/{test_name}/{sample}/output_consensus_masked_SV.fa'
+    if test_name == 'eqa2023-sars-invalid-samples':
+        assert os.path.isfile(file_path), f"Fasta file {file_path} exists but it shouldn't be generated for sample {sample}."
+    elif 'sars' in sample.lower():
         assert os.path.isfile(file_path), f"Fasta file {file_path} does not exists."
     elif 'infl' in sample.lower():
         segments = ['chr1_PB2', 'chr2_PB1', 'chr3_PA', 'chr4_HA', 'chr5_NP', 'chr6_NA', 'chr7_MP', 'chr8_NS']
@@ -54,6 +57,8 @@ def test_fasta_files_exists(test_name, sample):
 
 @pytest.mark.parametrize('test_name, sample', get_test_cases())
 def test_fasta_file_is_not_empty(test_name, sample):
+    if test_name == 'eqa2023-sars-invalid-samples':
+        pytest.skip(f"Sample {sample} does not produce any fasta file. Skipping this test.")
     if 'sars' in sample.lower():
         file_path = f'work_dirs/{test_name}/{sample}/output_consensus_masked_SV.fa'
         assert os.path.getsize(file_path) > 0, f'Fasta file {file_path} is empty.'
@@ -69,6 +74,8 @@ def test_fasta_file_is_not_empty(test_name, sample):
 
 @pytest.mark.parametrize('test_name, sample', get_test_cases())
 def test_DNA_sequence_match(test_name, sample):
+    if test_name == 'eqa2023-sars-invalid-samples':
+        pytest.skip(f"Sample {sample} does not produce any fasta file. Skipping this test.")
     if 'sars' in sample.lower():
         expected_sequence = get_sequence(f"gold_files/{test_name}/{sample}/output_consensus_masked_SV.fa")
         actual_sequence = get_sequence(f"work_dirs/{test_name}/{sample}/output_consensus_masked_SV.fa")
