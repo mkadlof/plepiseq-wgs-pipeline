@@ -56,10 +56,11 @@ process consensus_nanopore {
     if [ ${QC_status} == "nie" ]; then
       touch consensus.fasta
       touch consensus_dummy_segment.fasta
-      touch consensus.json
       touch ref_genome.fasta
       touch ref_genome.fasta.fai
 
+      echo -e "{\\"total_length_value\\": 0,
+      \\"number_of_Ns_value\\": 0}" >> consensus.json
 
       ls consensus_*.fasta > list_of_fasta_files.txt
     else

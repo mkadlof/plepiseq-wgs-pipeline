@@ -49,7 +49,9 @@ process filtering_nanopore {
     """
     if [ ${QC_status} == "nie" ]; then
       touch to_classical_masking.bam
+      touch to_classical_masking.bam.bai
       touch to_overshot_masking.bam
+      touch to_overshot_masking.bam.bai
     else
       MASKING_CAP=`echo "${params.mask} + 10" | bc -l` #  do jakiej maksymalnej warotosci podbijac coverage w regionach w ktorych brakowalo oczekiwanych jedno-amplikonowych odczytow
       # jako ze korzystamy z odczytow o niejasnym pochodzeniu (najczesciej odczty z fuzji amplikonow)

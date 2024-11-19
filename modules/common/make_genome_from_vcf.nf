@@ -13,8 +13,8 @@ process make_genome_from_vcf {
     script:
     """
     if [ ${QC_status} == "nie" ]; then
-      touch varscan.fa
-      touch detected_variants_varscan.txt
+      touch sample_genome.fa
+  
     else
   
       cat genome.fasta | bcftools consensus --mark-del X input.vcf.gz > sample_genome.fa

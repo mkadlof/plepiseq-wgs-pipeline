@@ -47,6 +47,8 @@ process medaka_second_round {
     if [ ${QC_status} == "nie" ]; then
       touch medaka_annotated_filtered.vcf.gz
       touch medaka_annotated_filtered.vcf.gz.tbi
+      touch medaka_annotated.vcf.gz
+      touch medaka_annotated.vcf.gz.tbi
     else
 
       cat genome.fasta | awk '{if (substr(\$0, 1, 1)==">") { new_name=\$0; gsub("\\\\.", "_", new_name); gsub("/", "_", new_name);  filename=("reference_"substr(new_name,2) ".fasta"); print \$0 >> filename } else {print toupper(\$0)  >> filename}}'
