@@ -167,9 +167,7 @@ include { snpEff_nanopore } from "${modules}/sarscov2/snpEff.nf"
 
 include { nextclade as nextclade_noninfluenza } from "${modules}/sarscov2/nextclade.nf"
 
-// include { simpleStats } from "${params.modules}/sarscov2/simpleStats.nf"
 include { modeller } from "${modules}/sarscov2/modeller.nf"
-// include { json_aggregator } from "${params.modules}/common/json_aggregator.nf"
 
 // SARS specific modules
 include { copy_genome_and_primers } from "${modules}/sarscov2/copy_genome_and_primers.nf"
@@ -223,7 +221,6 @@ include { varScan as varScan_2 } from "${modules}/common/varscan.nf"
 include { substitute_ref_genome } from "${modules}/sarscov2/substitute_ref.nf"
 
 
-}
 
 // Main workflow
 workflow{
@@ -418,14 +415,15 @@ workflow{
   else if (params.machine == 'Nanopore') {
     snpEff_out = snpEff_nanopore(vcf_for_fasta_out.vcf.join(minimap2_2_out.bam_and_qc, by:0))  
   }
-  
+
+  if(params.machine == 'Illumina') {  
   // MIGHT NOT work for nanopore, hence should be reanalized by MK
-  // json_aggregator
-  // for_json_aggregator = wgsMetrics_out.json.join(consensus_out.json)
-  // for_json_aggregator = for_json_aggregator.join(kraken2_out.json)
-  // for_json_aggregator = for_json_aggregator.join(fastqc_initial_out.json)
-  // for_json_aggregator = for_json_aggregator.join(fastqc_filtered_out.json)
-  // for_json_aggregator = for_json_aggregator.join(pangolin_out.json)
-  // for_json_aggregator = for_json_aggregator.join(nextclade_out.json)
-  // json_aggregator(for_json_aggregator)
+    for_json_aggregator = wgsMetrics_out.json.join(consensus_out.json)
+    for_json_aggregator = for_json_aggregator.join(kraken2_out.json)
+    for_json_aggregator = for_json_aggregator.join(fastqc_initial_out.json)
+    for_json_aggregator = for_json_aggregator.join(fastqc_filtered_out.json)
+    for_json_aggregator = for_json_aggregator.join(pangolin_out.json)
+    for_json_aggregator = for_json_aggregator.join(nextclade_out.json)
+    json_aggregator(for_json_aggregator)
+  }
 }
