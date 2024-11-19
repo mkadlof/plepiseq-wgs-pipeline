@@ -32,4 +32,6 @@ to the same genomic region as the original primer.
 It should be noted that ALL primers in this directory are "artificially" extended so that the
 amplicon is 1bp longer in the 5' and 3' directions. This allows `ivar` to properly mask reads that
 map just 1bp beyond their amplicon. This additional nucleotide should not biologically occur, but I
-attribute this to an Illumina error.
+attribute this to an Illumina error
+
+Temporarily nanopore peimers for sars will have .nanopore extension in directory name, the directory should contain only a single .bed file, the "pairs.tsv" file is NOT required
