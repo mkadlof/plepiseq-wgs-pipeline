@@ -11,7 +11,7 @@ def parse_pangolin_output_csv2json(input: str, output: str):
     if not os.path.exists(input):
         warn(f"File {input} does not exist.")
         output_json = {"status": "nie",
-                       "database_name": "Pango",
+                       "database_name": "Pangolin",
                        "error_message": f"File {input} does not exist."}
         with open(output, 'w') as f:
             json.dump(output_json, f)
@@ -20,7 +20,7 @@ def parse_pangolin_output_csv2json(input: str, output: str):
             reader = csv.DictReader(f)
             data = list(reader)
         output_json = {"status": "tak",
-                       "database_name": "Pango",
+                       "database_name": "Pangolin",
                        "database_version": data[0]['pangolin_version'],
                        "program_name": "scorpion",
                        "program_version": data[0]['scorpio_version'],

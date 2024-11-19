@@ -24,10 +24,13 @@ process nextclade {
        touch nextclade_lineages/nextclade.cds_translation.S.fasta
        QC_status_exit="nie"
       cat <<EOF > nextstrain_lineage.json
+[
     {
-      \"status\": \"nie\",
-      \"error_message\": \"QC failed: an error occurred in a prior processing step.\"
+      "status": "nie",
+      "database_name": "Nextclade",
+      "error_message": "QC failed: an error occurred in a prior processing step."
     }
+]
 EOF
     else
       # This module need to handel both RSV and SARS, Influenza has a separate module  due to specific requirements
