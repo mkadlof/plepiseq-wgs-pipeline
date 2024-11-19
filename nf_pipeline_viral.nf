@@ -158,7 +158,7 @@ include { lofreq } from "${modules}/common/lofreq.nf"
 include { consensus_illumina } from "${modules}/common/consensus.nf"
 include { consensus_nanopore } from "${modules}/common/consensus.nf"
 include { json_aggregator } from "${modules}/common/json_aggregator.nf"
-
+include { json_aggregator_nanopore } from "${modules}/common/json_aggregator.nf"
 
 // vcf_for_fasta, snpEff and nextclade should be "common" module ? check if they work for influenza 
 include { vcf_for_fasta } from "${modules}/sarscov2/vcf_for_fasta.nf"
@@ -367,6 +367,7 @@ workflow{
           to_medaka_2 = normal_masking_2_out.bam_and_genome
         }
 
+        wgsMetrics_out = picard_wgsMetrics(to_medaka_2)
         medaka_2_out = medaka_2(to_medaka_2)
         varScan_2_out = varScan_2(to_medaka_2)
 
@@ -416,14 +417,27 @@ workflow{
     snpEff_out = snpEff_nanopore(vcf_for_fasta_out.vcf.join(minimap2_2_out.bam_and_qc, by:0))  
   }
 
-  if(params.machine == 'Illumina') {  
-  // MIGHT NOT work for nanopore, hence should be reanalized by MK
+  if(params.machine == 'Illumina') {
     for_json_aggregator = wgsMetrics_out.json.join(consensus_out.json)
-    for_json_aggregator = for_json_aggregator.join(kraken2_out.json)
-    for_json_aggregator = for_json_aggregator.join(fastqc_initial_out.json)
+  } else if (params.machine == 'Nanopore') {
+    for_json_aggregator = wgsMetrics_out.json.join(prefinal_genome_out.json)
+  }
+
+  for_json_aggregator = for_json_aggregator.join(kraken2_out.json)
+  for_json_aggregator = for_json_aggregator.join(fastqc_initial_out.json)
+
+  if(params.machine == 'Illumina') { 
+    // Only illumina has a step of reads filtering
     for_json_aggregator = for_json_aggregator.join(fastqc_filtered_out.json)
-    for_json_aggregator = for_json_aggregator.join(pangolin_out.json)
-    for_json_aggregator = for_json_aggregator.join(nextclade_out.json)
+  
+  }
+  
+  for_json_aggregator = for_json_aggregator.join(pangolin_out.json)
+  for_json_aggregator = for_json_aggregator.join(nextclade_out.json)
+
+  if(params.machine == 'Illumina') {
     json_aggregator(for_json_aggregator)
+  } else if (params.machine == 'Nanopore') {
+    json_aggregator_nanopore(for_json_aggregator)
   }
 }

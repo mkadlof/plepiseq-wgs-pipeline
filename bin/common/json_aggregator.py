@@ -83,12 +83,16 @@ def fill_contamination_data(args, output):
 
 
 def fill_sequencing_summary_data(args, output):
-    files = [args.fastqc_pre[0], args.fastqc_pre[1], args.fastqc_post[0], args.fastqc_post[1]]
+    try:
+        # user can provide any number of files
+        files = [*args.fastqc_pre, *args.fastqc_post]
+    except:
+        # in case of nanopore fastqc_post is not defined
+        files = [*args.fastqc_pre]
     for file in files:
         with open(file) as f:
             fastqc = json.load(f)
             output["output"]["sequencing_summary_data"].append(fastqc[0])
-
 
 def fill_genome_files_data(args, output):
     output["output"]['genome_files_data']['file_data'] = []
@@ -193,7 +197,7 @@ def main():
     parser.add_argument('--consensus', help="JSON from consensus module")
     parser.add_argument('--list_of_fasta_files', help="File with a list of fastq files")
     parser.add_argument('--contamination', help="JSON from contamination detection (kraken2)")
-    parser.add_argument('--fastqc_pre', nargs=2, help='Two json files from fastqc module (pre_filtering)')
+    parser.add_argument('--fastqc_pre', nargs='+', help='Two json files from fastqc module (pre_filtering)')
     parser.add_argument('--fastqc_post', nargs=2, help='Two json files from fastqc module (post_filtering)')
     parser.add_argument('--pangolin', help="JSON from viral classification module (pangolin)")
     parser.add_argument('--nextclade', help="JSON from viral classification module (nextclade)")

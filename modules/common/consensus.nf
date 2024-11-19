@@ -49,7 +49,7 @@ process consensus_nanopore {
     tuple val(sampleId), path("consensus.fasta"), val(QC_status), emit: single_fasta
     tuple val(sampleId), path("consensus_*.fasta"), val(QC_status), emit: multiple_fastas
     tuple val(sampleId), path('consensus.fasta'), path('ref_genome.*'), val(QC_status), emit: fasta_refgenome_and_qc
-    // tuple val(sampleId), path("consensus.json"), path("list_of_fasta_files.txt"), emit: json
+    tuple val(sampleId), path("consensus.json"), path("list_of_fasta_files.txt"), emit: json
 
     script:
     """
@@ -70,13 +70,13 @@ process consensus_nanopore {
       bwa index ref_genome.fasta
       # get the total length and number of Ns in the consensus
 
-      #TOTAL_LENGTH=\$(grep -v '>' consensus.fasta | wc -c)
-      #NUMBER_OF_N=\$(grep -v '>' consensus.fasta | grep N -o | wc -l)
+      TOTAL_LENGTH=\$(grep -v '>' consensus.fasta | wc -c)
+      NUMBER_OF_N=\$(grep -v '>' consensus.fasta | grep N -o | wc -l)
 
-      # echo -e "{\\"total_length_value\\": \${TOTAL_LENGTH},
-      # \\"number_of_Ns_value\\": \${NUMBER_OF_N}}" >> consensus.json
+      echo -e "{\\"total_length_value\\": \${TOTAL_LENGTH},
+      \\"number_of_Ns_value\\": \${NUMBER_OF_N}}" >> consensus.json
 
-      #ls consensus_*.fasta > list_of_fasta_files.txt
+      ls consensus_*.fasta > list_of_fasta_files.txt
     fi
     """
 }

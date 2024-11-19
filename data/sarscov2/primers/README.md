@@ -34,4 +34,6 @@ amplicon is 1bp longer in the 5' and 3' directions. This allows `ivar` to proper
 map just 1bp beyond their amplicon. This additional nucleotide should not biologically occur, but I
 attribute this to an Illumina error
 
-Temporarily nanopore peimers for sars will have .nanopore extension in directory name, the directory should contain only a single .bed file, the "pairs.tsv" file is NOT required
+Temporarily nanopore primers for sars will have .nanopore extension in directory name, the directory should contain a single .bed file, and the "pairs.tsv". The pairs file is NOT required
+required by the pipeline and can be empty, but is required by nexflow modules that are shared between nanopore and illumina
+
