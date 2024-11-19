@@ -59,6 +59,10 @@ process kraken2_illumina {
         # and return failed QC if sample does not meet this criterion
         GENUS_EXPECTED_ILE=`cat report_kraken2.txt | grep -w G |  grep "${EXPECTED_GENUS}" | tr -s " " | cut -f1 | tr -d " " | awk '{print int(\$1)}'`
 
+        if [ -z \${GENUS_EXPECTED_ILE} ]; then
+          GENUS_EXPECTED_ILE=0
+        fi
+
         # This section introducec criteria to switch from "tak" to "nie" in this module
         # all downstream modules will not execute and produce dummy values
         if [ \${GENUS_EXPECTED_ILE} -lt ${params.expected_genus_value} ]; then
@@ -133,6 +137,9 @@ process kraken2_nanopore {
         # and return failed QC if sample does not meet this criterion
         GENUS_EXPECTED_ILE=`cat report_kraken2.txt | grep -w G |  grep "${EXPECTED_GENUS}" | tr -s " " | cut -f1 | tr -d " " | awk '{print int(\$1)}'`
 
+        if [ -z \${GENUS_EXPECTED_ILE} ]; then
+          GENUS_EXPECTED_ILE=0
+        fi 
         # This section introducec criteria to switch from "tak" to "nie" in this module
         # all downstream modules will not execute and produce dummy values
         if [ \${GENUS_EXPECTED_ILE} -lt ${params.expected_genus_value} ]; then

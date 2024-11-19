@@ -80,9 +80,21 @@ params.window_size = 50 // for filtering window size in which we equalize the co
 params.length = 0.49 // for filtering, nanopore min length is relative to the expected segment/amplikon length
 
 
-params.medaka_model = "r941_min_hac_variant_g507" // Flow cell v9.4.1, for first round of medaka for the second round we use r941_min_hac_g507
+params.medaka_model = "r941_min_sup_variant_g507" // Flow cell v9.4.1, for first round of medaka for the second round we use r941_min_sup_g507
+
+if ( params.species  == 'SARS-CoV-2' ) {
+params.medaka_chunk_len =  5000  // Flow cell v9.4.1
+params.medaka_chunk_overlap = 4000 // Flow cell v9.4.1
+} else if (params.species  == 'Influenza') {
+// Betainfluenzavirus for B/ kraken2 for now only undestands one genus
 params.medaka_chunk_len = 1000  // Flow cell v9.4.1
 params.medaka_chunk_overlap = 500 // Flow cell v9.4.1
+
+} else if (params.species  == 'RSV') {
+params.medaka_chunk_len = 5000  // Flow cell v9.4.1
+params.medaka_chunk_overlap = 4000 // Flow cell v9.4.1
+}
+
 
 params.min_number_of_reads = 1 // Stop the analysis if after mapping step bam has less than that number of reads
 
@@ -100,7 +112,8 @@ params.second_round_pval = 0.05
 params.pval = 0.05 // For varscan
 params.lower_ambig = 0.45
 params.upper_ambig = 0.55
-params.quality_for_coverage = 10 // Parametr uzywany w modul lowCov
+params.quality_for_coverage = 1 // Parametr uzywany w modul lowCov, again we are extreamly lenient 
+
 } else {
   println("Incorrect sequnecing platform, avalable options are : Illumina and Nanopore")
   System.exit(0)
