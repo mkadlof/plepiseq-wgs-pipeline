@@ -35,7 +35,7 @@ process coinfection_analysis_illumina {
     fi
     echo -e "{\\"coinfetion_status\\":\\"\${coinfetion_status}\\"
               \\"coinfetion_pvalue\\":\\"\${coinfetion_pvalue}\\"
-              \\"coinfetion_histogram_file\\":\${coinfetion_histogram_file}}" >> custom_coinfection_analysis.json
+              \\"coinfetion_histogram_file\\":\\"\${coinfetion_histogram_file}\\"}" >> custom_coinfection_analysis.json
 
     """
 }
@@ -74,6 +74,6 @@ process coinfection_analysis_nanopore {
 
     echo -e "{\\"coinfetion_status\\":\\"\${coinfetion_status}\\"
               \\"coinfetion_pvalue\\":\\"\${coinfetion_pvalue}\\"
-              \\"coinfetion_histogram_file\\":\${coinfetion_histogram_file}}" >> custom_coinfection_analysis.json
+              \\"coinfetion_histogram_file\\":\\"\${coinfetion_histogram_file}\\"}" >> custom_coinfection_analysis.json
     """
 } 

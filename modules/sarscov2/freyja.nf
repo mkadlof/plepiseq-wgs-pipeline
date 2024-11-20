@@ -33,7 +33,7 @@ process freyja {
       freyja aggregate demix_files/ --output coinfections.tsv
 
       freyja_lineage_1_name=`cat coinfections.tsv  | cut -f3 | tail -1 | cut -d " " -f1`
-      freyja_lineage_2_name="cat coinfections.tsv  | cut -f3 | tail -1 | cut -d " " -f2"
+      freyja_lineage_2_name=`cat coinfections.tsv  | cut -f3 | tail -1 | cut -d " " -f2`
       freyja_lineage_1_abundance=`cat coinfections.tsv  | cut -f4 | tail -1 | cut -d " " -f1`
       freyja_lineage_2_abundance=`cat coinfections.tsv  | cut -f4 | tail -1 | cut -d " " -f2`
 
