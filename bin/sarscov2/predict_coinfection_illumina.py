@@ -20,6 +20,16 @@ data_sample = pd.read_csv(path1, sep='\t')
 data_sample.VarFreq = [float(x.split('%')[0]) / 100 for x in data_sample.VarFreq]
 data_sample_fortest = [x for x in data_sample.VarFreq if 0.1 <= x <= 0.9]
 
+# plot histogram for json output
+with open('allele_usage_histogram.txt', 'w') as f:
+    f.write(f'#indeks,allel_uzycie,liczbnosc')
+    i=0
+    ilosc,zakres = np.histogram(data_sample_fortest,bins = 16,range = (0.1,0.9), density = False)
+    for a,b in zip(ilosc,zakres):
+        f.write(f'{i},{b:.2f},{a}\n')
+        i+=1
+
+
 # if data_sample_fortest is empty (no sites which alternative allele usage is between 0.1 to 0.9) add a dummy value
 
 if len(data_sample_fortest) == 0:
@@ -52,13 +62,15 @@ with open(f'{title}_coinfection_summary.txt', 'w') as f:
         f.write(f'{title} is not coinfected with other SARS-CoV-2 material, less than 10 mixed sites \n')
     else:
         if np.all(pval_list < 0.1):
-
+            print(f"nie {np.max(pval_list)}")
             f.write(f'{title} is not coinfected with other SARS-CoV-2 material. '
                     f'P-values to known co-infected samples are {text}\n')
         elif np.all(pval_list > 0.1):
+            print(f"tak {np.max(pval_list)}")
             f.write(f'{title} is coinfected with other SARS-CoV-2 material. '
                     f'P-values to known co-infected samples are {text}\n')
         elif np.any(pval_list > 0.1):
+            print(f"prawdopodobny {np.max(pval_list)}")
             f.write(f'{title} might be coinfected with other SARS-CoV-2 material it shows similarity to at least one '
                     f'sample that was previously classified as co-infected. P-values to known co-infected '
                     f'samples are {text}\n')

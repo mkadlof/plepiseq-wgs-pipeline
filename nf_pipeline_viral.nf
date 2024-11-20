@@ -170,8 +170,13 @@ include { freeBayes } from "${modules}/common/freeBayes.nf"
 include { lofreq } from "${modules}/common/lofreq.nf"
 include { consensus_illumina } from "${modules}/common/consensus.nf"
 include { consensus_nanopore } from "${modules}/common/consensus.nf"
-include { json_aggregator } from "${modules}/common/json_aggregator.nf"
-include { json_aggregator_nanopore } from "${modules}/common/json_aggregator.nf"
+
+// The output for different species/platforms has different channels, hence we need to define
+// 4 different versions of aggregator module
+include { json_aggregator_sars_illumina } from "${modules}/common/json_aggregator.nf"
+include { json_aggregator_sars_nanopore } from "${modules}/common/json_aggregator.nf"
+include { json_aggregator_nonsars_illumina } from "${modules}/common/json_aggregator.nf"
+include { json_aggregator_nonsars_nanopore } from "${modules}/common/json_aggregator.nf"
 
 // vcf_for_fasta, snpEff and nextclade should be "common" module ? check if they work for influenza 
 include { vcf_for_fasta } from "${modules}/sarscov2/vcf_for_fasta.nf"
@@ -234,7 +239,6 @@ include { varScan as varScan_2 } from "${modules}/common/varscan.nf"
 include { substitute_ref_genome } from "${modules}/sarscov2/substitute_ref.nf"
 
 
-
 // Main workflow
 workflow{
 
@@ -270,7 +274,7 @@ workflow{
     bwa_out = bwa(reads_and_genome)
 
     // Dehumanization
-    dehumanization_illumina_out = dehumanization_illumina(bwa_out.only_bam.join(trimmomatic_out.proper_reads, by:0))
+    dehumanization_out = dehumanization_illumina(bwa_out.only_bam.join(trimmomatic_out.proper_reads, by:0))
 
     // coinfection analysis for SARS ONLY !
     if ( params.species  == 'SARS-CoV-2' ) {
@@ -278,6 +282,7 @@ workflow{
         freyja_out =  freyja_sars(coinfection_ivar_sars_out.to_freyja)
         coinfection_varscan_out = coinfection_varscan_sars(coinfection_ivar_sars_out.to_custom_analysis)
         coinfection_analysis_sars_out = coinfection_analysis_illumina_sars(coinfection_varscan_out)
+        coinfection_json = freyja_out.json.join(coinfection_analysis_sars_out.json)
     }
 
     // Filtering script is different for one-segment and multiple-segments organisms
@@ -318,8 +323,9 @@ workflow{
             .map {it -> tuple(it.getName().split("\\.")[0..<(-2)].join('_'), it)}
             .set {reads}
         fastqc_initial_out = run_fastqc_nanopore_1(reads, "pre-filtering")
+
         reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
-        kraken2_out = kraken2_nanopore(reads_and_qc, "Orthopneumovirus")
+        kraken2_out = kraken2_nanopore(reads_and_qc, genus)
         final_reads_and_final_qc = reads.join(kraken2_out.qcstatus_only, by:0)
         
 
@@ -337,7 +343,16 @@ workflow{
         reads_and_genome_and_primers = reads.join(detect_type_nanopore_out.all_nanopore, by:0)
  
         minimap2_1_out = minimap2_1(reads_and_genome_and_primers)
-       
+      
+        if ( params.species  == 'SARS-CoV-2' ) {
+          // kanal minimap2_1 jest itenconalnie
+          coinfection_genome_masking_out = coinfection_genome_masking_nanopore(minimap2_1_out.bam_and_genome_and_primers)
+          freyja_out =  freyja_sars(coinfection_genome_masking_out.to_freyja)
+          coinfection_varscan_out = coinfection_varscan_sars(coinfection_genome_masking_out.to_custom_analysis)
+          coinfection_analysis_sars_out = coinfection_analysis_nanopore_sars(coinfection_varscan_out)
+          coinfection_json = freyja_out.json.join(coinfection_analysis_sars_out.json)
+        }
+ 
         if ( params.species  == 'SARS-CoV-2' ||  params.species  == 'RSV') {
           filteing_1_out = filtering_one_segment_nanopore_1(minimap2_1_out.bam_and_genome_and_primers)
           normal_masking_1_out = masking_nanopore_strict_1(filteing_1_out.to_normal_masking, params.bed_offset, 0)
@@ -367,6 +382,8 @@ workflow{
         reads_and_updated_genome_and_primers = reads_and_updated_genome_and_primers.join(novel_genome.only_QC, by: 0)
 
         minimap2_2_out = minimap2_2(reads_and_updated_genome_and_primers)
+
+        dehumanization_out = dehumanization_nanopore(minimap2_2_out.bam_and_qc.join(reads, by:0))
        
         if ( params.species  == 'SARS-CoV-2' ||  params.species  == 'RSV') {
           filteing_2_out = filtering_one_segment_nanopore_2(minimap2_2_out.bam_and_genome_and_primers)
@@ -391,23 +408,14 @@ workflow{
         to_final_genome = to_final_genome.join(medaka_varscan_integration_2_out.reference_genome)
         prefinal_genome_out = consensus_nanopore(to_final_genome)  
         final_genome_out = substitute_ref_genome(prefinal_genome_out.fasta_refgenome_and_qc.join(detect_type_nanopore_out.only_genome))
-        // Placeholder for coinfection analysis
-        if ( params.species  == 'SARS-CoV-2' ) {
-          // kanal minimap2_1 jest itenconalnie
-          coinfection_genome_masking_out = coinfection_genome_masking_nanopore(minimap2_1_out.bam_and_genome_and_primers)
-          freyja_out =  freyja_sars(coinfection_genome_masking_out.to_freyja)
-          coinfection_varscan_out = coinfection_varscan_sars(coinfection_genome_masking_out.to_custom_analysis)
-          coinfection_analysis_sars_out = coinfection_analysis_nanopore_sars(coinfection_varscan_out)
-        }
  
-        dehumanization_nanopore_out = dehumanization_nanopore(minimap2_2_out.bam_and_qc.join(reads, by:0))
   }
   // Post FASTA generation modules mostly common for nanopore and illumina
 
   if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
       nextclade_out = nextclade_noninfluenza(final_genome_out.fasta_refgenome_and_qc)
       // modeller is species-aware
-      modeller(nextclade_out.to_modeller)
+      modeller_out = modeller(nextclade_out.to_modeller)
   } else if (params.species  == 'Influenza') {
       // manta_out.fasta_refgenome_and_qc.join(detect_subtype_illumina_out.subtype_id, by:0)
       final_genome_and_influenza_subtype = final_genome_out.fasta_refgenome_and_qc.join(detect_subtype_out.subtype_id, by:0)
@@ -430,27 +438,50 @@ workflow{
     snpEff_out = snpEff_nanopore(vcf_for_fasta_out.vcf.join(minimap2_2_out.bam_and_qc, by:0))  
   }
 
+
+  // JSON OUTPUT SECTION
+  for_json_aggregator = fastqc_initial_out.json.join(kraken2_out.json)
+
   if(params.machine == 'Illumina') {
-    for_json_aggregator = wgsMetrics_out.json.join(consensus_out.json)
-  } else if (params.machine == 'Nanopore') {
-    for_json_aggregator = wgsMetrics_out.json.join(prefinal_genome_out.json)
+    for_json_aggregator = for_json_aggregator.join(fastqc_filtered_out.json) // only fo illumina for nanopore dummy process is used to prodeuce json channel
   }
 
-  for_json_aggregator = for_json_aggregator.join(kraken2_out.json)
-  for_json_aggregator = for_json_aggregator.join(fastqc_initial_out.json)
+  if ( params.species  == 'SARS-CoV-2' ) {
+    for_json_aggregator = for_json_aggregator.join(coinfection_json)
+    // Dobrze by bylo dodac tutaj dummy procesy aby nie bylo "wersji" json aggregatora
+  }
+ 
+  for_json_aggregator = for_json_aggregator.join(dehumanization_out.json) 
+  for_json_aggregator = for_json_aggregator.join(wgsMetrics_out.json)
+ 
 
-  if(params.machine == 'Illumina') { 
-    // Only illumina has a step of reads filtering
-    for_json_aggregator = for_json_aggregator.join(fastqc_filtered_out.json)
-  
+  if(params.machine == 'Illumina') {
+    for_json_aggregator = for_json_aggregator.join(consensus_out.json) // tylko illumina
+  } else if (params.machine == 'Nanopore') {
+    for_json_aggregator = for_json_aggregator.join(prefinal_genome_out.json) // tylko nanopore
   }
   
   for_json_aggregator = for_json_aggregator.join(pangolin_out.json)
   for_json_aggregator = for_json_aggregator.join(nextclade_out.json)
 
-  if(params.machine == 'Illumina') {
-    json_aggregator(for_json_aggregator)
-  } else if (params.machine == 'Nanopore') {
-    json_aggregator_nanopore(for_json_aggregator)
+  for_json_aggregator = for_json_aggregator.join(snpEff_out)
+
+  if ( params.species  == 'SARS-CoV-2' ) {
+    for_json_aggregator = for_json_aggregator.join(modeller_out.json)
+  }
+
+  if(params.species == 'SARS-CoV-2') {
+    if(params.machine == 'Illumina') {
+      json_aggregator_sars_illumina(for_json_aggregator)
+    } else if (params.machine == 'Nanopore') {
+      json_aggregator_sars_nanopore(for_json_aggregator)
+    }
+  
+  } else {
+    if(params.machine == 'Illumina') {
+      json_aggregator_nonsars_illumina(for_json_aggregator)
+    } else if (params.machine == 'Nanopore') {
+      json_aggregator_nonsars_nanopore(for_json_aggregator)
+    }
   }
 }

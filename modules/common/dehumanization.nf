@@ -7,18 +7,20 @@ process dehumanization_illumina  {
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), val(QC_status), path(reads)
 
     output:
-    tuple val(sampleId), path('forward_paired_nohuman.fastq.gz'), path('reverse_paired_nohuman.fastq.gz'), emit: to_pubdir
+    tuple val(sampleId), path("*nohuman.fastq.gz"), emit: to_pubdir
+    tuple val(sampleId), path('list_of_dehumanzed_fastas.txt'), emit: json
 
     script:
     """
     if [ ${QC_status} == "nie" ]; then
-      touch forward_paired_nohuman.fastq.gz
-      touch reverse_paired_nohuman.fastq.gz
+      touch ${sampleId}_forward_paired_nohuman.fastq.gz ${sampleId}_reverse_paired_nohuman.fastq.gz
     else
         samtools view mapped_reads.bam | cut -f1 | sort | uniq > lista_id_nohuman.txt
-        seqtk subseq ${reads[0]} lista_id_nohuman.txt | gzip > forward_paired_nohuman.fastq.gz
-        seqtk subseq ${reads[1]} lista_id_nohuman.txt | gzip > reverse_paired_nohuman.fastq.gz
+        seqtk subseq ${reads[0]} lista_id_nohuman.txt | gzip > ${sampleId}_forward_paired_nohuman.fastq.gz
+        seqtk subseq ${reads[1]} lista_id_nohuman.txt | gzip > ${sampleId}_reverse_paired_nohuman.fastq.gz
     fi
+
+    ls *paired_nohuman* | tr " " "\n" >> list_of_dehumanzed_fastas.txt
     """
 }
 
@@ -30,14 +32,18 @@ process dehumanization_nanopore {
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), val(QC_status), path(reads)
 
     output:
-    tuple val(sampleId), path('forward_nohuman.fastq.gz'), emit: to_pubdir
+    tuple val(sampleId), path("*nohuman.fastq.gz"), emit: to_pubdir
+    tuple val(sampleId), path('list_of_dehumanzed_fastas.txt'), emit: json
+
     script:
     """
     if [ ${QC_status} == "nie" ]; then
-      touch forward_nohuman.fastq.gz
+      touch ${sampleId}_nohuman.fastq.gz
     else
       samtools view mapped_reads.bam | cut -f1 | sort | uniq >> lista_id_nohuman.txt
-      seqtk subseq ${reads} lista_id_nohuman.txt | gzip >> forward_nohuman.fastq.gz
+      seqtk subseq ${reads} lista_id_nohuman.txt | gzip >> ${sampleId}_nohuman.fastq.gz
     fi
+
+    ls *nohuman* >> list_of_dehumanzed_fastas.txt
     """
 }

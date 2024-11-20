@@ -31,13 +31,14 @@ def fill_viral_genome_data(args, output):
             "data_file_path": args.publish_dir + "/" + "coverage_histogram_data.tsv"
         }]
     elif args.pathogen == "influenza":
-        output["output"]["viral_genome_data"][
-            "coverage_histogram_data"] = [{
-            "segment_name": "",
-            "data_file_path": ""  # TODO:
-        }]
-        warn(
-            "coverage_histogram_data is not implemented for pathogen: " + args.pathogen + ". Fields in output.json are empty.")
+        pass
+        #output["output"]["viral_genome_data"][
+        #    "coverage_histogram_data"] = [{
+        #    "segment_name": "",
+        #    "data_file_path": ""  # TODO:
+        #}]
+        #warn(
+        #    "coverage_histogram_data is not implemented for pathogen: " + args.pathogen + ". Fields in output.json are empty.")
     with open(args.consensus) as f:
         consensus = json.load(f)
         if "total_length_value" in consensus:

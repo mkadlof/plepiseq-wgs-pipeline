@@ -7,8 +7,8 @@ process modeller {
     tuple val(sampleId), path(target_fasta), val(QC_status)
 
     output:
-    tuple val(sampleId), path('alignment.pir'), path("${sampleId}_spike.pdb")
-
+    tuple val(sampleId), path('alignment.pir'), path("${sampleId}_spike.pdb"), emit: to_pubdir
+    tuple val(sampleId), path('list_of_pdbs.txt'), emit: json
     script:
     """
     modeller_data="/home/data/sarscov2/modeller/"
@@ -21,5 +21,7 @@ process modeller {
         modpy.sh modeller_build_model.py alignment.pir
         cp target.B99990001.pdb ${sampleId}_spike.pdb
     fi
+
+    ls -l *pdb >> list_of_pdbs.txt
     """
 }
