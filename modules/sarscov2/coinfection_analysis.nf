@@ -58,8 +58,7 @@ process coinfection_analysis_nanopore {
     if [ ${QC_status} == "nie" ]; then
       touch ${sampleId}_allele_usage_histogram.txt
       coinfetion_status="nie"
-      coinfetion_pvalue=0
-      coinfetion_histogram_file="${params.results_dir}/${sampleId}/${sampleId}_allele_usage_histogram.txt"
+      echo -e "{\\"coinfetion_status\\":\\"\${coinfetion_status}\\"}" >> custom_coinfection_analysis.json
     else
       RESULTS=(`predict_coinfection_illumina.py ${detected_variants_varscan_coinfection_txt} \
                                       ${sampleId} \
@@ -67,13 +66,15 @@ process coinfection_analysis_nanopore {
                                       /home/data/sarscov2/coinfections/ESIB_EQA_2023.SARS1.05_contamination.txt`)
       cp allele_usage_histogram.txt ${sampleId}_allele_usage_histogram.txt
 
-      coinfetion_status=\${RESULTS[0]}
+      coinfetion_status="tak"
+      coinfetion_result=\${RESULTS[0]}
       coinfetion_pvalue=\${RESULTS[1]}
       coinfetion_histogram_file="${params.results_dir}/${sampleId}/${sampleId}_allele_usage_histogram.txt"
-    fi
 
-    echo -e "{\\"coinfetion_status\\":\\"\${coinfetion_status}\\"
-              \\"coinfetion_pvalue\\":\\"\${coinfetion_pvalue}\\"
-              \\"coinfetion_histogram_file\\":\\"\${coinfetion_histogram_file}\\"}" >> custom_coinfection_analysis.json
+      echo -e "{\\"coinfetion_status\\":\\"\${coinfetion_status}\\",
+                \\"coinfetion_result\\":\\"\${coinfetion_result}\\",
+                \\"coinfetion_pvalue\\":\\"\${coinfetion_pvalue}\\",
+                \\"coinfetion_histogram_file\\":\\"\${coinfetion_histogram_file}\\"}" >> custom_coinfection_analysis.json
+    fi
     """
 } 
