@@ -19,7 +19,7 @@ modules = "${params.projectDir}/modules" // Modules are part of the projectDir
 // External databases with PREDEFINED structure
 // When we use EXTERNAL database within a module we mount this path 
 // and the module itself will access the relevant database for a relevant species
-params.external_databases_path="/home/jenkins/workspace/nf_illumina_sars/external_databases"
+params.external_databases_path="/home/jenkins/workspace/pzh_pipeline_viral_testing_env/external_databases/"
 
 // All species-relevant variables, for now only expected genus for kraken2
 // Furthermore if a user provides a wrong species the pipeline will not execute
@@ -306,7 +306,7 @@ workflow{
     lofreq_out = lofreq(indelQual_out.bam_genome_and_qc)
     lowCov_out = lowCov(indelQual_out.bam_genome_and_qc)
     varScan_out = varScan(indelQual_out.bam_genome_and_qc)
-    wgsMetrics_out = picard_wgsMetrics(indelQual_out.bam_genome_and_qc)
+    wgsMetrics_out = picard_wgsMetrics(indelQual_out.bam_genome_and_qc.join(filtering_out.json))
     all_sub_fastas = lowCov_out.fasta.join(varScan_out.fasta)
     all_sub_fastas = all_sub_fastas.join(freebayes_out)
     all_sub_fastas = all_sub_fastas.join(lofreq_out)
@@ -397,7 +397,7 @@ workflow{
           to_medaka_2 = normal_masking_2_out.bam_and_genome
         }
 
-        wgsMetrics_out = picard_wgsMetrics(to_medaka_2)
+        wgsMetrics_out = picard_wgsMetrics(to_medaka_2.join(filteing_2_out.json))
         medaka_2_out = medaka_2(to_medaka_2)
         varScan_2_out = varScan_2(to_medaka_2)
 

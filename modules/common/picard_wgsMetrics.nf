@@ -1,28 +1,22 @@
 process picard_wgsMetrics {
     tag "wgsMetrics:${sampleId}"
     container  = params.main_image
-    publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "picard_statistics.txt"
-    publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "segment_*.bedgraph"
-    publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "coverage_histogram_data.tsv"
+    publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "${sampleId}_coverage_barplot_*"
+    publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "${sampleId}_coverage_histogram.csv"
 
     input:
-    tuple val(sampleId), path(bam), path(bai), val(QC_status), path(ref_genome)
+    tuple val(sampleId), path(bam), path(bai), val(QC_status), path(ref_genome), path('Primer_usage.txt')
 
     output:
-    tuple val(sampleId), path('picard_statistics.txt'), emit: statistics
-    tuple val(sampleId), path("wgsMetrics.json"), path("segment_bedgraphs_files.txt"), emit: json
+    tuple val(sampleId), path("viral_genome_data.json"), emit: json
 
     script:
     """
     if [ ${QC_status} == "nie" ]; then
-      touch picard_statistics.txt
-      cat <<EOF > wgsMetrics.json
-    {
-      \"status\": \"nie\",
-      \"error_message\":  \"QC failed: an error occurred in a prior processing step.\"
-    }
-EOF
-      touch segment_bedgraphs_files.txt
+      ERR_MSG="QC failed: an error occurred in a prior processing step"
+      picard_parser.py --status "nie" \
+                       --output viral_genome_data.json \
+                       --error "\${ERR_MSG}"
     else
       java -jar /opt/picard/picard.jar CollectWgsMetrics --REFERENCE_SEQUENCE ${ref_genome} \
                                                          --MINIMUM_BASE_QUALITY ${params.quality_initial} \
@@ -32,28 +26,45 @@ EOF
 
       bedtools genomecov -d -ibam ${bam} > genomecov.bedgraph
 
-      cat  genomecov.bedgraph | awk '{
-      gsub("/", "_"); print
-      }' >> genomecov_fix.bedgraph
-
       # Split the genomecov.bedgraph file into segments using awk
-      input_file="genomecov_fix.bedgraph"
-      output_prefix="segment_"
-      awk '{
-          if (\$1 != prev) {
-              if (prev != "") {
-                  close(out)
-              }
-              prev = \$1
-              out = "'"\$output_prefix"'" prev ".bedgraph"
-          }
-          print >> out
-      }' "\$input_file"
+     
+      input_file="genomecov.bedgraph"
+      output_prefix="${sampleId}_coverage_barplot_"
+      summary_coverage_file="coverage_barplot_files.txt"
 
-      rm genomecov.bedgraph genomecov_fix.bedgraph
-      ls segment_*.bedgraph > segment_bedgraphs_files.txt
+      awk 'BEGIN { OFS = "," }
+      {
+      oryg=\$0;
+      split(oryg, a, "\\t")
+      gsub("/", "_");
+      gsub("\\\\.", "_");
+      if (\$1 != prev) {
+        if (prev != "") {
+          close(out)
+         }
+         prev = \$1
+         out = "'"\${output_prefix}"'" prev ".csv"
+         out_summary = "'"\${summary_coverage_file}"'"
+         i = 1
+         print "#indeks", "segment", "pozycja", "pokrycie" >> out
+         print a[0], out >> out_summary
+         
+      }
+      print i, a[1], a[2], a[3] >> out;
+      i += 1
+      }' "\${input_file}"
 
-      parse_wgsMetrics.py picard_statistics.txt wgsMetrics.json
+
+      rm genomecov.bedgraph
+
+      picard_parser.py --input_file_picard picard_statistics.txt \
+                      --input_file_primers Primer_usage.txt \
+                      --input_file_bedgraph \${summary_coverage_file} \
+                      --output_path "${params.results_dir}/${sampleId}/" \
+                      --status "tak" \
+                      --output viral_genome_data.json
+
+
     fi
     """
 }

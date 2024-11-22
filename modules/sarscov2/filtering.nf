@@ -7,6 +7,7 @@ process filtering {
     output:
     tuple val(sampleId), path('first_pass_sorted.bam'), path('first_pass_sorted.bam.bai'), path(primers), path(pairs), val(QC_status), emit: one_amplicon_primers_and_QC
     tuple val(sampleId), path('two_amplicons_sorted.bam'), emit: two_amplicon_only
+    tuple val(sampleId), path('Primer_usage.txt'), emit: json
     // tuple val(sampleId), path('Statystyki.txt')
 
     script:
@@ -15,6 +16,7 @@ process filtering {
       touch first_pass_sorted.bam
       touch first_pass_sorted.bam.bai
       touch two_amplicons_sorted.bam
+      touch Primer_usage.txt
       QC_exit="nie"
     else
       bed_offset=0
@@ -44,7 +46,7 @@ process filtering_nanopore {
     output:
     tuple val(sampleId), path('to_classical_masking.bam'), path('to_classical_masking.bam.bai'), path("ref_genome.fasta"), path("primers.bed"), val(QC_status), emit: to_normal_masking
     tuple val(sampleId), path('to_overshot_masking.bam'), path('to_overshot_masking.bam.bai'), path("ref_genome.fasta"), path("primers.bed"), val(QC_status), emit: to_overshot_masking
-
+    tuple val(sampleId), path('Primer_usage.txt'), emit: json
     script:
     """
     if [ ${QC_status} == "nie" ]; then
@@ -52,6 +54,7 @@ process filtering_nanopore {
       touch to_classical_masking.bam.bai
       touch to_overshot_masking.bam
       touch to_overshot_masking.bam.bai
+      touch Primer_usage.txt
     else
       MASKING_CAP=`echo "${params.mask} + 10" | bc -l` #  do jakiej maksymalnej warotosci podbijac coverage w regionach w ktorych brakowalo oczekiwanych jedno-amplikonowych odczytow
       # jako ze korzystamy z odczytow o niejasnym pochodzeniu (najczesciej odczty z fuzji amplikonow)
