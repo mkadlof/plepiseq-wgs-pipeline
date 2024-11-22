@@ -9,30 +9,21 @@ process consensus_illumina {
     output:
     tuple val(sampleId), path("consensus.fasta"), val(QC_status), emit: single_fasta
     tuple val(sampleId), path("consensus_*.fasta"), val(QC_status), emit: multiple_fastas
-    tuple val(sampleId), path("consensus.json"), path("list_of_fasta_files.txt"), emit: json
+    tuple val(sampleId), path("consensus.json"), emit: json
 
     script:
     """
     if [ ${QC_status} == "nie" ]; then
       touch consensus.fasta
       touch consensus_dummy_segment.fasta
-      cat <<EOF > consensus.json
-    {
-      \"status\": \"nie\",
-      \"error_message\":  \"QC failed: an error occurred in a prior processing step.\"
-    }
-EOF
-      ls consensus_*.fasta > list_of_fasta_files.txt
+      ERR_MSG="Failed QC"
+      parse_make_consensus.py --status "nie" --error "\${ERR_MSG}" -o consensus.json
     else
       make_consensus.py ${masked_ref_genome_fa} ${freebayes_fa} ${lofreq_fa} ${varscan_fa}
-      # get the total length and number of Ns in the consensus
+      # prepare json for this step
+      ls consensus_*.fasta | tr " " "\\n" >> list_of_fasta.txt
+      parse_make_consensus.py --status "tak" -o consensus.json --input_fastas list_of_fasta.txt --output_path "${params.results_dir}/${sampleId}"
 
-      TOTAL_LENGTH=\$(grep -v '>' consensus.fasta | wc -c)
-      NUMBER_OF_N=\$(grep -v '>' consensus.fasta | grep N -o | wc -l)
-
-      echo -e "{\\"total_length_value\\": \${TOTAL_LENGTH},\n\\"number_of_Ns_value\\": \${NUMBER_OF_N}}" >> consensus.json
-
-      ls consensus_*.fasta > list_of_fasta_files.txt
     fi
     """
 }
@@ -49,7 +40,7 @@ process consensus_nanopore {
     tuple val(sampleId), path("consensus.fasta"), val(QC_status), emit: single_fasta
     tuple val(sampleId), path("consensus_*.fasta"), val(QC_status), emit: multiple_fastas
     tuple val(sampleId), path('consensus.fasta'), path('ref_genome.*'), val(QC_status), emit: fasta_refgenome_and_qc
-    tuple val(sampleId), path("consensus.json"), path("list_of_fasta_files.txt"), emit: json
+    tuple val(sampleId), path("consensus.json"), emit: json
 
     script:
     """
@@ -58,26 +49,18 @@ process consensus_nanopore {
       touch consensus_dummy_segment.fasta
       touch ref_genome.fasta
       touch ref_genome.fasta.fai
-
-      echo -e "{\\"total_length_value\\": 0,
-      \\"number_of_Ns_value\\": 0}" >> consensus.json
-
-      ls consensus_*.fasta > list_of_fasta_files.txt
+      ERR_MSG="Failed QC"
+      parse_make_consensus.py --status "nie" --error "\${ERR_MSG}" -o consensus.json
     else
       make_consensus_nanopore.py ${masked_ref_genome_fa} ${sample_genome}
 
       # This step is required only for integration with downstream illumina modules
       cp genome.fasta ref_genome.fasta
       bwa index ref_genome.fasta
-      # get the total length and number of Ns in the consensus
-
-      TOTAL_LENGTH=\$(grep -v '>' consensus.fasta | wc -c)
-      NUMBER_OF_N=\$(grep -v '>' consensus.fasta | grep N -o | wc -l)
-
-      echo -e "{\\"total_length_value\\": \${TOTAL_LENGTH},
-      \\"number_of_Ns_value\\": \${NUMBER_OF_N}}" >> consensus.json
-
-      ls consensus_*.fasta > list_of_fasta_files.txt
+      # prepare json for this step
+      ls consensus_*.fasta | tr " " "\\n" >> list_of_fasta.txt
+      parse_make_consensus.py --status "tak" -o consensus.json --input_fastas list_of_fasta.txt --output_path "${params.results_dir}/${sampleId}"
+    
     fi
     """
 }

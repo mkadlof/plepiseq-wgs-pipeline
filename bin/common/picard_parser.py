@@ -72,7 +72,7 @@ def main_program(status, input_file_picard, input_file_primers, input_file_bedgr
             for line in f:
                 segment_name, segment_file = line.split(',')
                 coverage_barplot_data.append({"segment_bame": segment_name,
-                                              "data_file_path": f'{output_path}/{segment_file}'})
+                                              "data_file_path": f'{output_path}/{segment_file.rstrip()}'})
 
         primer_usage_data = []
 
