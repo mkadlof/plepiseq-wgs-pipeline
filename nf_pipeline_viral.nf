@@ -466,9 +466,7 @@ workflow{
 
   for_json_aggregator = for_json_aggregator.join(snpEff_out)
 
-  if ( params.species  == 'SARS-CoV-2' ) {
-    for_json_aggregator = for_json_aggregator.join(modeller_out.json)
-  }
+  for_json_aggregator = for_json_aggregator.join(modeller_out.json)
 
   if(params.species == 'SARS-CoV-2') {
     if(params.machine == 'Illumina') {

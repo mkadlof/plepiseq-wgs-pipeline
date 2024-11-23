@@ -4,7 +4,7 @@ process snpEff_illumina {
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}_detected_variants_consensus_annotated.txt"
 
     input:
-    tuple val(sampleId), path(consensus_vcf_gz), path(consensus_vcf_gz_tbi), path(ref_genome_with_index), val(QC_status_vcf), path('forvariants.bam'), path('forvariants.bam.bai'), val(QC_status)
+    tuple val(sampleId), path(consensus_vcf_gz), path(consensus_vcf_gz_tbi), path(ref_genome_with_index), val(QC_status_vcf), path('forvariants.bam'), path('forvariants.bam.bai'), val(QC_status) 
     output:
     tuple val(sampleId), path("${sampleId}_detected_variants_consensus_annotated.txt")
 
@@ -59,11 +59,11 @@ process snpEff_illumina {
         
           # extracting infromations from snpEff output for analyzed segment
           # We nned to include CHROM name in the outpur in this version
-          bcftools query --format '%CHROM | %POS | %REF%POS%ALT| %ANN \\n' \
+          bcftools query --format '%CHROM | %POS | %REF %POS %ALT| %ANN \\n' \
                   detected_variants_consensus_annotated.vcf.gz | \
-                  cut -d "|" -f1,2,3,5,7,14 | \
+                  cut -d "|" -f1,2,3,5,7,14 |\
                   tr "|" "\\t" | \
-                  awk  'BEGIN {OFS = "\\t"} {if ( \$4 == "upstream_gene_variant" || \$4 == "downstream_gene_variant") {gene="."; aa="."} else {gene=\$5; aa=\$6}; print \$1, \$2, gene, \$3, aa, \$4}'  | grep \${SEGMENT_EXACT_NAME} > part1_\${SEGMENT}.txt
+                  awk  'BEGIN {OFS = "\\t"} {if ( \$6 == "upstream_gene_variant" || \$6 == "downstream_gene_variant") {gene="."; aa="."} else {gene=\$7; aa=\$8}; print \$1, \$2, gene, \$3, \$4, \$5, aa, \$6}'  | grep \${SEGMENT_EXACT_NAME} > part1_\${SEGMENT}.txt
         
           ### extracting DP and allele usage from freebayes output for analyzed segment
 
@@ -72,7 +72,7 @@ process snpEff_illumina {
         
           ### merging two files if freebayes dosn't have info regarding a variant from consensus.vcf we
           ### put "-" in DP and AF columns
-          join -a 1 -1 2 -2 1 -o1.1,1.2,1.3,1.4,1.5,1.6,2.2,2.3  -e '-' part1_\${SEGMENT}.txt part2_\${SEGMENT}.txt | sort -nk2 | cut -d " " -f1- | tr " " "\\t" >> detected_variants_consensus_annotated_\${SEGMENT}.txt
+          join -a 1 -1 2 -2 1 -o1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,2.2,2.3  -e '-' part1_\${SEGMENT}.txt part2_\${SEGMENT}.txt | sort -nk2 | cut -d " " -f1- | tr " " "\\t" >> detected_variants_consensus_annotated_\${SEGMENT}.txt
         done
         # merge results for all the segments 
         cat detected_variants_consensus_annotated_*.txt >> ${sampleId}_detected_variants_consensus_annotated.txt
@@ -125,8 +125,8 @@ process snpEff_nanopore {
         touch ${sampleId}_detected_variants_consensus_annotated.txt
       else
         # either RSV or SARS, still let us assume these organisms have multiple segments
-        zcat ${consensus_vcf_gz} | grep -v "^#" | awk '{print \$1, \$2-1, \$2}' | tr " " "\t" >> tmp.bed
-        freebayes -t tmp.bed --fasta-reference ${ref_genome_with_index[final_index]} --min-coverage 1 --min-mapping-quality 1 --min-base-quality 1 --ploidy 1 forvariants.bam >> freebayes_consesus_only.vcf
+        #zcat ${consensus_vcf_gz} | grep -v "^#" | awk '{print \$1, \$2-1, \$2}' | tr " " "\t" >> tmp.bed
+        #freebayes -t tmp.bed --fasta-reference ${ref_genome_with_index[final_index]} --min-coverage 1 --min-mapping-quality 1 --min-base-quality 1 --ploidy 1 forvariants.bam >> freebayes_consesus_only.vcf
 
         java -jar /opt/snpEff/snpEff.jar ann -noStats \${snp_eff} ${consensus_vcf_gz} > detected_variants_consensus_annotated.vcf
         bgzip --force detected_variants_consensus_annotated.vcf
@@ -144,11 +144,11 @@ process snpEff_nanopore {
 
           # extracting infromations from snpEff output for analyzed segment
           # We nned to include CHROM name in the outpur in this version
-          bcftools query --format '%CHROM | %POS | %REF%POS%ALT| %ANN \\n' \
+          bcftools query --format '%CHROM | %POS | %REF %POS %ALT| %ANN \\n' \
                   detected_variants_consensus_annotated.vcf.gz | \
-                  cut -d "|" -f1,2,3,5,7,14 | \
+                  cut -d "|" -f1,2,3,5,7,14 |\
                   tr "|" "\\t" | \
-                  awk  'BEGIN {OFS = "\\t"} {if ( \$4 == "upstream_gene_variant" || \$4 == "downstream_gene_variant") {gene="."; aa="."} else {gene=\$5; aa=\$6}; print \$1, \$2, gene, \$3, aa, \$4}'  | grep \${SEGMENT_EXACT_NAME} > part1_\${SEGMENT}.txt
+                  awk  'BEGIN {OFS = "\\t"} {if ( \$6 == "upstream_gene_variant" || \$6 == "downstream_gene_variant") {gene="."; aa="."} else {gene=\$7; aa=\$8}; print \$1, \$2, gene, \$3, \$4, \$5, aa, \$6}'  | grep \${SEGMENT_EXACT_NAME} > part1_\${SEGMENT}.txt
 
           ### extracting DP and allele usage from freebayes output for analyzed segment
 
@@ -156,7 +156,7 @@ process snpEff_nanopore {
 
           ### merging two files if freebayes dosn't have info regarding a variant from consensus.vcf we
           ### put "-" in DP and AF columns
-          join -a 1 -1 2 -2 1 -o1.1,1.2,1.3,1.4,1.5,1.6,2.2,2.3  -e '-' part1_\${SEGMENT}.txt part2_\${SEGMENT}.txt | sort -nk2 | cut -d " " -f1- | tr " " "\\t" >> detected_variants_consensus_annotated_\${SEGMENT}.txt
+          join -a 1 -1 2 -2 1 -o1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,2.2,2.3  -e '-' part1_\${SEGMENT}.txt part2_\${SEGMENT}.txt | sort -nk2 | cut -d " " -f1- | tr " " "\\t" >> detected_variants_consensus_annotated_\${SEGMENT}.txt
         done
         # merge results for all the segments
         cat detected_variants_consensus_annotated_*.txt >> ${sampleId}_detected_variants_consensus_annotated.txt

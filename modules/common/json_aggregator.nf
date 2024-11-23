@@ -20,16 +20,29 @@ process json_aggregator_sars_illumina {
 
 
     output:
-    path('output.json')
+    path("${sampleId}.json")
 
     script:
     """
-    branch=master
-    version=\$(cat /home/projectDir/.git/refs/heads/\${branch})
-    version=\${version:0:7}
+    version="ala"
+    
+    json_aggregator.py  --version \${version} \
+                        --pathogen "${params.species}" \
+                        --sampleId "${sampleId}" \
+                        --fastqc_pre "${fastqc_pre_json_forward}" "${fastqc_pre_json_reverse}" \
+                        --fastqc_post "${fastqc_post_json_forward}" "${fastqc_post_json_reverse}" \
+                        --contamination "${kraken_contamination}" \
+                        --freyja "${freyja}" \
+                        --coinfection "${coinfection}" \
+                        --dehumanized "${dehumanized}" \
+                        --wgsMetrics "${wgsMetrics}"  \
+                        --consensus "${consensus_json}" \
+                        --pangolin "${pangolin_json}" \
+                        --nextclade "${nextclade_json}" \
+                        --modeller "${modeller}" \
+                        --snpeff ${snpeff}
 
-
-    touch output.json
+    cp output.json ${sampleId}.json
     """
 }
 

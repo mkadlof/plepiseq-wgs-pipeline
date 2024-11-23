@@ -59,7 +59,7 @@ def parse_picard(plik, coverage_histogram_out):
               type=str,  required=False, default="")
 @click.option('-o', '--output', help='[Output] Name of a file with json output',
               type=str,  required=True)
-def main_program(status, input_file_picard, input_file_primers, input_file_bedgraph, output_path, output, error=""):
+def main_program(status, output, input_file_picard, input_file_primers, input_file_bedgraph, output_path, error=""):
     if status != "tak":
         json_output = {"status": status,
                        "error_message": error}
@@ -71,7 +71,7 @@ def main_program(status, input_file_picard, input_file_primers, input_file_bedgr
         with open(input_file_bedgraph) as f:
             for line in f:
                 segment_name, segment_file = line.split(',')
-                coverage_barplot_data.append({"segment_bame": segment_name,
+                coverage_barplot_data.append({"segment_name": segment_name,
                                               "data_file_path": f'{output_path}/{segment_file.rstrip()}'})
 
         primer_usage_data = []
@@ -89,17 +89,17 @@ def main_program(status, input_file_picard, input_file_primers, input_file_bedgr
                     if slownik_segmentu["segment_name"] != "dummy":
                         primer_usage_data.append(slownik_segmentu)
                     # zakladamy nowy pusty slownik
-                    slownik_segmentu = {"segment_name": segment_name, "primers_data": []}
+                    slownik_segmentu = {"segment_name": segment_name, "primer_data": []}
 
-                slownik_segmentu["primers_data"].append({"primer_name": primer_name,
-                                                         "primer_usage": int(primer_usage.rstrip())})
+                slownik_segmentu["primer_data"].append({"primer_name": primer_name,
+                                                        "primer_usage": int(primer_usage.rstrip())})
 
             # Zrzucamy tez ostatni segment
             primer_usage_data.append(slownik_segmentu)
 
         json_output = {
             "status": status,
-            "average_coverage_value": f'{average_coverage:.2f}',
+            "average_coverage_value": float(f'{average_coverage:.2f}'),
             "coverage_histogram_file": f'{output_path}/{coverage_histogram_file}',
             "coverage_barplot_data": coverage_barplot_data,
             "primer_usage_data": primer_usage_data

@@ -32,8 +32,8 @@ process freyja {
       freyja_status="tak"
       freyja_lineage_1_name=`cat coinfections.tsv  | cut -f3 | tail -1 | cut -d " " -f1`
       freyja_lineage_2_name=`cat coinfections.tsv  | cut -f3 | tail -1 | cut -d " " -f2`
-      freyja_lineage_1_abundance=`cat coinfections.tsv  | cut -f4 | tail -1 | cut -d " " -f1`
-      freyja_lineage_2_abundance=`cat coinfections.tsv  | cut -f4 | tail -1 | cut -d " " -f2`
+      freyja_lineage_1_abundance=`cat coinfections.tsv  | cut -f4 | tail -1 | cut -d " " -f1 | awk '{printf "%.2f", \$0}'`
+      freyja_lineage_2_abundance=`cat coinfections.tsv  | cut -f4 | tail -1 | cut -d " " -f2 | awk '{printf "%.2f", \$0}'`
 
       # In case freyja found a single linage
       if [ -z \${freyja_lineage_2_name} ]; then
@@ -41,12 +41,17 @@ process freyja {
         freyja_lineage_2_abundance=0
       fi
 
+      # In case both linages have the same name
+      if [ \${freyja_lineage_1_name} == \${freyja_lineage_2_name} ]; then
+        freyja_lineage_2_name="unk"
+        freyja_lineage_2_abundance=0
+      fi
 
       echo -e "{\\"freyja_status\\":\\"\${freyja_status}\\",
-                \\"freyja_lineage_1_name\\":\\"\${freyja_lineage_1_name}\\",
-                \\"freyja_lineage_2_name\\":\\"\${freyja_lineage_2_name}\\",
-                \\"freyja_lineage_1_abundance\\":\${freyja_lineage_1_abundance},
-                \\"freyja_lineage_2_abundance\\":\${freyja_lineage_2_abundance}}" >> coinfections_freyja.json
+                \\"freyja_lineage1_name\\":\\"\${freyja_lineage_1_name}\\",
+                \\"freyja_lineage2_name\\":\\"\${freyja_lineage_2_name}\\",
+                \\"freyja_lineage1_abundance\\":\${freyja_lineage_1_abundance},
+                \\"freyja_lineage2_abundance\\":\${freyja_lineage_2_abundance}}" >> coinfections_freyja.json
     fi
 
     """

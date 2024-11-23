@@ -15,15 +15,15 @@ process modeller {
     if [[ ${QC_status} == "nie" || ${params.species} != "SARS-CoV-2" ]]; then
         touch alignment.pir
         touch ${sampleId}_spike.pdb
-        echo -e "{\\"protein_strucuture_status\\":\\"nie\\"}" >> modeller.json
+        echo -e "{\\"protein_structure_status\\":\\"nie\\"}" >> modeller.json
     else
         cp \${modeller_data}/7dwz.pdb .
         modpy.sh modeller_create_alignment.py ${target_fasta}
         modpy.sh modeller_build_model.py alignment.pir
         cp target.B99990001.pdb ${sampleId}_spike.pdb
         pdb_path="${params.results_dir}/${sampleId}/${sampleId}_spike.pdb"
-        echo -e "{\\"protein_strucuture_status\\":\\"tak\\",
-                \\"protein_strucuture_data\\":[{\\"protein_name\\":\\"Spike\\",
+        echo -e "{\\"protein_structure_status\\":\\"tak\\",
+                \\"protein_structure_data\\":[{\\"protein_name\\":\\"Spike\\",
                                                \\"pdb_path\\":\\"\${pdb_path}\\"
                                                }]}" >> modeller.json
     fi

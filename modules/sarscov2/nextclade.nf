@@ -27,6 +27,7 @@ process nextclade {
 [
     {
       "status": "nie",
+      "sequence_source": "full_genome",
       "database_name": "Nextclade",
       "error_message": "QC failed: an error occurred in a prior processing step."
     }

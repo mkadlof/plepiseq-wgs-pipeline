@@ -19,8 +19,9 @@ process dehumanization_illumina  {
         seqtk subseq ${reads[0]} lista_id_nohuman.txt | gzip > ${sampleId}_forward_paired_nohuman.fastq.gz
         seqtk subseq ${reads[1]} lista_id_nohuman.txt | gzip > ${sampleId}_reverse_paired_nohuman.fastq.gz
     fi
-
-    ls *paired_nohuman* | tr " " "\n" >> list_of_dehumanzed_fastas.txt
+    for K in `ls *paired_nohuman*`; do
+        echo -e "${params.results_dir}/${sampleId}/\${K}" >> list_of_dehumanzed_fastas.txt
+    done
     """
 }
 
@@ -43,7 +44,8 @@ process dehumanization_nanopore {
       samtools view mapped_reads.bam | cut -f1 | sort | uniq >> lista_id_nohuman.txt
       seqtk subseq ${reads} lista_id_nohuman.txt | gzip >> ${sampleId}_nohuman.fastq.gz
     fi
-
-    ls *nohuman* >> list_of_dehumanzed_fastas.txt
+    for K in `ls *nohuman*`; do
+        echo -e "${params.results_dir}/${sampleId}/\${K}" >> list_of_dehumanzed_fastas.txt
+    done
     """
 }

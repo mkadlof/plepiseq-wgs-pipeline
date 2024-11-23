@@ -15,20 +15,20 @@ process pangolin {
 
     if [[ ${QC_status} == "nie" || ${params.species} != "SARS-CoV-2" ]]; then
         if [[ ${QC_status} == "nie" ]]; then
-            error_message="QC failed: an error occurred in a prior processing step."
+            ERR_MSG="QC failed: an error occurred in a prior processing step."
         elif [[ ${params.species} != "SARS-CoV-2" ]]; then
-            error_message="For organisms other than SARS-CoV-2, the Pangolin database is not queried."
+            ERR_MSG="For organisms other than SARS-CoV-2, the Pangolin database is not queried."
         fi
         touch pangolin_lineage.csv
-        cat <<EOF > pangolin.json
-[
-    {
-      \"status\": \"nie\",
-      \"database_name\": \"Pangolin\",
-      \"error_message\": \"\${error_message}\"
-    }
-]
-EOF
+
+        STATUS="nie"
+        DATABASE_NAME="Pangolin"
+        SEQUENCE_SOURCE="full_genome"
+         echo -e "[{\\"status\\":\\"\${STATUS}\\",
+                  \\"sequence_source\\":\\"\${SEQUENCE_SOURCE}\\",
+                  \\"database_name\\":\\"\${DATABASE_NAME}\\",
+                  \\"error_message\\":\\"\${ERR_MSG}\\"}]" >> pangolin.json
+
     else
         pangolin --outfile pangolin_lineage.csv \
                --threads ${params.threads} \
