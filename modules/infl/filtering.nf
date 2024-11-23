@@ -5,6 +5,7 @@ process filtering {
     tuple val(sampleId), path(bam), path(bai), path(ref_genome_with_index), val(QC_status), path(primers), path(pairs)
     output:
     tuple val(sampleId), path('to_clip_sorted.bam'), path('to_clip_sorted.bam.bai'), path(primers), path(pairs), val(QC_status), emit: one_amplicon_primers_and_QC
+    tuple val(sampleId), path('Primer_usage.txt'), emit: json
     
     script:
     def final_index = -1
@@ -25,6 +26,7 @@ process filtering {
     if [ ${QC_status} == "nie" ]; then
       touch to_clip_sorted.bam
       touch to_clip_sorted.bam.bai
+      touch Primer_usage.txt
     else
       simple_filter_illumina_INFL.py ${bam} ${primers} ${params.max_depth} ${params.min_mapq} ${params.length} ${ref_genome_with_index[final_index]}
     fi
@@ -40,12 +42,13 @@ process filtering_nanopore {
 
     output:
     tuple val(sampleId), path('to_classical_masking.bam'), path('to_classical_masking.bam.bai'), path("ref_genome.fasta"), path("primers.bed"), val(QC_status), emit: to_normal_masking
-   
+    tuple val(sampleId), path('Primer_usage.txt'), emit: json
     script:
     """
     if [ ${QC_status} == "nie" ]; then
       touch to_classical_masking.bam
       touch to_classical_masking.bam.bai
+      touch Primer_usage.txt
       QC_exit="nie"
     else
       MASKING_CAP=`echo "${params.mask} + 10" | bc -l` #  do jakiej maksymalnej warotosci podbijac coverage w regionach w ktorych brakowalo oczekiwanych jedno-amplikonowych odczytow

@@ -9,10 +9,12 @@ process nextclade {
 
     output:
     tuple val(sampleId), path("nextstrain_lineage.json"), emit: json
+    tuple val(sampleId), path('dummy.fasta'), val(QC_status), emit:to_modeller
 
     script:
     """
     set -x
+    touch dummy.fasta
 
  # Default json file
     generate_empty_json() {

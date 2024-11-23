@@ -1,3 +1,16 @@
+// // // CHANGE THAT PRIOR TO JENKINS // // //
+params.projectDir = "/home/michall/git/nf_illumina_sars/git_repo"
+modules = "${params.projectDir}/modules" // Modules are part of the project_dir
+
+// External databases with PREDEFINED structure
+// When we use EXTERNAL database within a module we mount this path
+// and the module itself will access the relevant database for a relevant species
+params.external_databases_path="/home/jenkins/workspace/pzh_pipeline_viral_testing_env/external_databases/"
+
+// // // // END END END END END // // // // //
+
+
+
 // Input section, only this section can be modified by shell wrapper for Pawel
 // Other parameters should not be modifie to allow reporoducibility between samples
 params.machine = '' // Can be set to either 'Illumina' or 'Nanopore'. Required
@@ -12,13 +25,6 @@ params.results_dir = "./results/"
 // project_dir is not defined in sars pipeline explicite but is set by bash wrapper
 // so we define it here, it can be used for version control
 // Modules are just a subdirectory to project_dir and this cannot be changed
-
-modules = "${params.project_dir}/modules" // Modules are part of the project_dir
-
-// External databases with PREDEFINED structure
-// When we use EXTERNAL database within a module we mount this path
-// and the module itself will access the relevant database for a relevant species
-params.external_databases_path=""
 
 // All species-relevant variables, for now only expected genus for kraken2
 // Furthermore if a user provides a wrong species the pipeline will not execute
@@ -413,8 +419,6 @@ workflow{
 
   if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
       nextclade_out = nextclade_noninfluenza(final_genome_out.fasta_refgenome_and_qc)
-      // modeller is species-aware
-      modeller_out = modeller(nextclade_out.to_modeller)
   } else if (params.species  == 'Influenza') {
       // manta_out.fasta_refgenome_and_qc.join(detect_subtype_illumina_out.subtype_id, by:0)
       final_genome_and_influenza_subtype = final_genome_out.fasta_refgenome_and_qc.join(detect_subtype_out.subtype_id, by:0)
@@ -422,7 +426,7 @@ workflow{
       nextalign_out = nextalign_influenza(final_genome_and_influenza_subtype)
       resistance_out = resistance_influenza(nextalign_out)
   }
-
+  modeller_out = modeller(nextclade_out.to_modeller)
   // Pangolin only for SARS, module is species-aware
   pangolin_out = pangolin(final_genome_out.fasta_refgenome_and_qc)
 
