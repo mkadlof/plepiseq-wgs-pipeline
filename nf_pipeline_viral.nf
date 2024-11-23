@@ -9,17 +9,16 @@ params.species = "" // Required, name of a species expected to be analyzed with 
 // Output Directory
 params.results_dir = "./results/"
 
-// projectDir is not defined in sars pipeline explicite but is set by bash wrapper
+// project_dir is not defined in sars pipeline explicite but is set by bash wrapper
 // so we define it here, it can be used for version control
-// Modules are just a subdirectory to projectDir and this cannot be changed
+// Modules are just a subdirectory to project_dir and this cannot be changed
 
-params.projectDir = "/home/michall/git/nf_illumina_sars/git_repo"
-modules = "${params.projectDir}/modules" // Modules are part of the projectDir
+modules = "${params.project_dir}/modules" // Modules are part of the project_dir
 
 // External databases with PREDEFINED structure
-// When we use EXTERNAL database within a module we mount this path 
+// When we use EXTERNAL database within a module we mount this path
 // and the module itself will access the relevant database for a relevant species
-params.external_databases_path="/home/jenkins/workspace/pzh_pipeline_viral_testing_env/external_databases/"
+params.external_databases_path=""
 
 // All species-relevant variables, for now only expected genus for kraken2
 // Furthermore if a user provides a wrong species the pipeline will not execute
