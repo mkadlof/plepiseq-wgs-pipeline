@@ -24,8 +24,10 @@ process json_aggregator_sars_illumina {
 
     script:
     """
-    version="ala"
-    
+    branch=master
+    version=\$(cat /home/projectDir/.git/refs/heads/\${branch})
+    version=\${version:0:7}
+ 
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \
@@ -106,7 +108,22 @@ process json_aggregator_sars_nanopore {
     version=\$(cat /home/projectDir/.git/refs/heads/\${branch})
     version=\${version:0:7}
     
-    touch output.json
+    json_aggregator.py  --version \${version} \
+                        --pathogen "${params.species}" \
+                        --sampleId "${sampleId}" \
+                        --fastqc_pre "${fastqc_pre_json_forward}" \
+                        --contamination "${kraken_contamination}" \
+                        --freyja "${freyja}" \
+                        --coinfection "${coinfection}" \
+                        --dehumanized "${dehumanized}" \
+                        --wgsMetrics "${wgsMetrics}"  \
+                        --consensus "${consensus_json}" \
+                        --pangolin "${pangolin_json}" \
+                        --nextclade "${nextclade_json}" \
+                        --modeller "${modeller}" \
+                        --snpeff ${snpeff}
+
+    cp output.json ${sampleId}.json
     """
 }
 
