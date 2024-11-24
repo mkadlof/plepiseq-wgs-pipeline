@@ -1,11 +1,12 @@
 // // // CHANGE THAT PRIOR TO JENKINS // // //
-params.projectDir = "/home/michall/git/nf_illumina_sars/git_repo"
+params.projectDir = ""
 modules = "${params.projectDir}/modules" // Modules are part of the project_dir
 
 // External databases with PREDEFINED structure
 // When we use EXTERNAL database within a module we mount this path
 // and the module itself will access the relevant database for a relevant species
-params.external_databases_path="/home/jenkins/workspace/pzh_pipeline_viral_testing_env/external_databases/"
+
+params.external_databases_path=""
 
 // // // // END END END END END // // // // //
 
@@ -391,9 +392,9 @@ workflow{
         dehumanization_out = dehumanization_nanopore(minimap2_2_out.bam_and_qc.join(reads, by:0))
        
         if ( params.species  == 'SARS-CoV-2' ||  params.species  == 'RSV') {
-          filteing_2_out = filtering_one_segment_nanopore_2(minimap2_2_out.bam_and_genome_and_primers)
-          normal_masking_2_out = masking_nanopore_strict_2(filteing_2_out.to_normal_masking, params.bed_offset, 0)
-          overshot_masking_2_out = masking_nanopore_overshot_2(filteing_2_out.to_overshot_masking, params.bed_offset + params.extra_bed_offset, 0)
+          filtering_2_out = filtering_one_segment_nanopore_2(minimap2_2_out.bam_and_genome_and_primers)
+          normal_masking_2_out = masking_nanopore_strict_2(filtering_2_out.to_normal_masking, params.bed_offset, 0)
+          overshot_masking_2_out = masking_nanopore_overshot_2(filtering_2_out.to_overshot_masking, params.bed_offset + params.extra_bed_offset, 0)
           merging_2_out = merging_nanopore_2(normal_masking_2_out.bam_and_genome.join(overshot_masking_2_out.bam_only))
           to_medaka_2 = merging_2_out.to_medaka
         } else if (params.species  == 'Influenza') {
@@ -402,7 +403,7 @@ workflow{
           to_medaka_2 = normal_masking_2_out.bam_and_genome
         }
 
-        wgsMetrics_out = picard_wgsMetrics(to_medaka_2.join(filteing_2_out.json))
+        wgsMetrics_out = picard_wgsMetrics(to_medaka_2.join(filtering_2_out.json))
         medaka_2_out = medaka_2(to_medaka_2)
         varScan_2_out = varScan_2(to_medaka_2)
 
