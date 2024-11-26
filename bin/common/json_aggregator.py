@@ -162,10 +162,18 @@ def json_aggregator(args):
         output["output"]["viral_classification_data"].extend([element for element in json.load(open(args.pangolin))])
 
     if args.nextclade:
+        # Nextclade data contain extra info if analyzed species is RSV
         if "viral_classification_data" not in output["output"].keys():
             output["output"]['viral_classification_data'] = []
 
-        output["output"]["viral_classification_data"].extend([element for element in json.load(open(args.nextclade))])
+        if args.pathogen != "rsv":
+            output["output"]["viral_classification_data"].extend([element for element in json.load(open(args.nextclade))])
+        else:
+            dane_tmp = json.load(open(args.nextclade))
+            output["output"]["rsv_data"] = {"type": dane_tmp[0]['type_name']}
+            del(dane_tmp[0]['type_name'])
+            output["output"]["viral_classification_data"].extend(
+                [element for element in dane_tmp])
 
     if args.wgsMetrics:
         output["output"]["viral_genome_data"] = json.load(open(args.wgsMetrics))

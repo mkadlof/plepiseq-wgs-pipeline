@@ -1,6 +1,6 @@
 process json_aggregator_sars_illumina {
     tag "json_aggregator:${sampleId}"
-    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "output.json"
+    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}.json"
     container  = params.main_image
     containerOptions "--volume ${params.projectDir}:/home/projectDir:ro"
 
@@ -50,7 +50,7 @@ process json_aggregator_sars_illumina {
 
 process json_aggregator_nonsars_illumina {
     tag "json_aggregator:${sampleId}"
-    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "output.json"
+    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}.json"
     container  = params.main_image
     containerOptions "--volume ${params.projectDir}:/home/projectDir:ro"
 
@@ -75,7 +75,20 @@ process json_aggregator_nonsars_illumina {
     branch=master
     version=\$(cat /home/projectDir/.git/refs/heads/\${branch})
     version=\${version:0:7}
-    touch output.json
+    json_aggregator.py  --version \${version} \
+                        --pathogen "${params.species}" \
+                        --sampleId "${sampleId}" \
+                        --fastqc_pre "${fastqc_pre_json_forward}" "${fastqc_pre_json_reverse}" \
+                        --fastqc_post "${fastqc_post_json_forward}" "${fastqc_post_json_reverse}" \
+                        --contamination "${kraken_contamination}" \
+                        --dehumanized "${dehumanized}" \
+                        --wgsMetrics "${wgsMetrics}"  \
+                        --consensus "${consensus_json}" \
+                        --pangolin "${pangolin_json}" \
+                        --nextclade "${nextclade_json}" \
+                        --snpeff ${snpeff}
+
+    cp output.json ${sampleId}.json
     """
 }
 
@@ -152,7 +165,19 @@ process json_aggregator_nonsars_nanopore {
     branch=master
     version=\$(cat /home/projectDir/.git/refs/heads/\${branch})
     version=\${version:0:7}
+    json_aggregator.py  --version \${version} \
+                        --pathogen "${params.species}" \
+                        --sampleId "${sampleId}" \
+                        --fastqc_pre "${fastqc_pre_json_forward}" \
+                        --contamination "${kraken_contamination}" \
+                        --dehumanized "${dehumanized}" \
+                        --wgsMetrics "${wgsMetrics}"  \
+                        --consensus "${consensus_json}" \
+                        --pangolin "${pangolin_json}" \
+                        --nextclade "${nextclade_json}" \
+                        --snpeff ${snpeff}
+
+    cp output.json ${sampleId}.json
     
-    touch output.json
     """
 }

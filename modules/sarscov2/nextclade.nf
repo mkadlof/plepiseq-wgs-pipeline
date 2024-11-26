@@ -20,51 +20,75 @@ process nextclade {
     }
     """
     if [ ${QC_status} == "nie" ]; then
-       mkdir nextclade_lineages
-       touch nextclade_lineages/nextclade.cds_translation.S.fasta
-       QC_status_exit="nie"
-      cat <<EOF > nextstrain_lineage.json
-[
-    {
-      "status": "nie",
-      "sequence_source": "full_genome",
-      "database_name": "Nextclade",
-      "error_message": "QC failed: an error occurred in a prior processing step."
-    }
-]
-EOF
+      mkdir nextclade_lineages
+      touch nextclade_lineages/nextclade.cds_translation.S.fasta
+      QC_status_exit="nie"   
+      ERR_MSG="QC failed: an error occurred in a prior processing step"
+      STATUS="nie"
+      DATABASE_NAME="Nextclade"
+      SEQ_SOURCE="full_genome"
+      
+      if [ ${params.species} == "RSV" ]; then
+        RSV_TYPE="unk"
+        echo -e "[{\\"status\\": \\"\${STATUS}\\", \
+                    \\"sequence_source\\": \\"\${SEQ_SOURCE}\\", \
+                    \\"database_name\\": \\"\${DATABASE_NAME}\\", \
+                    \\"type_name\\": \\"\${RSV_TYPE}\\", \
+                    \\"error_message\\": \\"\${ERR_MSG}\\"}]" >> nextstrain_lineage.json 
+
+      elif [ ${params.species} == "SARS-CoV-2" ]; then
+
+        echo -e "[{\\"status\\": \\"\${STATUS}\\", \
+                    \\"sequence_source\\": \\"\${SEQ_SOURCE}\\", \
+                    \\"database_name\\": \\"\${DATABASE_NAME}\\", \
+                    \\"error_message\\": \\"\${ERR_MSG}\\"}]" >> nextstrain_lineage.json
+      fi
     else
-      # This module need to handel both RSV and SARS, Influenza has a separate module  due to specific requirements
-      # WE guess the correct nextclade file by checking fasta header
+      # This module need to handel both RSV and SARS. Influenza has a separate module, due to its specific requirements
+      # We guess the correct nextclade file by checking fasta header
       HEADER=`head -1 ${ref_genome_with_index[final_index]} | tr -d ">"`
       if [[ "\${HEADER}" == "MN"* ]]; then
         NEXCLADE_FILE="sars-cov-2.zip"
       elif [[ \${HEADER} == "hRSV/A"* ]]; then
         NEXCLADE_FILE="RSV_A.zip"
+        RSV_TYPE="A"
       elif [[ \${HEADER} == "hRSV/B/"* ]]; then
         NEXCLADE_FILE="RSV_B.zip"
-    fi
-    nextclade run --input-dataset /home/external_databases/nextclade/\${NEXCLADE_FILE} \
-                    --output-csv nextstrain_lineage.csv \
-                    --output-all nextclade_lineages \
-                    consensus_masked_SV.fa
-
-     if [ -e nextclade_lineages/nextclade.cds_translation.S.fasta ]; then
-        parse_nextclade_output_csv2json.py nextstrain_lineage.csv nextclade_lineages/nextclade.auspice.json nextstrain_lineage_sars.json full_genome
-
-        # Combine two jsons in one
-        jq -s "." nextstrain_lineage_*.json > nextstrain_lineage.json
+        RSV_TYPE="B"
+      fi
+      
+      nextclade run --input-dataset /home/external_databases/nextclade/\${NEXCLADE_FILE} \
+                     --output-csv nextstrain_lineage.csv \
+                     --output-all nextclade_lineages \
+                     consensus_masked_SV.fa
+      
+      if [ -e nextclade_lineages/nextclade.auspice.json ]; then
         QC_status_exit="tak"
+        parse_nextclade_output_csv2json.py nextstrain_lineage.csv nextclade_lineages/nextclade.auspice.json nextstrain_lineage_initial.json full_genome
+      
+       # RSV and SARS have slightly different json output 
+        if [ ${params.species} == SARS-CoV-2 ]; then
+          # This will put a dictionary in nextstrain_lineage_initial.json inside a list in json file
+          jq -s "." nextstrain_lineage_initial.json > nextstrain_lineage.json
+        elif [ ${params.species} == RSV ]; then
+          echo -e "{\\"type_name\\": \\"\${RSV_TYPE}\\"}" > rsv_type.json
+          # This will add rsv type to dictionary from nextclade and put that inside a list
+          jq -s "[.[0] * .[1]]" nextstrain_lineage_initial.json rsv_type.json > nextstrain_lineage.json
+          
+          # file expected by modeller, not produced when analysizng RSV 
+          touch nextclade_lineages/nextclade.cds_translation.S.fasta
+        fi
       else
-        # tworzymy pusty plik ale modeller dostanie QC zeby sie nie wykonywal
-        touch nextclade_lineages/nextclade.cds_translation.S.fasta
         QC_status_exit="nie"
-        touch nextstrain_lineage.json
+        # create empty files for moddeler module
         mkdir nextclade_lineages || true
         touch nextclade_lineages/nextclade.cds_translation.S.fasta
-        QC_status_exit="nie"
-        #TODO: add error_mesage to json output file.
+        # create json for RSV json 
+        echo -e "{\\"type_name\\": \\"unk\\"}" > rsv_type.json
+        jq -s "." rsv_type.json > nextstrain_lineage.json
+        
       fi
+
     fi
     """
 }
