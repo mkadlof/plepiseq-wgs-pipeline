@@ -20,6 +20,21 @@ def fill_sars_data(output_local, modeller="", custom_coinfection="", freyja=""):
     return output_local
 
 
+def fill_infl_data(output_local, modeller="", resistance="", reassortment=""):
+    output_local["output"]["infl_data"] = {}
+
+    if modeller:
+        output_local["output"]["infl_data"] = {**output_local["output"]["infl_data"],
+                                               **json.load(open(modeller))}
+    if resistance:
+        output_local["output"]["infl_data"] = {**output_local["output"]["infl_data"],
+                                               **json.load(open(resistance))}
+    if reassortment:
+        output_local["output"]["infl_data"] = {**output_local["output"]["infl_data"],
+                                               **json.load(open(reassortment))}
+    return output_local
+
+
 def fill_sequencing_summary_data(jsons, output_local):
     """
     @param jsons: List of jsons to be included in sequencing_summary_data
@@ -107,9 +122,9 @@ def normalize_pathogen(pathogen: str) -> str:
     else:
         return pathogen
 
+
 def json_aggregator(args):
     output = {"output": {}}
-
 
     if args.version:
         output["output"]["pipeline_version"] = args.version
@@ -149,7 +164,7 @@ def json_aggregator(args):
         for plik in open(args.dehumanized).readlines():
             output["output"]["dehumanized_fastq_data"].append(f'{plik.rstrip()}')
 
-    if args.freyja or args.modeller or args.coinfection:
+    if args.freyja or args.modeller or args.coinfection and args.pathogen == "sars2":
         output = fill_sars_data(output_local=output,
                                 modeller=args.modeller,
                                 freyja=args.freyja,
@@ -171,7 +186,7 @@ def json_aggregator(args):
         else:
             dane_tmp = json.load(open(args.nextclade))
             output["output"]["rsv_data"] = {"type": dane_tmp[0]['type_name']}
-            del(dane_tmp[0]['type_name'])
+            del dane_tmp[0]['type_name']
             output["output"]["viral_classification_data"].extend(
                 [element for element in dane_tmp])
 
@@ -183,8 +198,8 @@ def json_aggregator(args):
         # consensus has data from two tabs
         output["output"]["viral_genome_data"]["total_length_value"] = dane["total_length_value"]
         output["output"]["viral_genome_data"]["number_of_Ns_value"] = dane["number_of_Ns_value"]
-        del(dane['total_length_value'])
-        del(dane["number_of_Ns_value"])
+        del dane['total_length_value']
+        del dane["number_of_Ns_value"]
         output["output"]["genome_files_data"] = dane
 
     if args.snpeff:
@@ -192,6 +207,12 @@ def json_aggregator(args):
                                      output_local=output)
     else:
         output["output"]["viral_mutation_data"] = []
+
+    if args.reassortment or args.modeller or args.drug_resistance and args.pathogen == "influenza":
+        output = fill_infl_data(output_local=output,
+                                modeller=args.modeller,
+                                resistance=args.drug_resistance,
+                                reassortment=args.reassortment)
 
     with open("output.json", "w") as f:
         json.dump(output, f, indent=4)
@@ -214,7 +235,8 @@ def main():
     parser.add_argument('--nextclade', help="JSON from viral classification module (nextclade)")
     parser.add_argument('--snpeff', help="Output of snpeff for selected organisms)")
     parser.add_argument('--modeller', help="Output for modeller module")
-
+    parser.add_argument('--reassortment', help="Output for reassortment module for influenza")
+    parser.add_argument('--drug_resistance', help="Output for drug resistance analysis for influenza")
 
     args = parser.parse_args()
     args.pathogen = normalize_pathogen(args.pathogen)
