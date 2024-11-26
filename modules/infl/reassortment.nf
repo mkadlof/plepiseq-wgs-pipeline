@@ -34,7 +34,6 @@ process reassortment {
         done
     }
     # REF_GENOME_ID is defined here again, 'cause I am lazy
-    touch reassortment.json
     if [ ${QC_status} == "nie" ]; then
       touch hybrid_primers.bed
       touch hybrid_genome.fasta
@@ -42,8 +41,17 @@ process reassortment {
       touch pairs.tsv
       REF_GENOME_ID="unk"
       QC_exit="nie"
+      
+      # json section 
+      ERR_MSG="This module recieved failed QC status"
+      STATUS="nie"
+      influenza_reassortment_parser.py --status "\${STATUS}" \
+                                        --error "\${ERR_MSG}" \
+                                        --output reassortment.json
+
     else 
       REF_GENOME_ID="${REF_GENOME_ID_entry}"
+
       ALL_GENOMES=(`ls /home/data/infl/genomes`)
       ALL_SEGMENTS=(PB2 PB1 PA HA NP NA MP NS)
       genomes="/home/data/infl/genomes" # path to genomes WITHIN container
@@ -68,6 +76,8 @@ process reassortment {
    
       # Basically "expected" subtype is subtype identified based on mapping score for HA and NA only
       # "Best" is the subtype with highest mapping score for that segment  
+
+      REASSORTMENT_STATUS="nie" # this variable will be switched to "tak" if for any segments reassortment was found
 
       for segment in \${ALL_SEGMENTS[@]}; do
         SEGMENTS_REASSORTMENT+=(\${segment})
@@ -145,6 +155,7 @@ process reassortment {
             
             if awk "BEGIN {exit !(\${SEGMENT_alignment_score} < 0.9 && \${RATIO} < 0.6 && \${SEGMENT_best_counts} >= (${params.min_cov} * 1.5))}"; then
               # echo "Reassortment detected for the segment \${segment}: \${REF_GENOME_ID} -> \${SEGMENT_best}\tAverage coverage is \${SEGMENT_best_counts}"
+
               cat regular_\${SEGMENT_best}_chr?_\${segment}.fasta >> hybrid_genome.fasta
               cat /home/data/infl/primers/\${SEGMENT_best}/\${SEGMENT_best}_primers.bed | \
                   grep \${segment} >>  hybrid_primers.bed
@@ -176,6 +187,14 @@ process reassortment {
       # Pairs file is subtype independent for influenza
       cp /home/data/infl/primers/pairs.tsv .
       QC_exit="tak"
+
+      #json section
+      influenza_reassortment_parser.py --status "tak" \
+                                        --output reassortment.json \
+                                        --input_file intermediate.txt \
+                                        --subtype \${REF_GENOME_ID}        
+      
+ 
    fi #koniec if-a na QC
    """
 }
