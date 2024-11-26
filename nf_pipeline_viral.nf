@@ -181,8 +181,10 @@ include { consensus_nanopore } from "${modules}/common/consensus.nf"
 // 4 different versions of aggregator module
 include { json_aggregator_sars_illumina } from "${modules}/common/json_aggregator.nf"
 include { json_aggregator_sars_nanopore } from "${modules}/common/json_aggregator.nf"
-include { json_aggregator_nonsars_illumina } from "${modules}/common/json_aggregator.nf"
-include { json_aggregator_nonsars_nanopore } from "${modules}/common/json_aggregator.nf"
+include { json_aggregator_rsv_illumina } from "${modules}/common/json_aggregator.nf"
+include { json_aggregator_rsv_nanopore } from "${modules}/common/json_aggregator.nf"
+include { json_aggregator_influenza_illumina } from "${modules}/common/json_aggregator.nf"
+include { json_aggregator_influenza_nanopore } from "${modules}/common/json_aggregator.nf"
 
 // vcf_for_fasta, snpEff and nextclade should be "common" module ? check if they work for influenza 
 include { vcf_for_fasta } from "${modules}/sarscov2/vcf_for_fasta.nf"
@@ -265,17 +267,14 @@ workflow{
 
     // For all three species selection of reference genome/primers is different
     if ( params.species  == 'SARS-CoV-2' ) {
-        detect_type_illumina_out = copy_genome_and_primers(final_reads_and_final_qc)
-        reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
+        detect_type_out = copy_genome_and_primers(final_reads_and_final_qc)
     } else if (params.species  == 'Influenza') {
         detect_subtype_out = detect_subtype_influenza_illumina(final_reads_and_final_qc)
-        reassortment_influenza_out =  reassortment_influenza(detect_subtype_out.segments_scores)
-        reads_and_genome = trimmomatic_out.proper_reads.join(reassortment_influenza_out.to_bwa, by:0)
+        detect_type_out =  reassortment_influenza(detect_subtype_out.segments_scores)
     } else if (params.species  == 'RSV') {
-        detect_type_illumina_out = detect_type_rsv_illumina(final_reads_and_final_qc)
-        reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_illumina_out.to_bwa, by:0)
+        detect_type_out = detect_type_rsv_illumina(final_reads_and_final_qc)
     }
-
+    reads_and_genome = trimmomatic_out.proper_reads.join(detect_type_out.to_bwa, by:0)
     // Mapping
     bwa_out = bwa(reads_and_genome)
 
@@ -293,17 +292,17 @@ workflow{
 
     // Filtering script is different for one-segment and multiple-segments organisms
     if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
-        initial_bam_and_primers = bwa_out.only_bam.join(detect_type_illumina_out.primers_and_pairs, by:0)
+        initial_bam_and_primers = bwa_out.only_bam.join(detect_type_out.primers_and_pairs, by:0)
         filtering_out = filtering_one_segment(initial_bam_and_primers)
         masking_out = masking(filtering_out.one_amplicon_primers_and_QC)
         merging_out = merging(filtering_out.two_amplicon_only.join(masking_out, by:0))
-        pre_final_bam_and_genome = merging_out.join(detect_type_illumina_out.only_genome, by:0)
+        pre_final_bam_and_genome = merging_out.join(detect_type_out.only_genome, by:0)
     } else if (params.species  == 'Influenza') {
-        initial_bam_and_primers = bwa_out.bam_and_genome.join(reassortment_influenza_out.primers_and_pairs, by:0)
+        initial_bam_and_primers = bwa_out.bam_and_genome.join(detect_type_out.primers_and_pairs, by:0)
         filtering_out = filtering_influenza_illumina(initial_bam_and_primers)
         masking_out = masking(filtering_out.one_amplicon_primers_and_QC)
         sort_and_index_out = sort_and_index_influenza_illumina(masking_out)
-        pre_final_bam_and_genome = sort_and_index_out.join(reassortment_influenza_out.only_genome, by:0)
+        pre_final_bam_and_genome = sort_and_index_out.join(detect_type_out.only_genome, by:0)
     }
 
     // Predicting sample's genome is identical
@@ -338,15 +337,15 @@ workflow{
         // Get initial reference genome and primers
         if ( params.species  == 'SARS-CoV-2' ) {
           // For SARS2 we only need to copy data
-          detect_type_nanopore_out = copy_genome_and_primers(final_reads_and_final_qc)
+          detect_type_out = copy_genome_and_primers(final_reads_and_final_qc)
         } else if (params.species  == 'Influenza') {
           detect_subtype_out = detect_subtype_influenza_nanopore(final_reads_and_final_qc)
-          detect_type_nanopore_out =  reassortment_influenza(detect_subtype_out.segments_scores)
+          detect_type_out =  reassortment_influenza(detect_subtype_out.segments_scores)
         } else if (params.species  == 'RSV') {
-          detect_type_nanopore_out = detect_type_rsv_nanopore(final_reads_and_final_qc)
+          detect_type_out = detect_type_rsv_nanopore(final_reads_and_final_qc)
         }
   
-        reads_and_genome_and_primers = reads.join(detect_type_nanopore_out.all_nanopore, by:0)
+        reads_and_genome_and_primers = reads.join(detect_type_out.all_nanopore, by:0)
  
         minimap2_1_out = minimap2_1(reads_and_genome_and_primers)
       
@@ -384,7 +383,7 @@ workflow{
         // at the end of this round we need need yo resote the origunal genome as reference (for snpeff)
 
         reads_and_updated_genome_and_primers = reads.join(novel_genome.only_fasta, by:0)
-        reads_and_updated_genome_and_primers = reads_and_updated_genome_and_primers.join(detect_type_nanopore_out.primers,  by:0)
+        reads_and_updated_genome_and_primers = reads_and_updated_genome_and_primers.join(detect_type_out.primers,  by:0)
         reads_and_updated_genome_and_primers = reads_and_updated_genome_and_primers.join(novel_genome.only_QC, by: 0)
 
         minimap2_2_out = minimap2_2(reads_and_updated_genome_and_primers)
@@ -413,7 +412,7 @@ workflow{
         to_final_genome = lowCov_out.fasta.join(novel_genome_2_out.fasta_and_QC)
         to_final_genome = to_final_genome.join(medaka_varscan_integration_2_out.reference_genome)
         prefinal_genome_out = consensus_nanopore(to_final_genome)  
-        final_genome_out = substitute_ref_genome(prefinal_genome_out.fasta_refgenome_and_qc.join(detect_type_nanopore_out.only_genome))
+        final_genome_out = substitute_ref_genome(prefinal_genome_out.fasta_refgenome_and_qc.join(detect_type_out.only_genome))
  
   }
   // Post FASTA generation modules mostly common for nanopore and illumina
@@ -452,7 +451,10 @@ workflow{
 
   if ( params.species  == 'SARS-CoV-2' ) {
     for_json_aggregator = for_json_aggregator.join(coinfection_json)
-    // Dobrze by bylo dodac tutaj dummy procesy aby nie bylo "wersji" json aggregatora
+  }
+
+  if ( params.species  == 'Influenza' ) {
+    for_json_aggregator = for_json_aggregator.join(detect_type_out.json)
   }
  
   for_json_aggregator = for_json_aggregator.join(dehumanization_out.json) 
@@ -467,10 +469,13 @@ workflow{
   
   for_json_aggregator = for_json_aggregator.join(pangolin_out.json)
   for_json_aggregator = for_json_aggregator.join(nextclade_out.json)
-
   for_json_aggregator = for_json_aggregator.join(snpEff_out)
-
   for_json_aggregator = for_json_aggregator.join(modeller_out.json)
+  
+  if ( params.species  == 'Influenza' ) {
+    for_json_aggregator = for_json_aggregator.join(resistance_out.json)
+  }
+
 
   if(params.species == 'SARS-CoV-2') {
     if(params.machine == 'Illumina') {
@@ -479,11 +484,18 @@ workflow{
       json_aggregator_sars_nanopore(for_json_aggregator)
     }
   
-  } else {
+  } else if (params.species == 'RSV') {
     if(params.machine == 'Illumina') {
-      json_aggregator_nonsars_illumina(for_json_aggregator)
+      json_aggregator_rsv_illumina(for_json_aggregator)
     } else if (params.machine == 'Nanopore') {
-      json_aggregator_nonsars_nanopore(for_json_aggregator)
+      json_aggregator_rsv_nanopore(for_json_aggregator)
     }
+  } else if (params.species == 'Influenza') {
+    if(params.machine == 'Illumina') {
+      json_aggregator_influenza_illumina(for_json_aggregator)
+    } else if (params.machine == 'Nanopore') {
+      json_aggregator_influenza_nanopore(for_json_aggregator)
+    }
+
   }
 }

@@ -16,7 +16,7 @@ process reassortment {
     tuple val(sampleId), path("hybrid_primers.bed"), path("pairs.tsv"), emit: primers_and_pairs
     tuple val(sampleId), path("hybrid_primers.bed"), emit: primers
     tuple val(sampleId), path("hybrid_genome.fasta"), emit: only_genome // indelqual module requires a variable not a tupple
-
+    tuple val(sampleId), path("reassortment.json"), emit: json
     script:
     """
     find_segement_position() {
@@ -34,7 +34,7 @@ process reassortment {
         done
     }
     # REF_GENOME_ID is defined here again, 'cause I am lazy
-
+    touch reassortment.json
     if [ ${QC_status} == "nie" ]; then
       touch hybrid_primers.bed
       touch hybrid_genome.fasta
