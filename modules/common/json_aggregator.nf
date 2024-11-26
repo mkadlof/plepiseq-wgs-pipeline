@@ -25,7 +25,8 @@ process json_aggregator_sars_illumina {
     script:
     """
     version=`cat /tmp/git_master_ref | cut -b-8`
- 
+    if [ -z \${version} ]; then version="unk"; fi
+
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \

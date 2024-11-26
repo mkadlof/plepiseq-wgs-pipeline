@@ -77,7 +77,6 @@ process reassortment {
       # Basically "expected" subtype is subtype identified based on mapping score for HA and NA only
       # "Best" is the subtype with highest mapping score for that segment  
 
-      REASSORTMENT_STATUS="nie" # this variable will be switched to "tak" if for any segments reassortment was found
 
       for segment in \${ALL_SEGMENTS[@]}; do
         SEGMENTS_REASSORTMENT+=(\${segment})
