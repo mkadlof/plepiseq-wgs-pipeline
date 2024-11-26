@@ -24,9 +24,7 @@ process json_aggregator_sars_illumina {
 
     script:
     """
-    branch=master
-    version=\$(cat /home/projectDir/.git/refs/heads/\${branch})
-    version=\${version:0:7}
+    version=`cat /tmp/git_master_ref | cut -b-8`
  
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
@@ -72,9 +70,7 @@ process json_aggregator_rsv_illumina {
 
     script:
     """
-    branch=master
-    version=\$(cat /home/projectDir/.git/refs/heads/\${branch})
-    version=\${version:0:7}
+    version=`cat /tmp/git_master_ref | cut -b-8`
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \
@@ -119,9 +115,7 @@ process json_aggregator_influenza_illumina {
 
     script:
     """
-    branch=master
-    version=\$(cat /home/projectDir/.git/refs/heads/\${branch})
-    version=\${version:0:7}
+    version=`cat /tmp/git_master_ref | cut -b-8`
 
     touch ${sampleId}.json
     """
@@ -153,10 +147,8 @@ process json_aggregator_sars_nanopore {
 
     script:
     """
-    branch=master
-    version=\$(cat /home/projectDir/.git/refs/heads/\${branch})
-    version=\${version:0:7}
-    
+    version=`cat /tmp/git_master_ref | cut -b-8`
+ 
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \
@@ -198,9 +190,7 @@ process json_aggregator_rsv_nanopore {
 
     script:
     """
-    branch=master
-    version=\$(cat /home/projectDir/.git/refs/heads/\${branch})
-    version=\${version:0:7}
+    version=`cat /tmp/git_master_ref | cut -b-8`
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \
@@ -242,10 +232,7 @@ process json_aggregator_influenza_nanopore {
 
     script:
     """
-    branch=master
-    version=\$(cat /home/projectDir/.git/refs/heads/\${branch})
-    version=\${version:0:7}
-
+    version=`cat /tmp/git_master_ref | cut -b-8`
     touch ${sampleId}.json
     """
 }

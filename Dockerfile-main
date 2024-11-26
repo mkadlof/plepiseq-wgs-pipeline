@@ -493,6 +493,7 @@ ENV PATH="/home/bin/common:"\
 "/opt/nextalign:"\
 "/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
+COPY .git/refs/heads/master /tmp/git_master_ref
 WORKDIR /home
 
 # updater container
