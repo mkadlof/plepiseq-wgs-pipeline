@@ -43,7 +43,7 @@ process json_aggregator_sars_illumina {
                         --modeller "${modeller}" \
                         --snpeff ${snpeff}
 
-    cp output.json ${sampleId}.json
+    mv output.json ${sampleId}.json
     """
 }
 
@@ -72,6 +72,8 @@ process json_aggregator_rsv_illumina {
     script:
     """
     version=`cat /tmp/git_master_ref | cut -b-8`
+    if [ -z \${version} ]; then version="unk"; fi
+
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \
@@ -85,7 +87,7 @@ process json_aggregator_rsv_illumina {
                         --nextclade "${nextclade_json}" \
                         --snpeff ${snpeff}
 
-    cp output.json ${sampleId}.json
+    mv output.json ${sampleId}.json
     """
 }
 
@@ -117,6 +119,7 @@ process json_aggregator_influenza_illumina {
     script:
     """
     version=`cat /tmp/git_master_ref | cut -b-8`
+    if [ -z \${version} ]; then version="unk"; fi
 
     touch ${sampleId}.json
     """
@@ -149,6 +152,7 @@ process json_aggregator_sars_nanopore {
     script:
     """
     version=`cat /tmp/git_master_ref | cut -b-8`
+    if [ -z \${version} ]; then version="unk"; fi
  
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
@@ -165,7 +169,7 @@ process json_aggregator_sars_nanopore {
                         --modeller "${modeller}" \
                         --snpeff ${snpeff}
 
-    cp output.json ${sampleId}.json
+    mv output.json ${sampleId}.json
     """
 }
 
@@ -192,6 +196,8 @@ process json_aggregator_rsv_nanopore {
     script:
     """
     version=`cat /tmp/git_master_ref | cut -b-8`
+    if [ -z \${version} ]; then version="unk"; fi
+
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \
@@ -204,8 +210,7 @@ process json_aggregator_rsv_nanopore {
                         --nextclade "${nextclade_json}" \
                         --snpeff ${snpeff}
 
-    cp output.json ${sampleId}.json
-    
+    mv output.json ${sampleId}.json
     """
 }
 
@@ -234,6 +239,8 @@ process json_aggregator_influenza_nanopore {
     script:
     """
     version=`cat /tmp/git_master_ref | cut -b-8`
+    if [ -z \${version} ]; then version="unk"; fi
+
     touch ${sampleId}.json
     """
 }
