@@ -76,7 +76,7 @@ params.upper_ambig = 0.55
 params.window_size = 50 // Window size in which we equalize the coverage
 params.min_mapq = 30
 params.quality_for_coverage = 10 // Parametr uzywany w modul lowCov
-params.freyja_minq = 20 
+params.freyja_minq = 20
 } else if (params.machine  == 'Nanopore') {
 params.freyja_minq = 2
 params.bed_offset=10 // for filtering
