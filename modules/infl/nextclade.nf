@@ -15,7 +15,7 @@ process nextclade {
     """
     set -x
     touch dummy.fasta
-
+    
  # Default json file
     generate_empty_json() {
         local segment="\$1"
@@ -31,9 +31,9 @@ EOF
 
     # we split final genome into segments
     if [ ${QC_status} == "nie" ]; then
-        touch nextclade_lineage_dummy.csv
-        touch nextstrain_lineage.json
-        #TODO: add mesage about error somwhere upstream to json file
+        generate_empty_json "HA"
+        generate_empty_json "NA"
+        jq -s "." nextstrain_lineage_HA.json nextstrain_lineage_NA.json > nextstrain_lineage.json
     else
         cat output_consensus_masked_SV.fa | awk '{if (substr(\$0, 1, 1)==">") { new_name=\$0; gsub("\\\\.", "_", new_name); gsub("/", "_", new_name);  gsub("_SV", "", new_name);  filename=("sample_"substr(new_name,2) ".fasta"); print \$0 >> filename } else {print toupper(\$0)  >> filename}}'
         KNOWN='H1N1 H3N2 Yamagata Victoria'

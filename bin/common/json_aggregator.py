@@ -164,7 +164,7 @@ def json_aggregator(args):
         for plik in open(args.dehumanized).readlines():
             output["output"]["dehumanized_fastq_data"].append(f'{plik.rstrip()}')
 
-    if args.freyja or args.modeller or args.coinfection and args.pathogen == "sars2":
+    if (args.freyja or args.modeller or args.coinfection) and args.pathogen == "sars2":
         output = fill_sars_data(output_local=output,
                                 modeller=args.modeller,
                                 freyja=args.freyja,
@@ -208,7 +208,7 @@ def json_aggregator(args):
     else:
         output["output"]["viral_mutation_data"] = []
 
-    if args.reassortment or args.modeller or args.drug_resistance and args.pathogen == "influenza":
+    if (args.reassortment or args.modeller or args.drug_resistance) and args.pathogen == "influenza":
         output = fill_infl_data(output_local=output,
                                 modeller=args.modeller,
                                 resistance=args.drug_resistance,

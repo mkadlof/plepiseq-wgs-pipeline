@@ -24,7 +24,11 @@ process json_aggregator_sars_illumina {
 
     script:
     """
-    version=\$(cat /tmp/git_master_ref 2>/dev/null | cut -b-8) || version="unknown"
+    if [ -e "/tmp/git_master_ref" ];then
+      version=`cat /tmp/git_master_ref | cut -b-8`
+    else
+      version="unknown"
+    fi
 
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
@@ -70,7 +74,11 @@ process json_aggregator_rsv_illumina {
 
     script:
     """
-    version=\$(cat /tmp/git_master_ref 2>/dev/null | cut -b-8) || version="unknown"
+    if [ -e "/tmp/git_master_ref" ];then
+      version=`cat /tmp/git_master_ref | cut -b-8`
+    else
+      version="unknown"
+    fi
 
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
@@ -116,9 +124,30 @@ process json_aggregator_influenza_illumina {
 
     script:
     """
-    version=\$(cat /tmp/git_master_ref 2>/dev/null | cut -b-8) || version="unknown"
+    if [ -e "/tmp/git_master_ref" ];then
+      version=`cat /tmp/git_master_ref | cut -b-8`
+    else
+      version="unknown"
+    fi
 
-    echo '{}' > ${sampleId}.json
+    json_aggregator.py  --version \${version} \
+                        --pathogen "${params.species}" \
+                        --sampleId "${sampleId}" \
+                        --fastqc_pre "${fastqc_pre_json_forward}" "${fastqc_pre_json_reverse}" \
+                        --fastqc_post "${fastqc_post_json_forward}" "${fastqc_post_json_reverse}" \
+                        --contamination "${kraken_contamination}" \
+                        --dehumanized "${dehumanized}" \
+                        --wgsMetrics "${wgsMetrics}"  \
+                        --consensus "${consensus_json}" \
+                        --pangolin "${pangolin_json}" \
+                        --nextclade "${nextclade_json}" \
+                        --snpeff ${snpeff} \
+                        --modeller ${modeller} \
+                        --reassortment ${reassortment_json} \
+                        --drug_resistance ${resistance_json}
+
+
+    mv output.json ${sampleId}.json
     """
 }
 
@@ -148,7 +177,11 @@ process json_aggregator_sars_nanopore {
 
     script:
     """
-    version=\$(cat /tmp/git_master_ref 2>/dev/null | cut -b-8) || version="unknown"
+    if [ -e "/tmp/git_master_ref" ];then
+      version=`cat /tmp/git_master_ref | cut -b-8`
+    else
+      version="unknown"
+    fi
  
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
@@ -191,7 +224,11 @@ process json_aggregator_rsv_nanopore {
 
     script:
     """
-    version=\$(cat /tmp/git_master_ref 2>/dev/null | cut -b-8) || version="unknown"
+    if [ -e "/tmp/git_master_ref" ];then
+      version=`cat /tmp/git_master_ref | cut -b-8`
+    else
+      version="unknown"
+    fi
 
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
@@ -233,9 +270,28 @@ process json_aggregator_influenza_nanopore {
 
     script:
     """
-    version=\$(cat /tmp/git_master_ref 2>/dev/null | cut -b-8) || version="unknown"
+    if [ -e "/tmp/git_master_ref" ];then
+      version=`cat /tmp/git_master_ref | cut -b-8`
+    else
+      version="unknown"
+    fi
 
-    echo '{}' >  ${sampleId}.json
+    json_aggregator.py  --version \${version} \
+                        --pathogen "${params.species}" \
+                        --sampleId "${sampleId}" \
+                        --fastqc_pre "${fastqc_pre_json_forward}" \
+                        --contamination "${kraken_contamination}" \
+                        --dehumanized "${dehumanized}" \
+                        --wgsMetrics "${wgsMetrics}"  \
+                        --consensus "${consensus_json}" \
+                        --pangolin "${pangolin_json}" \
+                        --nextclade "${nextclade_json}" \
+                        --snpeff ${snpeff} \
+                        --modeller ${modeller} \
+                        --reassortment ${reassortment_json} \
+                        --drug_resistance ${resistance_json}
+
+    mv output.json ${sampleId}.json
     """
 }
 

@@ -12,19 +12,18 @@ import subprocess
 import sys
 from tempfile import NamedTemporaryFile
 from typing import Dict
+import click
+import json
 
 import numpy as np
 from Bio import SeqIO
 
+# Obsole functions used in old verion of this script
 
-# Przykladowe wywolanie w kontenerze z illuminy (gdzie jest skopiowany i poprawion w .opt/docker. repo netclade)
-# to 0.1 to threshold na ilsc x w sekwencji
-# python analyze_Influenza_mutations.py  ESIB_EQA_2023.INFL4.01.fasta 0.1
 
-# 1 identyfikujemy skad jest nasz wirus na podstawie sekwencji HA
-
-def determine_subtype(subtype):
+def _determine_subtype(subtype):
     """
+    Funka uzywan w nieuzywanej funkcji _run_infinity
     :param subtype:
     :return:
     """
@@ -49,79 +48,6 @@ def determine_subtype(subtype):
         raise Exception(f'Unknown case {subtype}')
 
 
-def check_protein_quality(plik):
-    """'
-    Sprawdzamy obecnosc X w sekwencji. Jesli sumarycznie jest wiecej niz threshold, definioany
-    jako ich frakcja sekwencja dostaje flage ze jest zla. Uwaga sekwencja jest alignowana wzgledem refencji
-    wiec usuawamy '-' do liczenia tego stosunku
-    :param plik:
-    :return:
-    """
-    tekst = 'Brak sekwencji'
-    stosunek = 1
-    record = SeqIO.parse(plik, 'fasta')
-    for r in record:
-        ilosc = int(r.seq.count('X'))
-        dlugosc = float(len(r.seq.replace('-', '')))
-        stosunek = float("%.4f" % (ilosc / dlugosc))
-        tekst = f'Sekwencja {r.id} ma dlugosc:\t{dlugosc}\tIlosc X:\t{ilosc} {stosunek * 100}%\n'
-        return tekst, stosunek
-    return tekst, stosunek
-
-
-def check_genome_segment_quality(plik):
-    """'
-    Sprawdzamy obecnosc X w sekwencji. Jesli sumarycznie jest wiecej niz threshold, definioany
-    jako ich frakcja sekwencja dostaje flage ze jest zla. Uwaga sekwencja jest alignowana wzgledem refencji
-    wiec usuawamy '-' do liczenia tego stosunku
-    :param plik:
-    :return:
-    """
-    tekst = 'Brak sekwencji'
-    stosunek = 1
-    record = SeqIO.parse(plik, 'fasta')
-    for r in record:
-        ilosc = int(r.seq.count('N'))
-        dlugosc = float(len(r.seq.replace('-', '')))
-        stosunek = float("%.4f" % (ilosc / dlugosc))
-        tekst = f'Sekwencja {r.id} ma dlugosc:\t{dlugosc}\tIlosc X:\t{ilosc} {stosunek * 100}%\n'
-        return tekst, stosunek
-    return tekst, stosunek
-
-
-def get_fasta_header(input_fasta):
-    record = SeqIO.parse(input_fasta, 'fasta')
-    for r in record:
-        return f'>{r.description}'
-
-
-def get_fasta(input_fasta, sample, what):
-    """
-    :param input_fasta:
-    :param sample:
-    :param what:
-    :return:
-    """
-    record = SeqIO.parse(input_fasta, 'fasta')
-    two_HA = 0
-    for r in record:
-        if what in r.id:
-            if two_HA > 0:
-                raise Exception(f'File {input_fasta} contains more than one fragments with {what} in its name, quiting !')
-            # cala zabawa z okreslaniem subtypu
-            with NamedTemporaryFile(dir='.', prefix=f'{sample}_', suffix=f'_{what}.fasta', mode='w', delete=False) as file:
-                file.write(f'>{r.id}\n')
-                file.write(f'{str(r.seq)}\n')
-            two_HA += 1
-    # gdyby nie bylo danego bialka w wynikach z jakiegos powodu tworzymy dummy file
-    # ktory nie bedzie analizowany
-    if two_HA == 0:
-        with NamedTemporaryFile(dir='.', prefix=f'{sample}_', suffix=f'_{what}.fasta', mode='w', delete=False) as file:
-            file.write(f'>{what}\n')
-            file.write(f'XXX\n')
-    return file
-
-
 def _run_infinity(file, input_fasta):
     """
     Funkcja do puszczania infinity programu okreslajacego clad do ktorego nalezy podana sekwencja HA.
@@ -130,6 +56,7 @@ def _run_infinity(file, input_fasta):
     :param input_fasta:
     :return:
     """
+    subtype = ""
     if 'run_infinity.R' not in os.listdir('.'):
         raise Exception('Pamietaj o umieszczeni uskryptu run_infinity.R w katalogu gdzie wywolujesz skrypt!')
     komenda = f'Rscript run_infinity.R {file.name}'
@@ -144,16 +71,22 @@ def _run_infinity(file, input_fasta):
         if 'Clade' in line:
             continue
         print(line)
-        subtype = determine_subtype(line.split(';')[2])
+        subtype = _determine_subtype(line.split(';')[2])
     os.remove(file.name)
     return subtype
 
 
-# 2 korzystajac z odpowiedniej bazy okreslamy aminokwasowa sekwencje danego HA
-def get_protein_sequence(segment_fasta, referene_fasta, gff_file, what, out_dir, qc_threshold, typ, sample_name):
+def _get_protein_sequence(segment_fasta, referene_fasta, gff_file, what, out_dir, qc_threshold, typ, sample_name):
+
+    # Obsolete function do przewidywania podtypu probki. Uzywana byla w EQA2023 gdzie inputem do zadania
+    # byla po prostu fasta bez informacji o zrodle pochodzenia
+
+    # Stare komentarze
     # referencyjna sekwencja
-    # uwaga w /opd.docker/nextclade/data/flu itd .. w genmap musialem recznie poprawic opis z gene_mamae "ALA" na gene_name="ALA" !!!!
+    # uwaga w /opd.docker/nextclade/data/flu itd .. w genmap musialem recznie poprawic
+    # opis z gene_mamae "ALA" na gene_name="ALA" !!!!
     # zrobilem to tylko dla HA, NA i PA bo te geny sa wazne dla opornosci
+
     if f'Reference_{what}_{typ}.fasta' not in os.listdir('.'):
         komenda = f'nextalign run -r {referene_fasta} -m {gff_file} -g {what} -O {out_dir} -n {what} {referene_fasta}'
         p = subprocess.Popen(komenda, shell=True, stdout=subprocess.PIPE)
@@ -167,7 +100,7 @@ def get_protein_sequence(segment_fasta, referene_fasta, gff_file, what, out_dir,
         p = subprocess.Popen(komenda, shell=True, stdout=subprocess.PIPE)
         p.communicate()
         os.remove(f'{segment_fasta}')
-        tekst, stosunek = check_protein_quality(f'{out_dir}/{what}_gene_{what}.translation.fasta')
+        tekst, stosunek = check_quality_protein_sequence(f'{out_dir}/{what}_gene_{what}.translation.fasta')
         f.write(tekst)
 
         if stosunek < qc_threshold:
@@ -177,7 +110,68 @@ def get_protein_sequence(segment_fasta, referene_fasta, gff_file, what, out_dir,
     return True
 
 
-# 4 alignment na odpowiednia referencje
+def check_quality_protein_sequence(plik):
+    """'
+    Sprawdzamy obecnosc X i N w sekwencji. Jesli sumarycznie jest wiecej niz threshold, definioany
+    jako ich frakcja sekwencja dostaje flage ze jest zla. Uwaga sekwencja jest alignowana wzgledem refencji
+    wiec usuawamy '-' do liczenia tego stosunku
+    :param plik:
+    :return:
+    """
+    tekst = 'Brak sekwencji'
+    stosunek = 1
+    record = SeqIO.parse(plik, 'fasta')
+    for r in record:
+        ilosc = int(r.seq.count('X'))
+        ilosc += int(r.seq.count('N'))
+        dlugosc = float(len(r.seq.replace('-', '')))
+        stosunek = float("%.4f" % (ilosc / dlugosc))
+        tekst = (f'Sekwencja {r.id} ma dlugosc:\t{dlugosc}\tIlosc X i N:\t{ilosc}\t'
+                 f'Procentowa zawartosc X i N:\t{stosunek * 100}%\n')
+        return tekst, stosunek
+    return tekst, stosunek
+
+
+
+def get_fasta_header(input_fasta):
+    record = SeqIO.parse(input_fasta, 'fasta')
+    for r in record:
+        return f'>{r.description}'
+
+
+def get_fasta(input_fasta, sample, what):
+    """
+    :param input_fasta: Plik fasta z wieloma sekwencjami
+    :param sample: Nazwa sample'a uzywane tylko do nazywannia plikow tymczasowych
+    :param what: Nazwa segmentu, musi byc zawarta w naglowku sekwencji jak chcemy wyciagnac
+    W przypadku gdy wiecej segmentow ma taka nazwe program zwraca blad
+    :return: Nazwe tymczasowego pliku z sekwencja zwierajaca tylko poszukiwany segment
+    """
+    record = SeqIO.parse(input_fasta, 'fasta')
+    error = ""
+    two_HA = 0
+    for r in record:
+        if what in r.id:
+            if two_HA > 0:
+                # Czy to moze sie stac w normalnym setup ?
+                with NamedTemporaryFile(dir='.', prefix=f'{sample}_', suffix=f'_{what}.fasta', mode='w',
+                                        delete=False) as file:
+                    file.write(f'>{what}\n')
+                    file.write(f'XXX\n')
+                error += f'File {input_fasta} contains more than one sequence named {what}'
+            with NamedTemporaryFile(dir='.', prefix=f'{sample}_', suffix=f'_{what}.fasta', mode='w', delete=False) as file:
+                file.write(f'>{r.id}\n')
+                file.write(f'{str(r.seq)}\n')
+            two_HA += 1
+    # gdyby nie bylo danego bialka w wynikach z jakiegos powodu tworzymy dummy file
+    # ktory nie bedzie analizowany
+    if two_HA == 0:
+        with NamedTemporaryFile(dir='.', prefix=f'{sample}_', suffix=f'_{what}.fasta', mode='w', delete=False) as file:
+            file.write(f'>{what}\n')
+            file.write(f'XXX\n')
+        error += f'File {input_fasta} contains no sequence named {what}'
+    return file, error
+
 
 def align_fasta(fasta1_file: str, *args, **kwargs) -> Dict:
     """
@@ -206,9 +200,9 @@ def align_fasta(fasta1_file: str, *args, **kwargs) -> Dict:
             for line in f1:
                 f.write(line)
 
-    polecenie = ('mafft --auto --quiet --inputorder tmp.fasta')
+    polecenie = 'mafft --auto --quiet --inputorder tmp.fasta'
     if 'fast' in kwargs.keys():
-        polecenie = ('mafft --retree 1 --quiet --inputorder tmp.fasta')  # komenda z
+        polecenie = 'mafft --retree 1 --quiet --inputorder tmp.fasta'  # komenda z
     alignment = subprocess.Popen(polecenie, shell=True, stdout=subprocess.PIPE)
 
     # generowanie slownika
@@ -231,7 +225,7 @@ def align_fasta(fasta1_file: str, *args, **kwargs) -> Dict:
 
 def determine_muation(ref_seq, target_seq):
     """
-    Dwa stringi zawierajace A-Z i "-" lub "N" (ale tylko target), mamy nastepujace stany,
+    Dwa stringi zawierajace A-Z i "-" lub "X" (ale tylko w sekwencji targetu), mamy nastepujace stany,
     1. brak mutacji
     2. mutacja roznica charakteru miedzy referencja a targetem
     3. rozpoczecie wstawki
@@ -239,25 +233,24 @@ def determine_muation(ref_seq, target_seq):
     5. rozpoczecie insercji
     6. kontynuacja insercji
     raportujemy jako
-    what:R4L punktowa
+    R4L punktowa
     R4_del2 - delecja 2 aminokwasow w target po R4
     R4_ins4 - insercja 4 aminokwasow w target po R4
-    :param ref_seq:
-    :param target_seq:
-    :return:
-    """
+    :param ref_seq: string, sekwecja referencji po alignment
+    :param target_seq: string, sekwencja target po alignment
+    :return: lista. Zaweira liste mutacji zodentyfikowane w probce stosujac numeracje aminokwasowa sekwencji ref
 
-    # sekwencje sa identycznej dlugosci wiec
+
+    """
 
     numeracje_ref = 1  # od 1
     previous_ref = 'X'
     previous_target = "X"
     poczatek_delecji = 0
-    dlugosc_insercji = 0
-    poczatek_insercji = 0
     dlugosc_delecji = 0
-
-    lista_mutacji = []
+    poczatek_insercji = 0
+    dlugosc_insercji = 0
+    lista_mutacji = [] # Lista mutacji zgodnie z numeracja sekwencji REFERENYJNEJ
 
     for i in range(len(ref_seq)):
 
@@ -300,16 +293,12 @@ def determine_muation(ref_seq, target_seq):
         previous_ref = ref_seq[i]
         previous_target = target_seq[i]
 
+    # Na koniec zrzuc otwarta delecje lub insercje
     if dlugosc_insercji > 0 and ref_seq[i] != '-':
         lista_mutacji.append(f'{ref_seq[poczatek_insercji - 1]}{poczatek_insercji}ins{dlugosc_insercji}')
-        dlugosc_insercji = 0
-        poczatek_insercji = 0
-    # sprawdz czy nie skonczyles delecji
 
     if dlugosc_delecji > 0 and target_seq[i] != '-':
         lista_mutacji.append(f'{ref_seq[poczatek_delecji - 1]}{poczatek_delecji}ins{dlugosc_delecji}')
-        dlugosc_delecji = 0
-        poczatek_delecji = 0
 
     return lista_mutacji
 
@@ -326,7 +315,6 @@ def higest_rest(tekst):
         return 'NI'
     else:
         return 'Err'
-
 
 def parse_resistance_NA(plik):
     """
@@ -384,6 +372,8 @@ def get_sample_status(lista_mutacji, slownik_opornosci):
         status = slownik_opornosci[klucz]
         if status in ['RI', 'HRI']:
             if set(klucz.split('+')).issubset(set(lista_mutacji)):
+                # W przypadku mutacji "skomplikowanych" jak E99G+H255Y patrzymy czy obie skladowe mutacje
+                # wystepuja wsrod mutacji waznych
                 mutacje_opornosciowe[klucz] = status
         else:
             # mutacje nieistotne dla danego leku, nie raportuje raczej bo po co
@@ -399,85 +389,307 @@ def get_sample_status(lista_mutacji, slownik_opornosci):
 
     return mutacje_opornosciowe, status
 
+def prepare_json_for_drug(drug_name, drug_status, mutation_slownik_mutacji_ref,
+                          ref_target_lookup_local, ref_N2_lookup_local ={}):
+    """
+    Funkcja generuje json dla analizowanego leku zgodnie z ustalonym schematem jsonowym
+    @param drug_name: nazwa leku
+    @type drug_name: str
+    @param drug_status: status opornosci na dany lek
+    @type drug_status: str
+    @param mutation_slownik_mutacji_ref: slownik mutacji powodujacych opornosn na dany lek wraz z ich sila
+    @type mutation_slownik_mutacji_ref: dict
+    @param ref_N2_lookup_local: slownik mapujacy wszystkie mozliwe mutacje powodujace opornosc na lek na numeracje w N2
+    @type ref_N2_lookup_local: dict
+    @param ref_target_lookup_local: slownik mapujacy mutacje w probce miedzy numeracje referencji a sample'a
+    @type ref_target_lookup_local:
+    @return: slownik zgodny ze schematem jsonowym
+    @rtype: dict
+    """
+    json_tmp = {}  # to bedzie obiekt do json-a
+    json_tmp["drug_name"] = drug_name
+    json_tmp["drug_resistance_status"] = drug_status
+    json_tmp['mutation_list_data_reference_numbering'] = []
+
+
+
+    for mutacja_ref, status_mutacji in mutation_slownik_mutacji_ref.items():
+        json_tmp['mutation_list_data_reference_numbering'].append({"mutation_name": mutacja_ref,
+                                                                   "mutation_effect": status_mutacji})
+
+    if len(list(ref_N2_lookup_local.keys())) > 0:
+        # N2 nie analizujemy cla baloxaviru
+        json_tmp['mutation_list_data_N2_numbering'] = []
+        for mutacja_ref, status_mutacji in mutation_slownik_mutacji_ref.items():
+
+            N2_numbering = ref_N2_lookup_local[mutacja_ref]
+
+            if "+" in mutacja_ref:
+                mutacja_N2_numbering = ""
+                mutacja_ref_components = mutacja_ref.split('+')  # rozbijamy skomplikowana mutacje na skladowe
+                lista_N2_numbers = N2_numbering.split("+")  # to samo robimy z odpowiadajaca numeracja N2
+
+                for tmp, new_N2 in zip(mutacja_ref_components, lista_N2_numbers):
+                    if mutacja_N2_numbering != "":
+                        mutacja_N2_numbering += "+"
+                    ref_seq, _, target_seq = re.findall('(^\\D+)(\\d+)(\\D+)', tmp)[0]
+                    mutacja_N2_numbering += f'{ref_seq}{new_N2}{target_seq}'
+            else:
+                ref_seq, _, target_seq = re.findall('(^\\D+)(\\d+)(\\D+)', mutacja_ref)[0]
+                mutacja_N2_numbering = f'{ref_seq}{N2_numbering}{target_seq}'
+
+            json_tmp['mutation_list_data_N2_numbering'].append({"mutation_name": mutacja_N2_numbering,
+                                                                "mutation_effect": status_mutacji})
+
+    json_tmp['mutation_list_data'] = []
+    for mutacja_ref, status_mutacji in mutation_slownik_mutacji_ref.items():
+        if "+" in mutacja_ref:
+            mutacja_taget_numbering = ""
+            mutacja_ref_components = mutacja_ref.split('+')  # rozbijamy skomplikowana mutacje na skladowe
+            for tmp in mutacja_ref_components:
+                if mutacja_taget_numbering != "":
+                    mutacja_taget_numbering += "+"
+                mutacja_taget_numbering += ref_target_lookup_local[tmp]
+
+        else:
+            mutacja_taget_numbering = ref_target_lookup_local[mutacja_ref]
+
+        json_tmp['mutation_list_data'].append({"mutation_name": mutacja_taget_numbering,
+                                               "mutation_effect": status_mutacji})
+
+    return json_tmp
+
+@click.command()
+@click.option('-i', '--input_fasta', help='[INPUT] a fasta file of NA and PA segements',
+              type=click.Path(), required=False)
+@click.option('-t', '--subtype', help='[INPUT] a subtype identified for this sample',
+              type=str, required=False)
+@click.option('-n', '--sample_name', help='[INPUT] sample identifier',
+              type=str, required=False)
+@click.option('-p', '--data_path', help='[INPUT] a path to directory with resistance data',
+              type=click.Path(), required=False)
+@click.option('-q', '--output_path', help='[OUTPUT] a path where or the results of resistance analysis '
+                                          'are saved', type=click.Path(), required=False)
+@click.option('-s', '--status', help='[INPUT] Status filed for json output',
+              type=click.Choice(['tak', 'nie', 'blad'], case_sensitive=False),  required=True)
+@click.option('-r', '--error', help='[INPUT] PREDEFINED error message that is put in json. '
+                                    'Only used when status was set to nie or blad',
+              type=str,  required=False, default="")
+@click.option('-o', '--output_json', help='[Output] Name of a file with json output',
+              type=str,  required=True)
+def main_program(status, output_json, input_fasta, subtype, sample_name, data_path, output_path, error=""):
+    if status != "tak":
+        json_output = {"resistance_status": status,
+                       "resistance_error_message": error}
+        with open(output_json, 'w') as f1:
+            f1.write(json.dumps(json_output, indent=4))
+        return True
+    else:
+
+        plik_fasta = input_fasta  # plik z sekwencjami bialek, moze byc multifasta
+        podtyp = subtype  # podtyp analizowanego wirusa (obslugujem H1N1, H3N2, H5N1, H7N9, Yamagata, Victoria)
+        sample_name = sample_name  # nazwa sample uzywana bedzie w podplikach tworzonych wprzez skrypt
+        data_dir = data_path  # sciezka gdzie trzymane sa dane w kontenerze
+        output_dir = output_path  # sciezka w ktorym katalogu zapisywac wyniki
+
+        error_msg_NA = ""  # Error dla analizy opornosci zwiazanych z egmentem NA
+                          # ze wzgledu na charakter analizy bedzie rosl wraz z pojawiajacymi sie bledami
+        error_msg_PA = ""  # j.w. dla segmentu PA. JESLI oba stringi beda nie-puste status analizy zmieni sie na blad.
+
+        # Definicja zmiennych
+        lista_mutacji_NA_opornosc_oselt = ['UNK']
+        lista_mutacji_NA_opornosc_zana = ['UNK']
+        lista_mutacji_NA_opornosc_pera = ['UNK']
+        lista_mutacji_NA_opornosc_lani = ['UNK']
+        lista_mutacji_PA_opornosc_balo = ['UNK']
+
+        status_oselt = 'UNK'
+        status_zana = 'UNK'
+        status_pera = 'UNK'
+        status_lani = 'UNK'
+        status_balo = 'UNK'
+
+        # plik* to obiekty clasy templfile ich nazwa jest w obiek.name, trzymaja genomiczna sekwencje danego segmentu
+        plik_referencja_NA = f"/{data_dir}/resistance/{podtyp}/{podtyp}_NA_reference.fasta"
+        opornosci_NA = f"{data_dir}/resistance/{podtyp}/{podtyp}_NA_resistance.txt"
+        N2_mapping_table = f"{data_dir}/resistance/{podtyp}/N2_numbering.txt"
+
+        ref_N2_lookup = {}
+        with open(N2_mapping_table) as f:
+            for line in f:
+                line = line.split()
+                line[-1] = line[-1].rstrip()
+                ref_N2_lookup[line[0]] = line[1]
+
+        plik_fasta_NA, error_NA_file = get_fasta(input_fasta=plik_fasta,
+                                                 what='NA',
+                                                 sample=sample_name)
+
+        if error_NA_file != "":
+            error_msg_NA += error_NA_file
+            # Na tym eapie nie ma sekwencji bialka NA w input
+        else:
+            # mam sekwencje bialka NA sprawdzam jego jakosc
+            tekst_NA_protein, stosunek_NA_protein = check_quality_protein_sequence(plik=plik_fasta_NA.name)
+            if stosunek_NA_protein > 0.2:
+                # sekwencja bialka NA zawiera zbyd duzo N i X
+                error_msg_NA += tekst_NA_protein
+            else:
+                # Na tym etapie mam sekwncje bialka NA o dobrej jakosc moge przystapic do analizy
+                NA_alignment = align_fasta(plik_fasta_NA.name, plik_referencja_NA)
+                NA_ref_header = get_fasta_header(plik_referencja_NA)
+                NA_target_header = get_fasta_header(plik_fasta_NA.name)
+                if NA_ref_header == NA_target_header:
+                    raise Exception(f'Sekwencje NA maja taki sam header, wychodze')
+                # To pisze w miejscu wywolania i po pierwsze tworzy liste mutacji
+                # w postaci {aminokwas_referencyjny}_{numer w referncji}_{aminokwas w target}
+                # delecje i insercje opisane sa w postaci f'del_{poczatek_delecji}_{poczatek_delecji+dlugosc_delecji}'
+                # i f'{ref_seq[poczatek_insercji - 1]}{poczatek_insercji}ins{dlugosc_insercji}'
+
+
+                # Mutacje lda json dla pola mutation_list_data_reference_numbering
+
+                lista_mutacji_reference_NA = determine_muation(ref_seq=NA_alignment[NA_ref_header],
+                                                               target_seq=NA_alignment[NA_target_header])
+
+                # "Odwracamy" co jest ref a co targetem, dostajemy liste mutacji dla json dla pla
+                # mutation_list_data
+
+                lista_mutacji_targetu_NA = determine_muation(target_seq=NA_alignment[NA_ref_header],
+                                                             ref_seq=NA_alignment[NA_target_header])
+
+                # W tym slowniku trzymamy odpowiadajace sobie mutacje z 2 roznych systemow numeracji
+                ref_target_lookup = {}
+                for ref_mutation, target_mutation in zip(lista_mutacji_reference_NA, lista_mutacji_targetu_NA):
+                    ref_target_lookup[ref_mutation] = target_mutation
+
+                with open(f'{output_dir}/Mutation_report_NA.txt', 'w') as f:
+                    f.write(f'{sample_name}\t{";".join(lista_mutacji_reference_NA)}\n')
+                    f.write(f'{sample_name}_reverse\t{";".join(lista_mutacji_targetu_NA)}\n')
+
+                # slowniki opornosci
+                slownik_opornosci_oseltamivir_NA, \
+                    slownik_opornosci_zanamivir_NA, \
+                    slownik_opornosci_peramivir_NA, \
+                    slownik_opornosci_laninamivir_NA = parse_resistance_NA(opornosci_NA)
+
+                # wyniki
+
+                slownik_mutacji_NA_opornosc_oselt, status_oselt = get_sample_status(lista_mutacji_reference_NA,
+                                                                                  slownik_opornosci_oseltamivir_NA)
+
+                slownik_mutacji_NA_opornosc_zana, status_zana = get_sample_status(lista_mutacji_reference_NA,
+                                                                                slownik_opornosci_zanamivir_NA)
+
+                slownik_mutacji_NA_opornosc_pera, status_pera = get_sample_status(lista_mutacji_reference_NA,
+                                                                                slownik_opornosci_peramivir_NA)
+
+                slownik_mutacji_NA_opornosc_lani, status_lani = get_sample_status(lista_mutacji_reference_NA,
+                                                                                slownik_opornosci_laninamivir_NA)
+
+                # w liscie lista_mutacji_NA_opornosc_* mamy de facto mutacje zgodnie z numeracja referencji
+                # ale z dokumentu WHO (czyli np. mielismy dwie mutacje H275Y i I436N, ktore w dokumencie WHO
+                # wystepuja jako H275Y+I436N musimy wiec
+                # A.zachowac ta wartosc
+                # B dodac ta samo wartosc ale w numeracji naszej probki "Y275H+N430N". To mamy w ref_target_lookup
+                # C. dodac jak numerowane bylyby te zmiany wzgledem sekwencji N2. To mamy w ref_N2_lookup
+
+                oseltamivir_json = prepare_json_for_drug(drug_name="Oseltamivir",
+                                                         drug_status=status_oselt,
+                                                         mutation_slownik_mutacji_ref=slownik_mutacji_NA_opornosc_oselt,
+                                                         ref_N2_lookup_local=ref_N2_lookup,
+                                                         ref_target_lookup_local=ref_target_lookup)
+
+                zanamivir_json = prepare_json_for_drug(drug_name="Zanamivir",
+                                                       drug_status=status_zana,
+                                                       mutation_slownik_mutacji_ref=slownik_mutacji_NA_opornosc_zana,
+                                                       ref_target_lookup_local=ref_target_lookup)
+
+                peramivir_json = prepare_json_for_drug(drug_name="Peramivir",
+                                                       drug_status=status_pera,
+                                                       mutation_slownik_mutacji_ref=slownik_mutacji_NA_opornosc_pera,
+                                                       ref_N2_lookup_local=ref_N2_lookup,
+                                                       ref_target_lookup_local=ref_target_lookup)
+
+                laninamivir_json = prepare_json_for_drug(drug_name="Laninamivir",
+                                                         drug_status=status_lani,
+                                                         mutation_slownik_mutacji_ref=slownik_mutacji_NA_opornosc_lani,
+                                                         ref_N2_lookup_local=ref_N2_lookup,
+                                                         ref_target_lookup_local=ref_target_lookup)
+
+        baloxavir_json = {}
+        if podtyp in ['H1N1', 'H3N2', 'Yamagata', 'Victoria']:
+            # opornosci na PA sa znane tylko dala tych podtypow
+
+            plik_referencja_PA = f"/{data_dir}/resistance/{podtyp}/{podtyp}_PA_reference.fasta"
+            opornosci_PA = f"/{data_dir}/resistance/{podtyp}/{podtyp}_PA_resistance.txt"
+
+            plik_fasta_PA, error_PA_file = get_fasta(input_fasta=plik_fasta,
+                                                     what='PA',
+                                                     sample=sample_name)
+            if error_PA_file != "":
+                error_msg_PA += error_PA_file
+                # Na tym eapie nie ma sekwencji bialka NA w input
+            else:
+                tekst_PA_protein, stosunek_PA_protein = check_quality_protein_sequence(plik=plik_fasta_PA.name)
+                if stosunek_PA_protein > 0.2:
+                    # sekwencja bialka NA zawiera zbyd duzo N i X
+                    error_msg_PA += tekst_PA_protein
+                else:
+
+                    PA_alignment = align_fasta(plik_fasta_PA.name, plik_referencja_PA)
+                    PA_ref_header = get_fasta_header(plik_referencja_PA)
+                    PA_target_header = get_fasta_header(plik_fasta_PA.name)
+                    if PA_ref_header == PA_target_header:
+                        raise Exception(f'Sekwencje PA maja taki sam header, wychodze')
+
+                    lista_mutacji_reference_PA = determine_muation(ref_seq=PA_alignment[PA_ref_header],
+                                                                   target_seq=PA_alignment[PA_target_header])
+
+                    lista_mutacji_targetu_PA = determine_muation(target_seq=PA_alignment[PA_ref_header],
+                                                                 ref_seq=PA_alignment[PA_target_header])
+
+                    ref_target_lookup = {}
+                    for ref_mutation, target_mutation in zip(lista_mutacji_reference_PA, lista_mutacji_targetu_PA):
+                        ref_target_lookup[ref_mutation] = target_mutation
+
+
+                    slownik_opornosci_baloxavir_PA = parse_resistance_PA(opornosci_PA)
+                    lista_mutacji_PA_opornosc_balo, status_balo = get_sample_status(lista_mutacji_reference_PA,
+                                                                                    slownik_opornosci_baloxavir_PA)
+
+                    baloxavir_json = prepare_json_for_drug(drug_name="Baloxavir",
+                                                           drug_status=status_balo,
+                                                           mutation_slownik_mutacji_ref=lista_mutacji_PA_opornosc_balo,
+                                                           ref_target_lookup_local=ref_target_lookup)
+
+        if len(error_msg_NA) > 0 and len(error_msg_PA) > 0:
+            # dla obu bialek tego sample'a byl jaks blad
+            json_output = {"resistance_status": "blad",
+                           "resistance_error_message": f'{error_msg_NA}\t{error_msg_PA}'}
+        else:
+
+            resistance_data_to_json = []
+            resistance_data_to_json.append(oseltamivir_json)
+            resistance_data_to_json.append(zanamivir_json)
+            resistance_data_to_json.append(peramivir_json)
+            resistance_data_to_json.append(laninamivir_json)
+            if len(list(baloxavir_json.keys())) > 0:
+                resistance_data_to_json.append(baloxavir_json)
+
+            json_output = {"resistance_status": "tak",
+                           "resistance_data": resistance_data_to_json}
+        with open(output_json, 'w') as f1:
+            f1.write(json.dumps(json_output, indent=4))
+        return True
+
+
+
 
 if __name__ == '__main__':
-    # Modyfikacja skryptu z 2023
-    # inputem jest fasta z bialkami (NA i PA)
-    # to jest wyolanie glownej funkcji dla pojedynczego sample'a
-    plik_fasta = sys.argv[1]  # plik z sekwencjami bialek, moze byc multifasta
-    podtyp = sys.argv[2]  # podtyp analizowanego wirusa (obslugujem H1N1, H3N2, H5N1, H7N9, Yamagata, Victoria)
-    sample_name = sys.argv[3]  # nazwa sample uzywana bedzie w podplikach tworzonych wprzez skrypt
-    data_dir = sys.argv[4]  # sciezka gdzie trzymane sa dane w kontenerze
-    output_dir = sys.argv[5]  # sciezka w ktorym katalogu zapisywac wyniki
-
-    # Definicja zmiennych
-    lista_mutacji_NA_opornosc_oselt = ['UNK']
-    lista_mutacji_NA_opornosc_zana = ['UNK']
-    lista_mutacji_PA_opornosc_balo = ['UNK']
-    status_oselt = 'UNK'
-    status_zana = 'UNK'
-    status_balo = 'UNK'
-
-    # plik* to obiekty clasy templfile ich nazwa jest w obiek.name, trzymaja genomiczna sekwencje danego segmentu
-    plik_referencja_NA = f"/{data_dir}/resistance/{podtyp}/{podtyp}_NA_reference.fasta"
-    opornosci_NA = f"{data_dir}/resistance/{podtyp}/{podtyp}_NA_resistance.txt"
-    plik_fasta_NA = get_fasta(input_fasta=plik_fasta, what='NA', sample=sample_name)
-    tekst_NA_genome, stosunek_NA_genome = check_protein_quality(plik_fasta_NA.name)
-    if stosunek_NA_genome > 0.2:
-        print('Sekwencja bialka NA zawiera ponad 20% N-ek, nie analizuje')
-
+    if len(sys.argv) == 1:
+        main_program(['--help'])
     else:
-        # alignment
-        NA_alignment = align_fasta(plik_fasta_NA.name, plik_referencja_NA)
-        NA_ref_header = get_fasta_header(plik_referencja_NA)
-        NA_target_header = get_fasta_header(plik_fasta_NA.name)
-        if NA_ref_header == NA_target_header:
-            raise Exception(f'Sekwencje NA maja taki sam header, wychodze')
-        # To pisze w miejscu wywolania i po pierwsze tworzy liste mutacji
-        # w postaci {aminokwas_referencyjny}_{numer w referncji}_{aminokwas w target}
-        # delecje i insercje opisane sa w postaci f'del_{poczatek_delecji}_{poczatek_delecji+dlugosc_delecji}'
-        # i f'{ref_seq[poczatek_insercji - 1]}{poczatek_insercji}ins{dlugosc_insercji}'
+        main_program(sys.argv[1:])
 
-        with open(f'{output_dir}/Mutation_report_NA.txt', 'w') as f:
-            lista_mutacji_NA = determine_muation(NA_alignment[NA_ref_header], NA_alignment[NA_target_header])
-            f.write(f'{sample_name}\t{";".join(lista_mutacji_NA)}\n')
-        # slowniki opornosci
-        slownik_opornosci_oseltamivir_NA, \
-            slownik_opornosci_zanamivir_NA, \
-            slownik_opornosci_peramivir_NA, \
-            slownik_opornosci_laninamivir_NA = parse_resistance_NA(opornosci_NA)
 
-        # wyniki
-        lista_mutacji_NA_opornosc_oselt, status_oselt = get_sample_status(lista_mutacji_NA, slownik_opornosci_oseltamivir_NA)
-        lista_mutacji_NA_opornosc_zana, status_zana = get_sample_status(lista_mutacji_NA, slownik_opornosci_zanamivir_NA)
-        lista_mutacji_PA_opornosc_balo, status_balo = ['UNK'], 'UNK'
-
-    if podtyp in ['H1N1', 'H3N2', 'Yamagata', 'Victoria']:
-        # opornosci na PA sa znane tylko dala tych podtypow
-        plik_referencja_PA = f"/{data_dir}/resistance/{podtyp}/{podtyp}_PA_reference.fasta"
-        opornosci_PA = f"/{data_dir}/resistance/{podtyp}/{podtyp}_PA_resistance.txt"
-        plik_fasta_PA = get_fasta(input_fasta=plik_fasta, what='PA', sample=sample_name)
-        tekst_PA_genome, stosunek_PA_genome = check_protein_quality(plik_fasta_PA.name)
-        if stosunek_PA_genome > 0.2:
-            print('Bialko PA zawiera ponad 20% N-ek, nie analizuje')
-        else:
-            PA_alignment = align_fasta(plik_fasta_PA.name, plik_referencja_PA)
-            PA_ref_header = get_fasta_header(plik_referencja_PA)
-            PA_target_header = get_fasta_header(plik_fasta_PA.name)
-            if PA_ref_header == PA_target_header:
-                raise Exception(f'Sekwencje PA maja taki sam header, wychodze')
-
-            with open(f'{output_dir}/Mutation_report_PA.txt', 'w') as f:
-                lista_mutacji_PA = determine_muation(PA_alignment[PA_ref_header], PA_alignment[PA_target_header])
-                f.write(f'{sample_name}\t{";".join(lista_mutacji_PA)}\n')
-
-            slownik_opornosci_baloxavir_PA = parse_resistance_PA(opornosci_PA)
-            lista_mutacji_PA_opornosc_balo, status_balo = get_sample_status(lista_mutacji_PA,
-                                                                            slownik_opornosci_baloxavir_PA)
-
-    # zapisywanie raportow
-    with open(f'{output_dir}/Mutation_report_only_resistance.txt', 'w') as f:
-        f.write(f'{sample_name}\t{";".join(lista_mutacji_NA_opornosc_oselt)}\t{";".join(lista_mutacji_NA_opornosc_zana)}\t{";".join(lista_mutacji_PA_opornosc_balo)}\n')
-
-    with open(f'{output_dir}/Output_for_EQA.txt', 'w') as f:
-        f.write(f'{plik_fasta}\t{status_oselt}\t{status_zana}\t{status_balo}\n')
