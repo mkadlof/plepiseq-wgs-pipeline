@@ -1,3 +1,4 @@
+Mutation	Oseltamivir	Zanamivir	Peramivir	Laninamivir
 H101L	NI (2−3)	RI (30−34)	HRI (688−791)	RI (4−5)
 G104E	HRI (87)	HRI (1220)	HRI (17724)	HRI (701)
 E105K	NI/RI (4–10)	NI/RI (1-42)	RI/HRI (6−681)	NI/RI (1–12)

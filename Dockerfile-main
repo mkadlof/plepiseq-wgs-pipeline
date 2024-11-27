@@ -493,8 +493,6 @@ ENV PATH="/home/bin/common:"\
 "/opt/nextalign:"\
 "/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
-
-# Combine the computation and setting the environment variable
 COPY .git/refs/heads/master /tmp/git_master_ref
 
 WORKDIR /home
