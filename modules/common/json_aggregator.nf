@@ -24,8 +24,7 @@ process json_aggregator_sars_illumina {
 
     script:
     """
-    version=`cat /tmp/git_master_ref | cut -b-8`
-    if [ -z \${version} ]; then version="unk"; fi
+    version=$(cat /tmp/git_master_ref 2>/dev/null | cut -b-8) || version="unknown"
 
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
@@ -71,8 +70,7 @@ process json_aggregator_rsv_illumina {
 
     script:
     """
-    version=`cat /tmp/git_master_ref | cut -b-8`
-    if [ -z \${version} ]; then version="unk"; fi
+    version=$(cat /tmp/git_master_ref 2>/dev/null | cut -b-8) || version="unknown"
 
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
@@ -118,10 +116,9 @@ process json_aggregator_influenza_illumina {
 
     script:
     """
-    version=`cat /tmp/git_master_ref | cut -b-8`
-    if [ -z \${version} ]; then version="unk"; fi
+    version=$(cat /tmp/git_master_ref 2>/dev/null | cut -b-8) || version="unknown"
 
-    touch ${sampleId}.json
+    echo '{}' > ${sampleId}.json
     """
 }
 
@@ -151,8 +148,7 @@ process json_aggregator_sars_nanopore {
 
     script:
     """
-    version=`cat /tmp/git_master_ref | cut -b-8`
-    if [ -z \${version} ]; then version="unk"; fi
+    version=$(cat /tmp/git_master_ref 2>/dev/null | cut -b-8) || version="unknown"
  
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
@@ -195,8 +191,7 @@ process json_aggregator_rsv_nanopore {
 
     script:
     """
-    version=`cat /tmp/git_master_ref | cut -b-8`
-    if [ -z \${version} ]; then version="unk"; fi
+    version=$(cat /tmp/git_master_ref 2>/dev/null | cut -b-8) || version="unknown"
 
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
@@ -238,10 +233,9 @@ process json_aggregator_influenza_nanopore {
 
     script:
     """
-    version=`cat /tmp/git_master_ref | cut -b-8`
-    if [ -z \${version} ]; then version="unk"; fi
+    version=$(cat /tmp/git_master_ref 2>/dev/null | cut -b-8) || version="unknown"
 
-    touch ${sampleId}.json
+    echo '{}' >  ${sampleId}.json
     """
 }
 
