@@ -184,6 +184,7 @@ COPY data/sarscov2/snpEff /opt/snpEff
 # Here goes all packages installed as python packages.
 # - Pangolin
 # - PycoQC
+# - Freyja
 FROM builder-base AS builder-python
 ARG PANGOLIN_VERSION
 COPY requirements.txt /
@@ -496,7 +497,6 @@ ENV PATH="/home/bin/common:"\
 #COPY .git/refs/heads/master /tmp/git_master_ref
 
 WORKDIR /home
-RUN apt install git -y; git clone https://github.com/andersen-lab/Freyja.git; cd Freyja/; pip install -e .; cd /home
 
 # updater container
 FROM python:3.11.8-slim-bookworm AS updater

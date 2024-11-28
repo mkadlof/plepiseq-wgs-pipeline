@@ -23,7 +23,7 @@ scipy==1.12.0
 iranges==0.2.3
 
 # Freya
-git+https://github.com/andersen-lab/Freyja.git@eb0a7c4
+git+https://github.com/andersen-lab/Freyja.git@311b7f9
 tqdm==4.66.2
 plotly==5.20.0
 
