@@ -1,12 +1,14 @@
 FROM centos:7.9.2009 AS builder-base
 
 LABEL maintainer="Michal Lazniewski <mlazniewski@pzh.gov.pl>"
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.utf-8
 
 # Workaround for missing repository
 # https://serverfault.com/questions/904304/could-not-resolve-host-mirrorlist-centos-org-centos-7
 COPY third-party/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo
 RUN yum install -y epel-release
-RUN yum install -y tar bzip2 make gcc gcc-c++ libstdc++-static zlib-devel vim which wget python-devel python2-pip xz-devel bzip2-devel libcurl-devel ncurses-devel
+RUN yum install -y tar bzip2 make gcc gcc-c++ libstdc++-static zlib-devel vim which wget python-devel python2-pip xz-devel bzip2-devel libcurl-devel ncurses-devel python3-devel
 ## END
 
 ## MANTA
@@ -94,4 +96,6 @@ ENV GENOME_ID="MN908947.3"
 ENV GENOME_FASTA="/home/data/sarscov2/genome/sarscov2.fasta"
 ## END
 
+RUN yum install -y python3-devel; pip3 install biopython click
+COPY bin/common/parse_make_consensus.py /home
 CMD ["/bin/bash"]

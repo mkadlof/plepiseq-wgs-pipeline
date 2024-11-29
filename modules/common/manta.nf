@@ -14,7 +14,7 @@ process introduce_SV_with_manta {
 
     output:
     tuple val(sampleId), path('output_consensus_masked_SV.fa'), path(ref_genome_with_index), env(QC_status_exit), emit: fasta_refgenome_and_qc
-    tuple val(sampleId), path('dummy_json.json'), emit: json
+    tuple val(sampleId), path('consensus.json'), emit: json
     // Dal ulatwienia ? na koniec tego segmentu polaczmy wszystkie segmenty w jeden plik, a jelsi dany modul downstream
     // bedzie wymagal sekwencji konkretnego segmentu to tam zrobimy split-a
 
@@ -34,13 +34,15 @@ process introduce_SV_with_manta {
     #    base_target=\$(basename "\$target")
     #    mv "\$link" "\$base_target"
     #done
-
-    touch dummy_json.json
+    export LC_ALL=en_US.utf-8
     if [[ ${QC_status_picard} == "nie"  && ${QC_status_consensus} == "nie" ]]; then
       
       # both consensus module and picard failed, dummy output
       touch output_consensus_masked_SV.fa
       QC_status_exit="nie"
+      ERR_MSG="Failed QC"
+      python3 /home/parse_make_consensus.py --status "nie" --error "\${ERR_MSG}" -o consensus.json
+
     elif [[ ${QC_status_picard} == "nie" &&  ${QC_status_consensus} == "tak" ]]; then
       # downsampling failed for ALL segemtns, but consensus produced valid output, ALL input fastas becomes  output files for their respective segemnts
       # We only change the header
@@ -52,8 +54,14 @@ process introduce_SV_with_manta {
         cat \${plik} | sed s"|\${HEADER}|\${HEADER}_SV|"g > \${plik_new_name}_SV.fasta
 
       done
+      
+      # make json
+      ls *_SV.fasta | tr " " "\\n" >> list_of_fasta.txt
+      python3 /home/parse_make_consensus.py --status "tak" -o consensus.json --input_fastas list_of_fasta.txt --output_path "${params.results_dir}/${sampleId}"
+      
+      # merge fastas of individual segments to a single file
       cat *SV.fasta >> output_consensus_masked_SV.fa
- 
+
     else
       QC_status_exit="tak"
       # For, at least, one segment we need to run manta ... however we do not know for which segment
@@ -102,6 +110,11 @@ process introduce_SV_with_manta {
           fi # koniec if-a na brak outputu manty
         fi # koniec if-a na zly coverage
       done # koniec petli na teracje po segmentach
+
+      # create json
+      ls *_SV.fasta | tr " " "\\n" >> list_of_fasta.txt
+      python3 /home/parse_make_consensus.py --status "tak" -o consensus.json --input_fastas list_of_fasta.txt --output_path "${params.results_dir}/${sampleId}"
+      
       # merge all fasta into a single file
       cat *SV.fasta >> output_consensus_masked_SV.fa  
     fi # koniec if-a na QC

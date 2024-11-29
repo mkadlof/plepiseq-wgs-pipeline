@@ -8,6 +8,12 @@ modules = "${params.projectDir}/modules" // Modules are part of the project_dir
 
 params.external_databases_path=""
 
+// All docker images used by this pipeline
+// All modules now require explicit information which of these images they use
+params.main_image = "nf_viral_main:1.1"
+params.manta_image = "nf_viral_manta:1.1"
+params.medaka_image = "ontresearch/medaka:sha447c70a639b8bcf17dc49b51e74dfcde6474837b-amd64"
+
 // // // // END END END END END // // // // //
 
 
@@ -47,12 +53,6 @@ params.max_number_for_SV = 100000
   println("Incorrect species, avalable options are : SARS-CoV-2, RSV or Influenza")
   System.exit(0)
 }
-
-// All docker images used by this pipeline
-// All modules now require explicit information which of these images they use
-params.main_image = "nf_viral_main:1.1"
-params.manta_image = "nf_viral_manta:1.0"
-params.medaka_image = "ontresearch/medaka:sha447c70a639b8bcf17dc49b51e74dfcde6474837b-amd64"
 
 // High-level parameters 
 params.memory = 4048
@@ -307,10 +307,10 @@ workflow{
 
     // Predicting sample's genome is identical
     indelQual_out = indelQual(pre_final_bam_and_genome)
-    freebayes_out = freeBayes(indelQual_out.bam_genome_and_qc)
-    lofreq_out = lofreq(indelQual_out.bam_genome_and_qc)
     lowCov_out = lowCov(indelQual_out.bam_genome_and_qc)
     varScan_out = varScan(indelQual_out.bam_genome_and_qc)
+    freebayes_out = freeBayes(indelQual_out.bam_genome_and_qc)
+    lofreq_out = lofreq(indelQual_out.bam_genome_and_qc)
     wgsMetrics_out = picard_wgsMetrics(indelQual_out.bam_genome_and_qc.join(filtering_out.json))
     all_sub_fastas = lowCov_out.fasta.join(varScan_out.fasta)
     all_sub_fastas = all_sub_fastas.join(freebayes_out)
@@ -468,7 +468,7 @@ workflow{
  
 
   if(params.machine == 'Illumina') {
-    for_json_aggregator = for_json_aggregator.join(consensus_out.json) // tylko illumina
+    for_json_aggregator = for_json_aggregator.join(final_genome_out.json)
   } else if (params.machine == 'Nanopore') {
     for_json_aggregator = for_json_aggregator.join(prefinal_genome_out.json) // tylko nanopore
   }
