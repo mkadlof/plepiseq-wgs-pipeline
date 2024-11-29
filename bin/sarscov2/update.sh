@@ -90,8 +90,9 @@ if [ "$1" == "all" ]; then
     update_database "kraken2"
     update_database "freyja"
     exit 0
+else
+  # Update the specified database
+  update_database "$1"
 fi
 
-# Update the specified database
-update_database "$1"
 exit $?
