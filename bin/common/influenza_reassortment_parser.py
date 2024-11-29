@@ -39,8 +39,8 @@ def parse_intermediate(plik):
     reference_genome_data = []
     for element in segment_dict:
         segment_name, segment_reference = segment_dict[element]
-        reference_genome_data.append({"segment": segment_name,
-                                      "podtyp_referencyjny" : segment_reference.split('_')[0]})
+        reference_genome_data.append({"segment_name": segment_name,
+                                      "reference_subtype_name" : segment_reference.split('_')[0]})
 
 
     if len(np.unique(list_of_refernces)) > 1:
