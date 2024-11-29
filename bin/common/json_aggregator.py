@@ -213,6 +213,8 @@ def json_aggregator(args):
                                 modeller=args.modeller,
                                 resistance=args.drug_resistance,
                                 reassortment=args.reassortment)
+    if args.mapping:
+        output["output"]["viral_mapping_data"] = json.load(open(args.mapping))
 
     with open("output.json", "w") as f:
         json.dump(output, f, indent=4)
@@ -237,6 +239,7 @@ def main():
     parser.add_argument('--modeller', help="Output for modeller module")
     parser.add_argument('--reassortment', help="Output for reassortment module for influenza")
     parser.add_argument('--drug_resistance', help="Output for drug resistance analysis for influenza")
+    parser.add_argument('--mapping', help="Output of bwa/minimap2 module")
 
     args = parser.parse_args()
     args.pathogen = normalize_pathogen(args.pathogen)

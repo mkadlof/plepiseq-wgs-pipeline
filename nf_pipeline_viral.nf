@@ -449,14 +449,20 @@ workflow{
     for_json_aggregator = for_json_aggregator.join(fastqc_filtered_out.json) // only fo illumina for nanopore dummy process is used to prodeuce json channel
   }
 
+  if ( params.species  == 'Influenza' ) {
+    for_json_aggregator = for_json_aggregator.join(detect_type_out.json)
+  }
+
+  if(params.machine == 'Illumina') {
+    for_json_aggregator = for_json_aggregator.join(bwa_out.json)
+  } else if (params.machine == 'Nanopore') {
+    for_json_aggregator = for_json_aggregator.join(minimap2_1_out.json)
+  }
+
   if ( params.species  == 'SARS-CoV-2' ) {
     for_json_aggregator = for_json_aggregator.join(coinfection_json)
   }
 
-  if ( params.species  == 'Influenza' ) {
-    for_json_aggregator = for_json_aggregator.join(detect_type_out.json)
-  }
- 
   for_json_aggregator = for_json_aggregator.join(dehumanization_out.json) 
   for_json_aggregator = for_json_aggregator.join(wgsMetrics_out.json)
  

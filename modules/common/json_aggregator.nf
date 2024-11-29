@@ -8,6 +8,7 @@ process json_aggregator_sars_illumina {
     tuple val(sampleId), path(fastqc_pre_json_forward), path(fastqc_pre_json_reverse),
           path(kraken_contamination),
           path(fastqc_post_json_forward), path(fastqc_post_json_reverse),
+          path(mapping_json),
           path(freyja),
           path(coinfection),
           path(dehumanized),
@@ -44,7 +45,8 @@ process json_aggregator_sars_illumina {
                         --pangolin "${pangolin_json}" \
                         --nextclade "${nextclade_json}" \
                         --modeller "${modeller}" \
-                        --snpeff ${snpeff}
+                        --snpeff "${snpeff}" \
+                        --mapping "${mapping_json}"
 
     mv output.json ${sampleId}.json
     """
@@ -60,6 +62,7 @@ process json_aggregator_rsv_illumina {
     tuple val(sampleId), path(fastqc_pre_json_forward), path(fastqc_pre_json_reverse),
           path(kraken_contamination),
           path(fastqc_post_json_forward), path(fastqc_post_json_reverse),
+          path(mapping_json),
           path(dehumanized),
           path(wgsMetrics),
           path(consensus_json),
@@ -91,7 +94,8 @@ process json_aggregator_rsv_illumina {
                         --consensus "${consensus_json}" \
                         --pangolin "${pangolin_json}" \
                         --nextclade "${nextclade_json}" \
-                        --snpeff ${snpeff}
+                        --snpeff ${snpeff} \
+                        --mapping "${mapping_json}"
 
     mv output.json ${sampleId}.json
     """
@@ -109,6 +113,7 @@ process json_aggregator_influenza_illumina {
           path(kraken_contamination),
           path(fastqc_post_json_forward), path(fastqc_post_json_reverse),
           path(reassortment_json),
+          path(mapping_json),
           path(dehumanized),
           path(wgsMetrics),
           path(consensus_json),
@@ -144,7 +149,8 @@ process json_aggregator_influenza_illumina {
                         --snpeff ${snpeff} \
                         --modeller ${modeller} \
                         --reassortment ${reassortment_json} \
-                        --drug_resistance ${resistance_json}
+                        --drug_resistance ${resistance_json} \
+                        --mapping "${mapping_json}"
 
 
     mv output.json ${sampleId}.json
@@ -161,6 +167,7 @@ process json_aggregator_sars_nanopore {
     input:
     tuple val(sampleId), path(fastqc_pre_json_forward),
           path(kraken_contamination),
+          path(mapping_json),
           path(freyja),
           path(coinfection),
           path(dehumanized),
@@ -196,7 +203,8 @@ process json_aggregator_sars_nanopore {
                         --pangolin "${pangolin_json}" \
                         --nextclade "${nextclade_json}" \
                         --modeller "${modeller}" \
-                        --snpeff ${snpeff}
+                        --snpeff ${snpeff} \
+                        --mapping "${mapping_json}"
 
     mv output.json ${sampleId}.json
     """
@@ -211,6 +219,7 @@ process json_aggregator_rsv_nanopore {
     input:
     tuple val(sampleId), path(fastqc_pre_json_forward),
           path(kraken_contamination),
+          path(mapping_json),
           path(dehumanized),
           path(wgsMetrics),
           path(consensus_json),
@@ -240,7 +249,8 @@ process json_aggregator_rsv_nanopore {
                         --consensus "${consensus_json}" \
                         --pangolin "${pangolin_json}" \
                         --nextclade "${nextclade_json}" \
-                        --snpeff ${snpeff}
+                        --snpeff ${snpeff} \
+                        --mapping "${mapping_json}"
 
     mv output.json ${sampleId}.json
     """
@@ -256,6 +266,7 @@ process json_aggregator_influenza_nanopore {
     tuple val(sampleId), path(fastqc_pre_json_forward),
           path(kraken_contamination),
           path(reassortment_json),
+          path(mapping_json),
           path(dehumanized),
           path(wgsMetrics),
           path(consensus_json),
@@ -289,7 +300,8 @@ process json_aggregator_influenza_nanopore {
                         --snpeff ${snpeff} \
                         --modeller ${modeller} \
                         --reassortment ${reassortment_json} \
-                        --drug_resistance ${resistance_json}
+                        --drug_resistance ${resistance_json} \
+                        --mapping "${mapping_json}"
 
     mv output.json ${sampleId}.json
     """
