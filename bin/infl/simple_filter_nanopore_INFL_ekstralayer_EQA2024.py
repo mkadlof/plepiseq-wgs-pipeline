@@ -58,8 +58,10 @@ def get_amplikon_coverage_in_windows(dlugosci_segmentow, bam_file, segment_id, s
         slownik_pokrycia[klucz] = np.mean(wektor_pokrycia[start:end])
     return slownik_pokrycia
 
+
 def calculate_coverage_in_windows():
     pass
+
 
 def coverage_smoothing():
     pass
@@ -83,6 +85,7 @@ def run_mode_single(bam_file: str, chr_id: str, cycles: int, output_bam: str) ->
         last_covered = -1
     output_bam.close()
 
+
 def read_genome_boundaries(fasta):
     """
     Wprawdzie w influenza tez korzystamy z primerow ale sa one wspolne dla wszystkich
@@ -91,10 +94,10 @@ def read_genome_boundaries(fasta):
     :param fasta: sciezka do pliku fasta z genmem
     :return:
     """
-    dlugosci_segmentow= {}
-    genome = sequences = SeqIO.parse(fasta, "fasta")
+    dlugosci_segmentow = {}
+    genome = SeqIO.parse(fasta, "fasta")
     for segment in genome:
-        dlugosci_segmentow[segment.id] =  len(segment.seq)
+        dlugosci_segmentow[segment.id] = len(segment.seq)
     return dlugosci_segmentow
 
 def read_amplicon_scheme_influenza(bed, bed_offset = 0):
@@ -256,85 +259,6 @@ def _write_reads_strict_inner(initial_bam, final_bam, reject_bam,  statystyki, s
 
     return slownik_amplikonow_uzycie, slownik_amplikonow_uzycie_left, slownik_amplikonow_uzycie_right
 
-def _write_reads_overshot(initial_bam, final_bam, reject_bam, statystyki, slownik_amplikonow_outer,
-                      slownik_amplikonow_inner, slownik_amplikonow_uzycie, slownik_amplikonow_uzycie_left,
-                      slownik_amplikonow_uzycie_right, cap):
-    """
-     Ta funkcja zapisuje ready ktore sa primer, co w grypie oznacza ze obejmuja caly segment
-    w przypadku metagenomowych probek gdzie nie ma primerow odczyt i tak moglby sie zaczynac tam
-    gdzie jest primer
-
-    ----------PRIMERL--------------------------PRIMERR--------------
-    --------xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx----------- (przestrzelone oba primery na zewnatrz)
-    --------xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx----------------- (przestrzelony primer L na zewnatrz)
-    -------------------xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx--------- (przestrzelony primer R na zewnatrz)
-    -------------------xxxxxxxxxxxxxxxxxxxxx------------------------ (przestrzelone primery L i R wewnatrz)
-    :param initial_bam: Plik bam z odczytami
-    :param final_bam:  Plik bam gdzie zapisujemy dobre odczyty
-    :param reject_bam:  Plik bam gdzie zapisujemy pozostale odczyty
-    :param statystyki: Otwarte lacze do pliku ze statystykami
-    :param slownik_amplikonow_outer: Granice zewnetrzne primerow (de facto konce amplikonow)
-    :param slownik_amplikonow_inner:
-    :param slownik_amplikonow_uzycie:
-    :param slownik_amplikonow_uzycie_left:
-    :param slownik_amplikonow_uzycie_right:
-    :param cap:
-    :return:
-    """
-
-    all_reads = pysam.AlignmentFile(initial_bam, "rb", require_index=False)
-    pass_reads = pysam.AlignmentFile(final_bam, "wb", template=all_reads)
-    reject_reads = pysam.AlignmentFile(reject_bam, "wb", template=all_reads)
-    # uwaga pysam bierze koordynaty z bam-a z 1-index na 0-index
-
-
-    for read in all_reads:
-        done = False
-
-        reference_start = read.reference_start
-        reference_end = read.reference_end
-        reference_name = read.reference_name
-
-
-        begin_amplikon_L = slownik_amplikonow_outer[reference_name]['LEFT']
-        end_amplikon_L = slownik_amplikonow_inner[reference_name]['LEFT']
-
-        begin_amplikon_R = slownik_amplikonow_inner[reference_name]['RIGHT']
-        end_amplikon_R = slownik_amplikonow_outer[reference_name]['RIGHT']
-
-
-
-        if begin_amplikon_L <= reference_start < (end_amplikon_L + overshoot)  \
-                and end_amplikon_R > reference_end >= (begin_amplikon_R - overshoot) \
-                and not done \
-                and slownik_amplikonow_uzycie[reference_name] <= cap:
-            # Aby 'zbalansowac' odczyty prz starcie amplikonu (przez sort-a sa zawsze wczesniej) jesli
-            # primer lewy musi byc uzywany mniej niz cap/2
-            slownik_amplikonow_uzycie_left[reference_name] += 1
-            slownik_amplikonow_uzycie_right[reference_name] += 1
-            slownik_amplikonow_uzycie[reference_name] += 1
-
-            pass_reads.write(read)
-            done = True
-            statystyki.write(
-                f"{read.qname}\t{reference_name}\t{reference_start}\t{reference_end}\tinside_amplicon {reference_name} overshoot\n")
-        elif begin_amplikon_L  <= reference_start < (end_amplikon_L + overshoot)  \
-                and end_amplikon_R > reference_end >= (begin_amplikon_R - overshoot) \
-                and not done \
-                and slownik_amplikonow_uzycie[reference_name] > cap:
-            done = True
-            statystyki.write(
-                f"{read.qname}\t{reference_name}\t{reference_start}\t{reference_end}\tinside_amplicon {reference_name} overshoot  cap\n")
-
-        if not done:
-            reject_reads.write(read)
-
-    pass_reads.close()
-    reject_reads.close()
-    all_reads.close()
-    return slownik_amplikonow_uzycie, slownik_amplikonow_uzycie_left, slownik_amplikonow_uzycie_right
-
-
 def filter_reads(initial_bam, final_bam, dlugosci_segmentow, statystyki, mapq = 30, min_overlap = 0.6, max_overlap = 1.2,
                  min_alignment_overlap = 0.65, ):
     """
@@ -465,6 +389,39 @@ def write_reads_strict_inner(initial_bam, final_bam, reject_bam,  statystyki, sl
 
 
 
+def get_primer_usage(initial_bam, slownik_amplikonow_outer, slownik_amplikonow_inner):
+    """
+    Funkcja do wyciagania informacji o ilosci odczytow mapujacych sie na dany region  wgenomie
+    odpowiadajacy lokalizacji primerow
+    @param initial_bam: Sciezka do pliku bam do anlizy
+    @type initial_bam: basestring
+    @param slownik_amplikonow_outer: slownik z informacja o granicach primerow (wartosci blizsze 3' i 5' koncom)
+    @type slownik_amplikonow_outer: dict
+    @param slownik_amplikonow_inner: slownik z informacja o granicach primerow (wartosc idalsze od 3' i 5')
+    @type slownik_amplikonow_inner: dict
+    @return: slownik z informacja jakie jest uzycie danego primeru
+    @rtype: dict
+    """
+
+    uzycie_primerow = {}
+    all_reads = pysam.AlignmentFile(initial_bam, "rb")
+    for contig in slownik_amplikonow_outer.keys():
+        left_priner_start, left_primer_end =   (slownik_amplikonow_outer[contig]['LEFT'],
+                                                slownik_amplikonow_inner[contig]['LEFT'])
+        right_priner_start, right_primer_end = (slownik_amplikonow_inner[contig]['RIGHT'],
+                                                slownik_amplikonow_outer[contig]['RIGHT'])
+        reads_left_primer = all_reads.fetch(contig=contig, start=left_priner_start, stop=left_primer_end)
+        reads_right_primer = all_reads.fetch(contig=contig, start=right_priner_start, stop=right_primer_end)
+        primer_usage = 0
+        for x in reads_left_primer:
+            primer_usage += 1
+        for x in reads_right_primer:
+            primer_usage += 1
+
+        uzycie_primerow[contig] = primer_usage
+
+    return uzycie_primerow
+
 if __name__ == '__main__':
     all_read = sys.argv[1]  # posortowany output z minimap-a
     bed = sys.argv[2]  # plik bed z primerami
@@ -484,6 +441,8 @@ if __name__ == '__main__':
 
     #0 Wczytanie informacji o dlugosci segmentow
     dlugosci_segmentow = read_genome_boundaries(reference_genome)
+
+
 
     #1 standardowe filtrowanie
     filter_reads(initial_bam = all_read,
@@ -507,6 +466,10 @@ if __name__ == '__main__':
         slownik_amplikonow_uzycie, slownik_amplikonow_uzycie_left, \
         slownik_amplikonow_uzycie_right = read_amplicon_scheme_influenza(bed=bed,
                                                                  bed_offset = bed_offset)
+
+    slownik_uzycie_primerow = get_primer_usage(initial_bam=all_read,
+                                               slownik_amplikonow_inner=slownik_amplikonow_inner,
+                                               slownik_amplikonow_outer=slownik_amplikonow_outer)
 
 
     #2 W Pierwszym kroku zapisujemy odczyty ktore zaczynaja sie lub koncza w primerach (koncach segmentow)
@@ -547,9 +510,9 @@ if __name__ == '__main__':
                 # nie analizuj dobrych segemtow
                 continue
 
-            print(f'Dla segmentu {segment} nastepujace okna maja niskie uzycie: {" ".join(map(str, indeksy_slabych_pokryc))}\n')
-            print('Odpowiada to zakresom\n')
-            print(zakresy_zlabych_okien)
+            # print(f'Dla segmentu {segment} nastepujace okna maja niskie uzycie: {" ".join(map(str, indeksy_slabych_pokryc))}\n')
+            # print('Odpowiada to zakresom\n')
+            # print(zakresy_zlabych_okien)
 
             all_reads = pysam.AlignmentFile('reject_inner_strict.bam', "rb", require_index=False)
             pass_reads = pysam.AlignmentFile(f'{segment}_ekstra.bam', "wb", template=all_reads)
@@ -626,3 +589,8 @@ if __name__ == '__main__':
         # wysatrcz podmienic nazwe pliku
         pysam.sort('-o', 'to_clip_sorted.bam', 'reads_inner_strict.bam')
         #pysam.index('to_clip_sorted.bam')
+
+    with open('Primer_usage.txt', "w") as f:
+        f.write('Segment\tPrimer_number\tPrimare_usage\n')
+        for klucz, wartosc in slownik_uzycie_primerow.items():
+            f.write(f'{klucz}\t1\t{wartosc}\n')
