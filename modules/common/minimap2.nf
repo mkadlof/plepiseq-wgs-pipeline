@@ -34,11 +34,11 @@ process minimap2 {
       if [ \${NO_READS} -lt ${params.min_number_of_reads} ]; then
         QC_exit="nie"
         ERR_MSG="There are less than ${params.min_number_of_reads} mapping to reference genome"
-        echo -e "{\\"status\\":\\"\\blad\\", \
+        echo -e "{\\"status\\":\\"blad\\", \
                   \\"error_message\\": \\"\${ERR_MSG}\\"}" >> mapping.json
       else
         QC_exit="tak"
-        echo -e "{\\"status\\":\\"\\tak\\", \
+        echo -e "{\\"status\\":\\"tak\\", \
                   \\"mapped_reads_number\\": \${NO_READS}}" >> mapping.json
       fi  # if na brak poprawnych odczytow po mapowaniu
     fi # if na QC status
