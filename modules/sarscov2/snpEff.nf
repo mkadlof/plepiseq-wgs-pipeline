@@ -1,7 +1,7 @@
 process snpEff_illumina {
     tag "snpEff:${sampleId}"
     container  = params.main_image
-    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}_detected_variants_consensus_annotated.txt"
+    // publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}_detected_variants_consensus_annotated.txt"
 
     input:
     tuple val(sampleId), path(consensus_vcf_gz), path(consensus_vcf_gz_tbi), path(ref_genome_with_index), val(QC_status_vcf), path('forvariants.bam'), path('forvariants.bam.bai'), val(QC_status) 
@@ -84,7 +84,7 @@ process snpEff_illumina {
 process snpEff_nanopore {
     tag "snpEff:${sampleId}"
     container  = params.main_image
-    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}_detected_variants_consensus_annotated.txt"
+    // publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}_detected_variants_consensus_annotated.txt"
 
     input:
     tuple val(sampleId), path(consensus_vcf_gz), path(consensus_vcf_gz_tbi), path(ref_genome_with_index), val(QC_status_vcf), path('forvariants.bam'), path('forvariants.bam.bai'), val(QC_status)

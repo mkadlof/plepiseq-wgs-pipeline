@@ -1,7 +1,7 @@
 process vcf_for_fasta {
     tag "vcf_for_fasta:${sampleId}"
     container  = params.main_image
-    publishDir "${params.results_dir}/${sampleId}/consensus_vcf", mode: 'copy', pattern: "*vcf*"
+    // publishDir "${params.results_dir}/${sampleId}/consensus_vcf", mode: 'copy', pattern: "*vcf*"
 
     input:
     tuple val(sampleId), path('output_consensus_masked_SV.fa'), path(ref_genome_with_index), val(QC_status)

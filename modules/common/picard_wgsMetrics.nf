@@ -9,7 +9,7 @@ process picard_wgsMetrics {
 
     output:
     tuple val(sampleId), path("viral_genome_data.json"), emit: json
-
+    tuple val(sampleId), path("${sampleId}_coverage_barplot_*"), path("${sampleId}_coverage_histogram.csv"), emit: to_pubdir
     script:
     """
     if [ ${QC_status} == "nie" ]; then
@@ -63,6 +63,9 @@ process picard_wgsMetrics {
                       --output_path "${params.results_dir}/${sampleId}/" \
                       --status "tak" \
                       --output viral_genome_data.json
+      
+      cp coverage_histogram.csv ${sampleId}_coverage_histogram.csv
+      sed -i s"/coverage_histogram.csv/${sampleId}_coverage_histogram.csv/"g viral_genome_data.json
 
 
     fi

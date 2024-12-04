@@ -4,8 +4,10 @@ process run_fastqc_nanopore {
 
   tag "fastqc for sample ${sampleId}"
   container  = params.main_image
-  publishDir "${params.results_dir}/${sampleId}/QC", mode: 'copy'
-  publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "*.json"
+  publishDir "${params.results_dir}/${sampleId}/QC", mode: 'copy', pattern: "*reads_quality_histogram.csv"
+  publishDir "${params.results_dir}/${sampleId}/QC", mode: 'copy', pattern: "*reads_length_histogram.csv"
+  publishDir "${params.results_dir}/${sampleId}/QC", mode: 'copy', pattern: "*position_quality_plot.csv"
+  // publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "*.json"
 
   input:
   tuple val(sampleId), path(reads), val(QC_STATUS)
@@ -32,6 +34,9 @@ process run_fastqc_nanopore {
 
   if [ \${STATUS_FORWARD} != "tak" ]; then
     QC_STATUS_EXIT="nie"
+    touch reads_quality_histogram.csv
+    touch reads_length_histogram.csv
+    touch position_quality_plot.csv
   else
     QC_STATUS_EXIT="tak"
   fi

@@ -32,7 +32,7 @@ def parse_picard(plik, coverage_histogram_out):
             if valid_line_histogram:
                 try:
                     line = line.split()
-                    f1.write(f'{i},{line[0]},{line[1]}')
+                    f1.write(f'{i},{line[0]},{line[1]}\n')
                     i += 1
                 except IndexError:
                     valid_line_histogram = False
@@ -64,7 +64,7 @@ def main_program(status, output, input_file_picard, input_file_primers, input_fi
         json_output = {"status": status,
                        "error_message": error}
     else:
-        coverage_histogram_file = "coverage_histogram_out"
+        coverage_histogram_file = "coverage_histogram.csv"
         average_coverage = parse_picard(plik=input_file_picard,
                                         coverage_histogram_out=coverage_histogram_file)
         coverage_barplot_data = []

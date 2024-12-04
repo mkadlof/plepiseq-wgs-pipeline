@@ -1,14 +1,14 @@
 process freyja {
     tag "freyja:${sampleId}"
     container  = params.main_image
-    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "coinfections.tsv"
+    // publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "coinfections.tsv"
     containerOptions "--volume ${params.external_databases_path}:/home/external_databases/"
 
     input:
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), path(ref_genome_with_index), val(QC_status)
 
     output:
-    tuple val(sampleId), path('coinfections.tsv'), emit: to_pubdir
+    // tuple val(sampleId), path('coinfections.tsv'), emit: to_pubdir
     tuple val(sampleId), path('coinfections_freyja.json'), emit: json
 
     script:

@@ -1,7 +1,7 @@
 process introduce_SV_with_manta {
     // This module iterates over all bam_file provided to this module via picard_downsample
     tag "manta:$sampleId"
-    publishDir "${params.results_dir}/${sampleId}/", mode: 'copy'
+    publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "*fasta"
     container = params.manta_image
 
     input:
@@ -15,6 +15,7 @@ process introduce_SV_with_manta {
     output:
     tuple val(sampleId), path('output_consensus_masked_SV.fa'), path(ref_genome_with_index), env(QC_status_exit), emit: fasta_refgenome_and_qc
     tuple val(sampleId), path('consensus.json'), emit: json
+    tuple val(sampleId), path('consensus_*.fasta'), emit: to_pubdir
     // Dal ulatwienia ? na koniec tego segmentu polaczmy wszystkie segmenty w jeden plik, a jelsi dany modul downstream
     // bedzie wymagal sekwencji konkretnego segmentu to tam zrobimy split-a
 
@@ -39,6 +40,7 @@ process introduce_SV_with_manta {
       
       # both consensus module and picard failed, dummy output
       touch output_consensus_masked_SV.fa
+      touch consensus_dummy.fasta
       QC_status_exit="nie"
       ERR_MSG="Failed QC"
       python3 /home/parse_make_consensus.py --status "nie" --error "\${ERR_MSG}" -o consensus.json

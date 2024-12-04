@@ -9,15 +9,14 @@ process kraken2_illumina {
     container  = params.main_image
     containerOptions "--volume ${params.external_databases_path}:/home/external_databases/:ro"
     maxForks 4
-    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "Summary_kraken*"
-    publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "contaminations.json"
+    // publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "Summary_kraken*"
+    // publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "contaminations.json"
 
     input:
     tuple val(sampleId), path(reads), val(QC_STATUS)
     val(EXPECTED_GENUS)
 
     output:
-    path('Summary_*'), emit: to_pubdir
     tuple val(sampleId), path('contaminations.json'), emit: json
     tuple val(sampleId), env(QC_status_contaminations), emit: qcstatus_only
     tuple val(sampleId), env(FINAL_GENUS), env(QC_status_contaminations), emit: species_and_qcstatus
@@ -87,14 +86,13 @@ process kraken2_nanopore {
     container  = params.main_image
     containerOptions "--volume ${params.external_databases_path}:/home/external_databases/:ro"
     maxForks 4
-    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "Summary_kraken*"
-    publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "contaminations.json"
+    // publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "Summary_kraken*"
+    // publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "contaminations.json"
     input:
     tuple val(sampleId), path(reads), val(QC_STATUS)
     val(EXPECTED_GENUS)
 
     output:
-    path('Summary_*'), emit: to_pubdir
     tuple val(sampleId), path('contaminations.json'), emit: json
     tuple val(sampleId), env(QC_status_contaminations), emit: qcstatus_only
     tuple val(sampleId), env(FINAL_GENUS), env(QC_status_contaminations), emit: species_and_qcstatus

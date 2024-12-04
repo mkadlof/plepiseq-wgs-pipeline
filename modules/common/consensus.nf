@@ -1,15 +1,16 @@
 process consensus_illumina {
+    // For illumina this module provides sample sequnce PRIOR to introduction of SVs
     tag "consensus:${sampleId}"
     container  = params.main_image
-    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "consensus_*.fasta"
+    // publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "consensus_*.fasta"
 
     input:
     tuple val(sampleId), path(masked_ref_genome_fa), path(varscan_fa), path(freebayes_fa), val(QC_status), path(lofreq_fa)
 
     output:
-    tuple val(sampleId), path("consensus.fasta"), val(QC_status), emit: single_fasta
+    // tuple val(sampleId), path("consensus.fasta"), val(QC_status), emit: single_fasta
     tuple val(sampleId), path("consensus_*.fasta"), val(QC_status), emit: multiple_fastas
-    tuple val(sampleId), path("consensus.json"), emit: json
+    // tuple val(sampleId), path("consensus.json"), emit: json
 
     script:
     """
@@ -29,6 +30,7 @@ process consensus_illumina {
 }
 
 process consensus_nanopore {
+    // For nanopore this module provides FINAL sequence for a sample
     tag "consensus:${sampleId}"
     container  = params.main_image
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "consensus_*.fasta"
@@ -37,7 +39,7 @@ process consensus_nanopore {
     tuple val(sampleId), path(masked_ref_genome_fa), path(sample_genome), val(QC_status), path('genome.fasta')
 
     output:
-    tuple val(sampleId), path("consensus.fasta"), val(QC_status), emit: single_fasta
+    // tuple val(sampleId), path("consensus.fasta"), val(QC_status), emit: single_fasta
     tuple val(sampleId), path("consensus_*.fasta"), val(QC_status), emit: multiple_fastas
     tuple val(sampleId), path('consensus.fasta'), path('ref_genome.*'), val(QC_status), emit: fasta_refgenome_and_qc
     tuple val(sampleId), path("consensus.json"), emit: json

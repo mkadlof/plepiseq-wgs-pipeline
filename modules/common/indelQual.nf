@@ -2,7 +2,7 @@ process indelQual {
     tag "indelQual:${sampleId}"
     container  = params.main_image
 
-    publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "forvariants.bam*"
+    // publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "forvariants.bam*"
 
     input:
     tuple val(sampleId), path(bam), path(bai), val(QC_status), path(ref_genome)

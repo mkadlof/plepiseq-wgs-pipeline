@@ -46,7 +46,8 @@ def main_program(input_kraken, input_metaphlan_genera, input_metaphlan_species, 
                 line = line.split()
                 if line[3] == "S":
                     try:
-                        species_dict[line[5] + " " + line[6]] = float(line[0])
+                        species_dict[" ".join(list(map(str, line[5:])))] = float(line[0])
+                        #species_dict[line[5] + " " + line[6]] = float(line[0])
                     except IndexError:
                         species_dict[line[5]] = float(line[0])
                 elif line[3] == "G":

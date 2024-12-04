@@ -1,7 +1,7 @@
 process varScan {
     tag "varScan:${sampleId}"
     container  = params.main_image
-    publishDir "${params.results_dir}/${sampleId}/varscan", mode: 'symlink'
+    // publishDir "${params.results_dir}/${sampleId}/varscan", mode: 'symlink'
 
     input:
     tuple val(sampleId), path(bam), path(bai), val(QC_status), path(ref_genome)

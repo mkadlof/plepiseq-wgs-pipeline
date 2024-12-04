@@ -1,7 +1,9 @@
 process fastqc {
     tag "${prefix}_fastqc:${sampleId}"
-    publishDir "${params.results_dir}/${sampleId}/QC", mode: 'copy'
-    publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "*.json"
+    publishDir "${params.results_dir}/${sampleId}/QC", mode: 'copy', pattern: "*_reads_quality_histogram.csv"
+    publishDir "${params.results_dir}/${sampleId}/QC", mode: 'copy', pattern: "*_reads_length_histogram.csv"
+    publishDir "${params.results_dir}/${sampleId}/QC", mode: 'copy', pattern: "*_position_quality_plot.csv"
+    // publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "*.json"
     container  = params.main_image
 
     input:

@@ -30,7 +30,7 @@ process coinfection_genome_masking_illumina {
 
       samtools sort -@ ${params.threads} -o for_contamination_sorted.bam for_contamination.bam
       samtools index for_contamination_sorted.bam
-      samtools mpileup -B --max-depth 20000 \
+      samtools mpileup --max-depth 10000 \
                    --fasta-ref  ${ref_genome_with_index[final_index]} \
                    --min-BQ ${params.quality_snp} \
                    for_contamination_sorted.bam >> for_contamination.mpileup
