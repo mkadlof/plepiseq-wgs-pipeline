@@ -13,6 +13,8 @@ process picard_wgsMetrics {
     script:
     """
     if [ ${QC_status} == "nie" ]; then
+      touch ${sampleId}_coverage_barplot_dummy.csv
+      touch ${sampleId}_coverage_histogram.csv
       ERR_MSG="QC failed: an error occurred in a prior processing step"
       picard_parser.py --status "nie" \
                        --output viral_genome_data.json \
