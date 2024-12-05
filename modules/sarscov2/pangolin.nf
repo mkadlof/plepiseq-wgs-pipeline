@@ -14,7 +14,7 @@ process pangolin {
     # Nie wiem jak ale pangolin po zamontowaniu external databases wie ze ma pobranego pangolin data
 
     if [[ ${QC_status} == "nie" || ${params.species} != "SARS-CoV-2" ]]; then
-        if [[ ${QC_status} == "nie" ]]; then
+        if [[ ${params.species} == "SARS-CoV-2" ]]; then
             ERR_MSG="QC failed: an error occurred in a prior processing step."
         elif [[ ${params.species} != "SARS-CoV-2" ]]; then
             ERR_MSG="For organisms other than SARS-CoV-2, the Pangolin database is not queried."

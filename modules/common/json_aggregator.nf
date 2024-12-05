@@ -18,19 +18,18 @@ process json_aggregator_sars_illumina {
           path(nextclade_json),
           path(snpeff),
           path(modeller)
-
-
+    val(ExecutionDir)
     output:
     path("${sampleId}.json")
 
     script:
+    ExecutionDir = ExecutionDir.replace(".", "")
     """
     if [ -e "/tmp/git_master_ref" ];then
       version=`cat /tmp/git_master_ref | cut -b-8`
     else
       version="unknown"
     fi
-
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \
@@ -46,7 +45,8 @@ process json_aggregator_sars_illumina {
                         --nextclade "${nextclade_json}" \
                         --modeller "${modeller}" \
                         --snpeff "${snpeff}" \
-                        --mapping "${mapping_json}"
+                        --mapping "${mapping_json}" \
+                        --executiondir ${ExecutionDir}
 
     mv output.json ${sampleId}.json
     """
@@ -70,12 +70,13 @@ process json_aggregator_rsv_illumina {
           path(nextclade_json),
           path(snpeff),
           path(modeller)
-
+    val(ExecutionDir)
 
     output:
     path("${sampleId}.json")
 
     script:
+    ExecutionDir = ExecutionDir.replace(".", "")
     """
     if [ -e "/tmp/git_master_ref" ];then
       version=`cat /tmp/git_master_ref | cut -b-8`
@@ -95,7 +96,8 @@ process json_aggregator_rsv_illumina {
                         --pangolin "${pangolin_json}" \
                         --nextclade "${nextclade_json}" \
                         --snpeff ${snpeff} \
-                        --mapping "${mapping_json}"
+                        --mapping "${mapping_json}" \
+                        --executiondir ${ExecutionDir}
 
     mv output.json ${sampleId}.json
     """
@@ -122,12 +124,13 @@ process json_aggregator_influenza_illumina {
           path(snpeff),
           path(modeller),
           path(resistance_json)
-
+    val(ExecutionDir)
 
     output:
     path("${sampleId}.json")
 
     script:
+    ExecutionDir = ExecutionDir.replace(".", "")
     """
     if [ -e "/tmp/git_master_ref" ];then
       version=`cat /tmp/git_master_ref | cut -b-8`
@@ -150,7 +153,8 @@ process json_aggregator_influenza_illumina {
                         --modeller ${modeller} \
                         --reassortment ${reassortment_json} \
                         --drug_resistance ${resistance_json} \
-                        --mapping "${mapping_json}"
+                        --mapping "${mapping_json}" \
+                        --executiondir ${ExecutionDir}
 
 
     mv output.json ${sampleId}.json
@@ -177,12 +181,13 @@ process json_aggregator_sars_nanopore {
           path(nextclade_json),
           path(snpeff),
           path(modeller)
-
+    val(ExecutionDir)
 
     output:
     path("${sampleId}.json")
 
     script:
+    ExecutionDir = ExecutionDir.replace(".", "")
     """
     if [ -e "/tmp/git_master_ref" ];then
       version=`cat /tmp/git_master_ref | cut -b-8`
@@ -204,7 +209,8 @@ process json_aggregator_sars_nanopore {
                         --nextclade "${nextclade_json}" \
                         --modeller "${modeller}" \
                         --snpeff ${snpeff} \
-                        --mapping "${mapping_json}"
+                        --mapping "${mapping_json}" \
+                        --executiondir ${ExecutionDir}
 
     mv output.json ${sampleId}.json
     """
@@ -227,11 +233,13 @@ process json_aggregator_rsv_nanopore {
           path(nextclade_json),
           path(snpeff),
           path(modeller)
-
+    val(ExecutionDir)
+ 
     output:
     path("${sampleId}.json")
 
     script:
+    ExecutionDir = ExecutionDir.replace(".", "")
     """
     if [ -e "/tmp/git_master_ref" ];then
       version=`cat /tmp/git_master_ref | cut -b-8`
@@ -250,7 +258,8 @@ process json_aggregator_rsv_nanopore {
                         --pangolin "${pangolin_json}" \
                         --nextclade "${nextclade_json}" \
                         --snpeff ${snpeff} \
-                        --mapping "${mapping_json}"
+                        --mapping "${mapping_json}" \
+                        --executiondir ${ExecutionDir}
 
     mv output.json ${sampleId}.json
     """
@@ -275,11 +284,13 @@ process json_aggregator_influenza_nanopore {
           path(snpeff),
           path(modeller),
           path(resistance_json)
+    val(ExecutionDir)
 
     output:
     path("${sampleId}.json")
 
     script:
+    ExecutionDir = ExecutionDir.replace(".", "")
     """
     if [ -e "/tmp/git_master_ref" ];then
       version=`cat /tmp/git_master_ref | cut -b-8`
@@ -301,7 +312,8 @@ process json_aggregator_influenza_nanopore {
                         --modeller ${modeller} \
                         --reassortment ${reassortment_json} \
                         --drug_resistance ${resistance_json} \
-                        --mapping "${mapping_json}"
+                        --mapping "${mapping_json}" \
+                        --executiondir ${ExecutionDir}
 
     mv output.json ${sampleId}.json
     """

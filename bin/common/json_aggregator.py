@@ -144,6 +144,11 @@ def json_aggregator(args):
     # Timestamp is a time point when json aggregator was executed and all modules in nextflow produced some output
     output["output"]["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
+    if args.executiondir:
+        output["output"]["ExecutionDir"] = args.executiondir
+    else:
+        raise Exception('Execution path of the program is an obligatory parameter for json, exiting')
+
     if args.fastqc_pre:
         # update json dict if user provided valid information
         output = fill_sequencing_summary_data(args.fastqc_pre, output)
@@ -240,6 +245,7 @@ def main():
     parser.add_argument('--reassortment', help="Output for reassortment module for influenza")
     parser.add_argument('--drug_resistance', help="Output for drug resistance analysis for influenza")
     parser.add_argument('--mapping', help="Output of bwa/minimap2 module")
+    parser.add_argument('--executiondir', help="Execution path of the program")
 
     args = parser.parse_args()
     args.pathogen = normalize_pathogen(args.pathogen)

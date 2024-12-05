@@ -246,6 +246,8 @@ include { varScan as varScan_2 } from "${modules}/common/varscan.nf"
 
 include { substitute_ref_genome } from "${modules}/sarscov2/substitute_ref.nf"
 
+// Script execution path
+ExecutionDir = new File('.').absolutePath // all output in json should be relative to this path
 
 // Main workflow
 workflow{
@@ -485,22 +487,22 @@ workflow{
 
   if(params.species == 'SARS-CoV-2') {
     if(params.machine == 'Illumina') {
-      json_aggregator_sars_illumina(for_json_aggregator)
+      json_aggregator_sars_illumina(for_json_aggregator, ExecutionDir)
     } else if (params.machine == 'Nanopore') {
-      json_aggregator_sars_nanopore(for_json_aggregator)
+      json_aggregator_sars_nanopore(for_json_aggregator, ExecutionDir)
     }
   
   } else if (params.species == 'RSV') {
     if(params.machine == 'Illumina') {
-      json_aggregator_rsv_illumina(for_json_aggregator)
+      json_aggregator_rsv_illumina(for_json_aggregator, ExecutionDir)
     } else if (params.machine == 'Nanopore') {
-      json_aggregator_rsv_nanopore(for_json_aggregator)
+      json_aggregator_rsv_nanopore(for_json_aggregator, ExecutionDir)
     }
   } else if (params.species == 'Influenza') {
     if(params.machine == 'Illumina') {
-      json_aggregator_influenza_illumina(for_json_aggregator)
+      json_aggregator_influenza_illumina(for_json_aggregator, ExecutionDir)
     } else if (params.machine == 'Nanopore') {
-      json_aggregator_influenza_nanopore(for_json_aggregator)
+      json_aggregator_influenza_nanopore(for_json_aggregator, ExecutionDir)
     }
 
   }
