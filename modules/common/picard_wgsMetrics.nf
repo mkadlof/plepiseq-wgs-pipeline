@@ -20,12 +20,22 @@ process picard_wgsMetrics {
                        --output viral_genome_data.json \
                        --error "\${ERR_MSG}"
     else
-      java -jar /opt/picard/picard.jar CollectWgsMetrics --REFERENCE_SEQUENCE ${ref_genome} \
+      
+     if [ ${params.machine} == 'Illumina') ]; then
+       java -jar /opt/picard/picard.jar CollectWgsMetrics --REFERENCE_SEQUENCE ${ref_genome} \
                                                          --MINIMUM_BASE_QUALITY ${params.quality_initial} \
                                                          --MINIMUM_MAPPING_QUALITY ${params.min_mapq} \
                                                          --INPUT ${bam} \
                                                          --OUTPUT picard_statistics.txt
+     elif [ ${params.machine} == 'Nanopore') ]; then
 
+       java -jar /opt/picard/picard.jar CollectWgsMetrics --REFERENCE_SEQUENCE ${ref_genome} \
+                                                           --MINIMUM_BASE_QUALITY ${params.quality_initial} \
+                                                           --MINIMUM_MAPPING_QUALITY ${params.min_mapq} \
+                                                           --INPUT ${bam} \
+                                                           --COUNT_UNPAIRED TRUE
+                                                           --OUTPUT picard_statistics.txt
+      fi
       bedtools genomecov -d -ibam ${bam} > genomecov.bedgraph
 
       # Split the genomecov.bedgraph file into segments using awk
@@ -49,7 +59,7 @@ process picard_wgsMetrics {
          out_summary = "'"\${summary_coverage_file}"'"
          i = 1
          print "#indeks", "segment", "pozycja", "pokrycie" >> out
-         print a[0], out >> out_summary
+         print a[1], out >> out_summary
          
       }
       print i, a[1], a[2], a[3] >> out;

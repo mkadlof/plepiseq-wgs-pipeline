@@ -1,7 +1,7 @@
 process introduce_SV_with_manta {
     // This module iterates over all bam_file provided to this module via picard_downsample
     tag "manta:$sampleId"
-    publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "*fasta"
+    publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "consensus*fasta"
     container = params.manta_image
 
     input:
@@ -118,8 +118,14 @@ process introduce_SV_with_manta {
       python3 /home/parse_make_consensus.py --status "tak" -o consensus.json --input_fastas list_of_fasta.txt --output_path "${params.results_dir}/${sampleId}"
       
       # merge all fasta into a single file
-      cat *SV.fasta >> output_consensus_masked_SV.fa  
-    fi # koniec if-a na QC
+      cat *SV.fasta >> output_consensus_masked_SV.fa 
+     fi # koniec if-a na QC
+
+    # in consensus json remove _SV from segment name
+    sed -i s'|_SV"|"|'g consensus.json 
+    # Fasta headears should follow specific naming scheme "{segment_name}|{sample_name}" but this BREAKS downstream modules
+    # Thus to PUBDIR we will push different files than the one pushed to downstream modules 
+    # TO DO
     """
 }
 
