@@ -2,6 +2,7 @@ process introduce_SV_with_manta {
     // This module iterates over all bam_file provided to this module via picard_downsample
     tag "manta:$sampleId"
     publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "consensus*fasta"
+    publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "output_consensus_masked_SV.fa"
     container = params.manta_image
 
     input:

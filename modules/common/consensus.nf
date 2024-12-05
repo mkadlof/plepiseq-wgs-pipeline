@@ -62,6 +62,7 @@ process consensus_nanopore {
       # prepare json for this step
       ls consensus_*.fasta | tr " " "\\n" >> list_of_fasta.txt
       parse_make_consensus.py --status "tak" -o consensus.json --input_fastas list_of_fasta.txt --output_path "${params.results_dir}/${sampleId}"
+      sed -i s'|_SV"|"|'g consensus.json
     
     fi
     """

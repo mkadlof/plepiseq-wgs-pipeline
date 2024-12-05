@@ -63,7 +63,7 @@ text = "\t".join(map(str, pval_list))
 with open(f'{title}_coinfection_summary.txt', 'w') as f:
     if len(data_sample_fortest) <= 10:
         f.write(f'{title} is not coinfected with other SARS-CoV-2 material, less than 10 mixed sites \n')
-        print(f"nie 1")
+        print(f"nie 0")
     else:
         if np.all(pval_list < 0.1):
             print(f"nie {np.max(pval_list)}")

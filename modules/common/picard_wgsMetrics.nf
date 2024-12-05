@@ -21,19 +21,19 @@ process picard_wgsMetrics {
                        --error "\${ERR_MSG}"
     else
       
-     if [ ${params.machine} == 'Illumina') ]; then
+     if [ ${params.machine} == 'Illumina' ]; then
        java -jar /opt/picard/picard.jar CollectWgsMetrics --REFERENCE_SEQUENCE ${ref_genome} \
                                                          --MINIMUM_BASE_QUALITY ${params.quality_initial} \
                                                          --MINIMUM_MAPPING_QUALITY ${params.min_mapq} \
                                                          --INPUT ${bam} \
                                                          --OUTPUT picard_statistics.txt
-     elif [ ${params.machine} == 'Nanopore') ]; then
+     elif [ ${params.machine} == 'Nanopore' ]; then
 
        java -jar /opt/picard/picard.jar CollectWgsMetrics --REFERENCE_SEQUENCE ${ref_genome} \
                                                            --MINIMUM_BASE_QUALITY ${params.quality_initial} \
                                                            --MINIMUM_MAPPING_QUALITY ${params.min_mapq} \
                                                            --INPUT ${bam} \
-                                                           --COUNT_UNPAIRED TRUE
+                                                           --COUNT_UNPAIRED TRUE \
                                                            --OUTPUT picard_statistics.txt
       fi
       bedtools genomecov -d -ibam ${bam} > genomecov.bedgraph
