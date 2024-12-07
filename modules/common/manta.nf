@@ -1,8 +1,7 @@
 process introduce_SV_with_manta {
     // This module iterates over all bam_file provided to this module via picard_downsample
     tag "manta:$sampleId"
-    publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "consensus*fasta"
-    publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "output_consensus_masked_SV.fa"
+    publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "output*fasta"
     container = params.manta_image
 
     input:
@@ -14,9 +13,9 @@ process introduce_SV_with_manta {
     // znajac NAZWA mozemy latwo znajdowac odpowiednie pliki
 
     output:
-    tuple val(sampleId), path('output_consensus_masked_SV.fa'), path(ref_genome_with_index), env(QC_status_exit), emit: fasta_refgenome_and_qc
+    tuple val(sampleId), path('consensus_masked_SV.fa'), path(ref_genome_with_index), env(QC_status_exit), emit: fasta_refgenome_and_qc
     tuple val(sampleId), path('consensus.json'), emit: json
-    tuple val(sampleId), path('consensus_*.fasta'), emit: to_pubdir
+    tuple val(sampleId), path('output_*.fasta'), emit: to_pubdir
     // Dal ulatwienia ? na koniec tego segmentu polaczmy wszystkie segmenty w jeden plik, a jelsi dany modul downstream
     // bedzie wymagal sekwencji konkretnego segmentu to tam zrobimy split-a
 
@@ -30,40 +29,37 @@ process introduce_SV_with_manta {
 
     
     """
-    ### podiana nazw linkow symbolicznych
-    # for link in \$(find . -maxdepth 1 -type l); do
-    #    target=\$(readlink "\$link")
-    #    base_target=\$(basename "\$target")
-    #    mv "\$link" "\$base_target"
-    #done
-    export LC_ALL=en_US.utf-8
+    export LC_ALL=en_US.utf-8  # bez tego nie dziala click
+
     if [[ ${QC_status_picard} == "nie"  && ${QC_status_consensus} == "nie" ]]; then
       
       # both consensus module and picard failed, dummy output
-      touch output_consensus_masked_SV.fa
-      touch consensus_dummy.fasta
+      touch consensus_masked_SV.fa
+      touch output_dummy.fasta
       QC_status_exit="nie"
       ERR_MSG="Failed QC"
       python3 /home/parse_make_consensus.py --status "nie" --error "\${ERR_MSG}" -o consensus.json
 
     elif [[ ${QC_status_picard} == "nie" &&  ${QC_status_consensus} == "tak" ]]; then
       # downsampling failed for ALL segemtns, but consensus produced valid output, ALL input fastas becomes  output files for their respective segemnts
-      # We only change the header
+      # We only change the header and create all the files
       QC_status_exit="tak"
   
       for plik in `ls con*fasta`; do
-        plik_new_name=`basename \${plik} ".fasta"`
+        plik_new_name=`basename \${plik} ".fasta" | sed s'|consensus_||'g`
         HEADER=`head -1 \${plik}`
-        cat \${plik} | sed s"|\${HEADER}|\${HEADER}_SV|"g > \${plik_new_name}_SV.fasta
+        cat \${plik} | sed s"|\${HEADER}|\${HEADER}\\|${sampleId}|"g > output_\${plik_new_name}.fasta
 
       done
       
       # make json
-      ls *_SV.fasta | tr " " "\\n" >> list_of_fasta.txt
+      ls output*.fasta | tr " " "\\n" >> list_of_fasta.txt
       python3 /home/parse_make_consensus.py --status "tak" -o consensus.json --input_fastas list_of_fasta.txt --output_path "${params.results_dir}/${sampleId}"
       
       # merge fastas of individual segments to a single file
-      cat *SV.fasta >> output_consensus_masked_SV.fa
+      cat output*.fasta >> consensus_masked_SV.fa
+      # for now downstream modules require _SV in header's
+      sed -i s"|\\|${sampleId}|_SV|"g consensus_masked_SV.fa
 
     else
       QC_status_exit="tak"
@@ -82,14 +78,14 @@ process introduce_SV_with_manta {
         if [ \${segment_median_coverage} -lt 50 ]; then
           # After downsampling segment has poor coverage    
           HEADER=`head -1 consensus_\${segment_clean}.fasta`
-          cat consensus_\${segment_clean}.fasta | sed s"|\${HEADER}|\${HEADER}_SV|"g > consensus_\${segment_clean}_SV.fasta
+          cat consensus_\${segment_clean}.fasta | sed s"|\${HEADER}|\${HEADER}\\|${sampleId}|"g > output_\${segment_clean}.fasta
         else
           samtools faidx reference_\${segment_clean}.fasta
           python /opt/docker/manta/bin/configManta.py --bam \${bam} --reference reference_\${segment_clean}.fasta --runDir Manta_results_\${segment_clean}
           python Manta_results_\${segment_clean}/runWorkflow.py -j ${params.threads} --quiet
           if [ -e Manta_results_\${segment_clean}/results/variants/diploidSV.vcf.gz ]; then
             # Manta produced an output for this segment
-            # Wywalamy skomplikowane SV jak translokacje itd typun BND
+            # Wywalamy skomplikowane SV jak translokacje itd typu BND
             # Wwywalamy rowniez takie SV ktore nie sa homozygotyczne, niepwene mutacje z GT 0/1 beda usuwane 
             bcftools view -O z -o manta_results_\${segment_clean}.vcf.gz -i '(FILTER="PASS" | FILTER="MaxDepth" | FILTER="NoPairSupport") && SVTYPE != "BND" && GT!="het"' Manta_results_\${segment_clean}/results/variants/diploidSV.vcf.gz
             tabix manta_results_\${segment_clean}.vcf.gz
@@ -102,28 +98,34 @@ process introduce_SV_with_manta {
               HEADER=`head -1 output_manta_\${segment_clean}.fa`
               sed -i s"|\${HEADER}|\${HEADER}_manta|"g output_manta_\${segment_clean}.fa
               /home/bin/sarscov2/insert_SV_python2.py consensus_\${segment_clean}.fasta output_manta_\${segment_clean}.fa  consensus_\${segment_clean}_SV.fasta
+              # podmieniamy naglowek
+              sed -i s"|_SV|\\|${sampleId}|"g consensus_\${segment_clean}_SV.fasta
+              mv consensus_\${segment_clean}_SV.fasta output_\${segment_clean}.fasta
+              
             else
               HEADER=`head -1 consensus_\${segment_clean}.fasta`
-              cat consensus_\${segment_clean}.fasta | sed s"|\${HEADER}|\${HEADER}_SV|"g > consensus_\${segment_clean}_SV.fasta
+              cat consensus_\${segment_clean}.fasta | sed s"|\${HEADER}|\${HEADER}\\|${sampleId}|"g > output_\${segment_clean}.fasta
             fi # koniec if-a na brak SV
 
           else
             HEADER=`head -1 consensus_\${segment_clean}.fasta`
-            cat consensus_\${segment_clean}.fasta | sed s"|\${HEADER}|\${HEADER}_SV|"g > consensus_\${segment_clean}_SV.fasta
+            cat consensus_\${segment_clean}.fasta | sed s"|\${HEADER}|\${HEADER}\\|${sampleId}|"g > output_\${segment_clean}.fasta
           fi # koniec if-a na brak outputu manty
         fi # koniec if-a na zly coverage
       done # koniec petli na teracje po segmentach
 
       # create json
-      ls *_SV.fasta | tr " " "\\n" >> list_of_fasta.txt
+      ls output*.fasta | tr " " "\\n" >> list_of_fasta.txt
       python3 /home/parse_make_consensus.py --status "tak" -o consensus.json --input_fastas list_of_fasta.txt --output_path "${params.results_dir}/${sampleId}"
       
       # merge all fasta into a single file
-      cat *SV.fasta >> output_consensus_masked_SV.fa 
+      cat output*.fasta >> consensus_masked_SV.fa
+      # for now downstream modules require _SV in header's
+      sed -i s"|\\|${sampleId}|_SV|"g consensus_masked_SV.fa
      fi # koniec if-a na QC
 
     # in consensus json remove _SV from segment name
-    sed -i s'|_SV"|"|'g consensus.json 
+    sed -i s'|\\|${sampleId}||'g consensus.json 
     # Fasta headears should follow specific naming scheme "{segment_name}|{sample_name}" but this BREAKS downstream modules
     # Thus to PUBDIR we will push different files than the one pushed to downstream modules 
     # TO DO

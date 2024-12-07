@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
-'''
-Simple script to replace low-coverage aminoacids with N in a sequence
-Input is a alignment between reference (with N in place of low coverage regions) and a sequence with SNPs and SV
-Elements of the latter sequence will be replaced with Ns
-1st argument is the alignment
-2nd arguemnt is the name of the output fasta
-
-
-Uwaga skrypt podmieniony pod grype ktora ma wiele segmentow wiec alignment i maskowanie jest w python
-Uwaga skrypt oryginalnie nazywal sie w repo dedykowaneym do grypy, nanopore jako get_N_INFL.py
-'''
+"""
+Simple script to replace low-coverage aminoacids with N in a final sequence
+Input
+1st argument is the reference sequence with "N"
+2nd argument is the sample sequence
+3rd argument is the name of the sample that will be put in fasta header
+"""
 
 from Bio import SeqIO
 import sys
@@ -18,6 +14,7 @@ from typing import Dict
 import numpy as np
 import subprocess
 import re
+
 
 def align_fasta(fasta1_file: str, *args, **kwargs) -> Dict:
     """
@@ -46,9 +43,9 @@ def align_fasta(fasta1_file: str, *args, **kwargs) -> Dict:
             for line in f1:
                 f.write(line)
 
-    polecenie = ('mafft --auto --quiet --inputorder tmp.fasta')
+    polecenie = 'mafft --auto --quiet --inputorder tmp.fasta'
     if 'fast' in kwargs.keys():
-        polecenie = ('mafft --retree 1 --quiet --inputorder tmp.fasta') # komenda z
+        polecenie = 'mafft --retree 1 --quiet --inputorder tmp.fasta'
     alignment = subprocess.Popen(polecenie, shell=True, stdout=subprocess.PIPE)
 
     # generowanie slownika
@@ -88,24 +85,24 @@ def get_fastas(input_fasta, program):
         lista_nazw.append(f"{r.id}")
     return lista_plikow, lista_nazw
 
-def split_final_fasta(input_fasta, prefix):
+def split_final_fasta(input_fasta, prefix, sample_name):
     record = SeqIO.parse(input_fasta, 'fasta')
     for r in record:
         with open(f'{prefix}_{r.id.replace("/", "_").replace(".", "_")}.fasta', 'w') as file:
-            file.write(f'>{r.id}\n')
+            file.write(f'>{r.id}|{sample_name}\n')
             file.write(f'{str(r.seq)}\n')
 
+
 if __name__ == '__main__':
-    lista_pliow_ref, _ = get_fastas(input_fasta = sys.argv[1],
-                                 program='masked')
+    lista_pliow_ref, _ = get_fastas(input_fasta=sys.argv[1],
+                                    program='masked')
     lista_pliow_program, lista_nazw_program = get_fastas(input_fasta=sys.argv[2],
-                                     program = 'medaka')
-    #print(lista_pliow_ref)
-    #print(lista_pliow_program)
-    # output_consensus_masked.fa
-    with open(f'consensus.fasta', 'w') as f:
+                                                         program='medaka')
+    sample_name = sys.argv[3] # nazwa analziowanej probki dodwana do headera kazdej fasty po "|"
+
+    with open(f'output.fasta', 'w') as f:
         for plik1, plik2, fasta_header in zip(lista_pliow_ref, lista_pliow_program, lista_nazw_program):
-            segment = "_".join(plik2.split('.')[0].split('_')[1:]) #
+            segment = "_".join(plik2.split('.')[0].split('_')[1:])
             aln = align_fasta(plik1, plik2)
             ref, target = aln.values()
             sekwencja_with_n = ''
@@ -116,10 +113,11 @@ if __name__ == '__main__':
                     sekwencja_with_n += target[i].upper()
 
             sekwencja_with_n = ''.join([element for element in sekwencja_with_n if element != 'X'])
-            f.write(f'>{fasta_header}_SV\n')
+            f.write(f'>{fasta_header}\n')
             f.write(f'{sekwencja_with_n}\n')
             os.remove(plik1)
             os.remove(plik2)
-    split_final_fasta(input_fasta="consensus.fasta",
-                      prefix="consensus")
+    split_final_fasta(input_fasta="output.fasta",
+                      prefix="output",
+                      sample_name=sample_name)
 

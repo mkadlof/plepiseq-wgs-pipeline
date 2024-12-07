@@ -39,6 +39,7 @@ process nextalign {
                 cp sample_chr7_MP.fasta consensus_MP.fasta
                 # I hard kodowny naglowek
                 sed -i s"/chr7_MP_SV/MP/"g consensus_MP.fasta
+                sed -i s"/chr7_MP/MP/"g consensus_MP.fasta
                 prep_M2.py ${SAMPLE_SUBTYPE} sample_M2.fasta \${NEXTALIGN_DB} . .
                 nextalign run -r M2.fasta \
                               -m \${NEXTALIGN_DB}/${SAMPLE_SUBTYPE}/${SAMPLE_SUBTYPE}.gff \
