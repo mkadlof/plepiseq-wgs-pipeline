@@ -45,6 +45,17 @@ update_freyja() {
     wget https://raw.githubusercontent.com/andersen-lab/Freyja-data/main/lineages.yml
     wget https://raw.githubusercontent.com/andersen-lab/Freyja-data/main/curated_lineages.json
     wget https://github.com/andersen-lab/Freyja-data/raw/main/usher_barcodes.csv
+    wget -O H5Nx_barcodes.csv https://raw.githubusercontent.com/andersen-lab/Freyja-barcodes/refs/heads/main/H5Nx/latest/barcode.csv
+    wget -O H1N1_barcodes.csv https://raw.githubusercontent.com/andersen-lab/Freyja-barcodes/refs/heads/main/H1N1/latest/barcode.csv
+    wget -O FLU-B-VIC_barcodes.csv https://raw.githubusercontent.com/andersen-lab/Freyja-barcodes/refs/heads/main/FLU-B-VIC/latest/barcode.csv
+    wget -O H1N1_barcodes.csv https://raw.githubusercontent.com/andersen-lab/Freyja-barcodes/refs/heads/main/H1N1pdm/latest/barcode.csv
+    wget -O RSVa_barcodes.csv https://raw.githubusercontent.com/andersen-lab/Freyja-barcodes/refs/heads/main/RSVa/latest/barcode.csv
+    wget -O RSVb_barcodes.csv https://raw.githubusercontent.com/andersen-lab/Freyja-barcodes/refs/heads/main/RSVb/latest/barcode.csv
+
+    # Other organisms available in Freyja, but not required in PlEpiSeq.
+    # wget -O MEASLESN450_barcodes.csv https://raw.githubusercontent.com/andersen-lab/Freyja-barcodes/refs/heads/main/MEASLESN450/latest/barcode.csv
+    # wget -O mpox_barcodes.csv https://raw.githubusercontent.com/andersen-lab/Freyja-barcodes/refs/heads/main/MPX/latest/barcode.csv
+    # wget -O MEASLESwholegenome_barcodes.csv https://raw.githubusercontent.com/andersen-lab/Freyja-barcodes/refs/heads/main/MEASLESgenome/latest/barcode.csv
     return $?
 }
 
