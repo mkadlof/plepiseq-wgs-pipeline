@@ -19,7 +19,9 @@ process coinfection_analysis_illumina {
     if [ ${QC_status} == "nie" ]; then
       touch ${sampleId}_allele_usage_histogram.txt
       coinfection_status="nie"
-      echo -e "{\\"coinfection_status\\":\\"\${coinfection_status}\\"}" >> custom_coinfection_analysis.json
+      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+      echo -e "{\\"coinfection_status\\":\\"\${coinfection_status}\\", \
+                \\"coinfetion_error_message\\":\\"\${ERR_MSG}\\"}" >> custom_coinfection_analysis.json
     else
       RESULTS=(`predict_coinfection_illumina.py ${detected_variants_varscan_coinfection_txt} \
                                       ${sampleId} \
@@ -60,7 +62,9 @@ process coinfection_analysis_nanopore {
     if [ ${QC_status} == "nie" ]; then
       touch ${sampleId}_allele_usage_histogram.txt
       coinfection_status="nie"
-      echo -e "{\\"coinfection_status\\":\\"\${coinfection_status}\\"}" >> custom_coinfection_analysis.json
+      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+      echo -e "{\\"coinfection_status\\":\\"\${coinfection_status}\\", \
+                \\"coinfetion_error_message\\":\\"\${ERR_MSG}\\"}" >> custom_coinfection_analysis.json
     else
       RESULTS=(`predict_coinfection_illumina.py ${detected_variants_varscan_coinfection_txt} \
                                       ${sampleId} \
