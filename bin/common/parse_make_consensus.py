@@ -56,7 +56,7 @@ def main_program(status, output, input_fastas, output_path, error=""):
                 total_length_value += segment_length
                 number_of_Ns_value += segment_N
                 file_data.append({"segment_name": segment,
-                                  "segment_path": f'{output_path}/{line.rstrip()}'})
+                                  "segment_file": f'{output_path}/{line.rstrip()}'})
 
         json_output = {
             "status": status,

@@ -145,7 +145,7 @@ def json_aggregator(args):
     output["output"]["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
     if args.executiondir:
-        output["output"]["ExecutionDir"] = args.executiondir
+        output["output"]["ExecutionDir_dir"] = args.executiondir
     else:
         raise Exception('Execution path of the program is an obligatory parameter for json, exiting')
 
