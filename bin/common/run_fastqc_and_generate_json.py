@@ -200,16 +200,15 @@ def main_program(input_file, memory, cpu, min_number, min_qual, status, stage, p
     json_dict = [{"status": "tak",
                   "file_name": nazwa_pliku.rstrip(),
                   "step_name": stage,
-                  "error_message": "",
                   "number_of_reads_value": int(number_of_reads_value),
                   "number_of_bases_value": int(number_of_bases_value),
                   "reads_median_length_value": round(float(reads_median_length_value), 2),
                   "reads_min_length_value": int(reads_min_length_value),
                   "reads_max_length_value": int(reads_max_length_value),
                   "reads_median_quality_value": round(float(reads_median_quality_value), 2),
-                  "reads_quality_histogram_path": f"{publishdir}/{reads_quality_histogram_path}",
-                  "reads_length_histogram_path": f"{publishdir}/{reads_length_histogram_path}",
-                  "position_quality_plot_path": f"{publishdir}/{position_quality_plot_path}",
+                  "reads_quality_histogram_file": f"{publishdir}/{reads_quality_histogram_path}",
+                  "reads_length_histogram_file": f"{publishdir}/{reads_length_histogram_path}",
+                  "position_quality_plot_file": f"{publishdir}/{position_quality_plot_path}",
                   "gc_content_value": round(float(gc_content_value), 2)}]
     with open(output, 'w') as f1:
         f1.write(json.dumps(json_dict, indent=4))

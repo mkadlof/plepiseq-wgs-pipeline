@@ -24,7 +24,7 @@ process modeller {
         pdb_path="${params.results_dir}/${sampleId}/${sampleId}_spike.pdb"
         echo -e "{\\"protein_structure_status\\":\\"tak\\",
                 \\"protein_structure_data\\":[{\\"protein_name\\":\\"Spike\\",
-                                               \\"pdb_path\\":\\"\${pdb_path}\\"
+                                               \\"pdb_file\\":\\"\${pdb_path}\\"
                                                }]}" >> modeller.json
     fi
 
