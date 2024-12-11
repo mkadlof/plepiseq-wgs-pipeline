@@ -151,7 +151,12 @@ def main_program(input_file, memory, cpu, min_number, min_qual, status, stage, p
                                 print(f"{status} 0")
                                 return status, 0
                         if line[0] == "Sequence length":
-                            reads_min_length_value, reads_max_length_value = line[1].split("-")
+                            try:
+                                reads_min_length_value, reads_max_length_value = line[1].split("-")
+                            except ValueError:
+                                # in case all the sequences have identical lengts fastqc does report only one value not "min - max"
+                                reads_min_length_value = line[1].rstrip()
+                                reads_max_length_value = line[1].rstrip()
                         if line[0] == "Total Bases":
                             number_of_bases_value = float(line[1].split(" ")[0])
                             unit = line[1].split(" ")[1].rstrip()  # fastqc dodaje okreslecia jak Kbp, Mbp i pewnie Gbp
