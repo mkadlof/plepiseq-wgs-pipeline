@@ -165,9 +165,7 @@ def json_aggregator(args):
         raise Exception('Contamination analysis must always be present in json, exiting')
 
     if args.dehumanized:
-        output["output"]["dehumanized_fastq_file_list"] = []
-        for plik in open(args.dehumanized).readlines():
-            output["output"]["dehumanized_fastq_file_list"].append(f'{plik.rstrip()}')
+        output["output"]["dehumanized_data"] = json.load(open(args.dehumanized))
 
     if (args.freyja or args.modeller or args.coinfection) and args.pathogen == "sars2":
         output = fill_sars_data(output_local=output,
