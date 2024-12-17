@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE vars SYSTEM "https://resources.jetbrains.com/writerside/1.0/vars.dtd">
 <vars>
-    <var name="git.name" value="nf_illumina_sars"/>
-    <var name="git.url" value="https://github.com/mkadlof/nf_illumina_sars"/>
+    <var name="git.name" value="pzh_pipeline_viral"/>
+    <var name="git.url" value="https://github.com/mkadlof/pzh_pipeline_viral"/>
 
     <!--    External software links -->
     <var name="bwa.url" value="https://bio-bwa.sourceforge.net/"/>

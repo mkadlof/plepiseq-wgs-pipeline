@@ -23,7 +23,7 @@ trace-*.txt
 [._]sw[a-p]
 
 # Writerside
-!doc/images/
+!doc/img/
 !doc/topics/
 !doc/pdfSourceDOC.pdf
 

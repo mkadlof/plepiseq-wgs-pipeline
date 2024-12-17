@@ -25,10 +25,14 @@ with the actual Modeller key you own. If you don't have one, you can get a free 
 5. Build three containers:
 
 ```bash
-  docker build --target main -f Dockerfile-main -t nf_illumina_sars-3.0-main .
-  docker build --target manta -f Dockerfile-manta -t nf_illumina_sars-3.0-manta .
-  docker build --target updater -f Dockerfile-main -t nf_illumina_sars-3.0-updater:latest .
+  docker build --target main -f Dockerfile-main -t pzh_pipeline_viral-4.1-main .
+  docker build --target manta -f Dockerfile-manta -t pzh_pipeline_viral-4.1-manta .
+  docker build --target updater -f Dockerfile-main -t nf_illumina_sars-4.1-updater .
 ```
+
+> **TIP**  
+> You may add `--no-cache` to avoid caching effects. 
+
 
 6. Download latest version of external databases:
 
@@ -39,7 +43,6 @@ In project root dir run:
   ./update_external_databases.sh kraken
   ./update_external_databases.sh freyja
 ```
-This should fill directories in `data/pangolin` and `data/nextclade`.
 For more details read the chapter [](updates.md).
 
 7. Copy `run_nf_pipeline.sh.template` to `run_nf_pipeline.sh` and fill in the paths to the reads and output directory.
