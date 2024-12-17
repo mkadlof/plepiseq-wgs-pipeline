@@ -23,7 +23,7 @@ usage() {
     echo "  PATH      - Optional path to the database directory"
 }
 
-CONTAINER="nf_illumina_sars-3.0-updater:latest"
+CONTAINER="nf_illumina_sars-4.1-updater:latest"
 
 # Check if container exists
 container_id=$(docker images -q $CONTAINER)

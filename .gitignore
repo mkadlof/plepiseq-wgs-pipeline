@@ -27,12 +27,11 @@ trace-*.txt
 !doc/topics/
 !doc/pdfSourceDOC.pdf
 
-
 # external databases
-data/external_databases/pangolin
-data/external_databases/nextclade
-data/external_databases/kraken
-data/sarscov2/freyja
+external_databases/pangolin
+external_databases/nextclade
+external_databases/kraken
+external_databases/freyja
 
 # Modeller
 # file with key
