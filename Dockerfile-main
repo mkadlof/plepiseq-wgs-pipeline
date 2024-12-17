@@ -19,6 +19,7 @@ ARG ISA_VERSION="2.30.0"
 ARG TBB_VERSION="2019_U9"
 ARG TBB_VERSION2="v2021.10.0"
 ARG KRAKEN2_VERSION="v2.1.3"
+ARG CERT_FILE
 
 # This is multistage, parallel build. We first build a base image.
 # Then, in parallel, we build all the tools we need.
@@ -26,6 +27,7 @@ ARG KRAKEN2_VERSION="v2.1.3"
 
 # builder-base
 FROM python:3.11.8-bookworm AS builder-base
+ARG CERT_FILE
 
 ENV LANG=en_US.UTF-8
 ENV VIRTUAL_ENV=/opt/venv
@@ -62,6 +64,13 @@ RUN apt update && \
                                               unzip \
                                               vim \
                                               zlib1g-dev
+
+# If you are in corporate network that replaces your TLS Certificate then you need to build your container like this:
+# docker build --build-arg CERT_FILE="$(cat corporate-cert.pem)" -t myimage .
+RUN if [ -n "${CERT_FILE}" ]; then \
+    echo "${CERT_FILE}" > /usr/local/share/ca-certificates/corporate-cert.crt && \
+    update-ca-certificates; \
+    fi
 
 # Here we create a new python virtual environment. We can later just copy it to production container
 # It is "activated" by adding it to PATH
@@ -500,16 +509,29 @@ WORKDIR /home
 
 # updater container
 FROM python:3.11.8-slim-bookworm AS updater
+ARG CERT_FILE
 
 LABEL maintainer="Michal Lazniewski <mlazniewski@pzh.gov.pl>"
 LABEL maintainer="Michał Kadlof <mkadlof@pzh.gov.pl>"
+
+# If you are in corporate network that replaces your TLS Certificate then you need to build your container like this:
+# docker build --build-arg CERT_FILE="$(cat corporate-cert.pem)" -t myimage .
+RUN if [ -n "${CERT_FILE}" ]; then \
+    echo "${CERT_FILE}" > /usr/local/share/ca-certificates/corporate-cert.crt && \
+    update-ca-certificates; \
+    fi
 
 COPY --from=builder-nextclade /opt/nextclade /opt/nextclade
 RUN apt update && \
     apt install -y --no-install-recommends git wget && \
     apt clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    pip install --no-cache-dir boto3==1.34.75
+    rm -rf /var/lib/apt/lists/*
+
+RUN if [ -n "${CERT_FILE}" ]; then \
+      pip install --cert /usr/local/share/ca-certificates/corporate-cert.crt --no-cache-dir boto3==1.34.75; \
+    else \
+      pip install --no-cache-dir boto3==1.34.75; \
+    fi
 
 ADD bin/sarscov2/update.sh /home/update.sh
 ADD bin/sarscov2/kraken_updater.py /home/kraken_updater.py
