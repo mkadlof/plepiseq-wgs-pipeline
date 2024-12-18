@@ -35,6 +35,7 @@ process dehumanization_illumina  {
   
         seqtk subseq forward_paired_rename.fastq.gz lista_id_nohuman.txt | gzip > ${sampleId}_forward_paired_nohuman.fastq.gz
         seqtk subseq reverse_paired_rename.fastq.gz lista_id_nohuman.txt | gzip > ${sampleId}_reverse_paired_nohuman.fastq.gz
+        rm forward_paired_rename.fastq.gz reverse_paired_rename.fastq.gz
       else
         seqtk subseq ${reads[0]} lista_id_nohuman.txt | gzip > ${sampleId}_forward_paired_nohuman.fastq.gz
         seqtk subseq ${reads[1]} lista_id_nohuman.txt | gzip > ${sampleId}_reverse_paired_nohuman.fastq.gz
