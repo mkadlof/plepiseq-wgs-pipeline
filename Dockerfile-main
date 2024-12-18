@@ -440,6 +440,7 @@ RUN apt update && \
                                            openjdk-17-jre-headless \
                                            procps \
                                            seqtk \
+                                           seqkit \
                                            jq
 
 ADD third-party/mafft/mafft_7.520-1_amd64.deb /

@@ -17,16 +17,34 @@ process dehumanization_illumina  {
       ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
       parse_dehumanization.py --status "nie" --error "\${ERR_MSG}" -o dehumanzed.json
     else
-        samtools view mapped_reads.bam | cut -f1 | sort | uniq > lista_id_nohuman.txt
+      samtools view mapped_reads.bam | cut -f1 | sort | uniq > lista_id_nohuman.txt
+      # check if fastq file contains "\1" in R1, if so remove it, to match names of reads in bwa-produced bam file
+       
+      NUMBER_OF_READS=`zcat ${reads[0]} | grep '^@'`
+      # Empty fastq will always have failed QC
+      # however how many reads are checked must be considered dynamic 
+      if [ \${NUMBER_OF_READS} -lt 100 ]; then
+        TO_CHECK=`echo \${NUMBER_OF_READS} | awk '{print int(\$0 * 0.4)}'`
+      else
+        TO_CHECK=1000
+      fi
+
+      if [ \$(zcat ${reads[0]} | grep '^@' | head -n \${TO_CHECK} | awk 'BEGIN {i=0} { if (\$1 ~ /\\/1\$/ ) i+=1} END {print i}') -eq \${TO_CHECK} ] ; then
+        seqkit replace -p "\\/1" -r "" ${reads[0]} | gzip > forward_paired_rename.fastq.gz
+        seqkit replace -p "\\/2" -r "" ${reads[1]} | gzip > reverse_paired_rename.fastq.gz
+  
+        seqtk subseq forward_paired_rename.fastq.gz lista_id_nohuman.txt | gzip > ${sampleId}_forward_paired_nohuman.fastq.gz
+        seqtk subseq reverse_paired_rename.fastq.gz lista_id_nohuman.txt | gzip > ${sampleId}_reverse_paired_nohuman.fastq.gz
+      else
         seqtk subseq ${reads[0]} lista_id_nohuman.txt | gzip > ${sampleId}_forward_paired_nohuman.fastq.gz
         seqtk subseq ${reads[1]} lista_id_nohuman.txt | gzip > ${sampleId}_reverse_paired_nohuman.fastq.gz
-        
-        find . -name "*paired_nohuman*gz" >> list_of_dehumanzed_fastas.txt
-        parse_dehumanization.py --status "tak" \
-                                --input_fastas_list list_of_dehumanzed_fastas.txt \
-                                --output_path "${params.results_dir}/${sampleId}" \
-                                --output dehumanzed.json
+      fi
 
+      find . -name "*paired_nohuman*gz" >> list_of_dehumanzed_fastas.txt
+      parse_dehumanization.py --status "tak" \
+                              --input_fastas_list list_of_dehumanzed_fastas.txt \
+                              --output_path "${params.results_dir}/${sampleId}" \
+                              --output dehumanzed.json
     fi
     """
 }
@@ -49,13 +67,14 @@ process dehumanization_nanopore {
       ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
       parse_dehumanization.py --status "nie" --error "\${ERR_MSG}" -o dehumanzed.json
     else
+      
       samtools view mapped_reads.bam | cut -f1 | sort | uniq >> lista_id_nohuman.txt
       seqtk subseq ${reads} lista_id_nohuman.txt | gzip >> ${sampleId}_nohuman.fastq.gz
       find . -name "*nohuman.fastq.gz" >> list_of_dehumanzed_fastas.txt
-     parse_dehumanization.py --status "tak" \
-                             --input_fastas_list list_of_dehumanzed_fastas.txt \
-                             --output_path "${params.results_dir}/${sampleId}" \
-                             --output dehumanzed.json
+      parse_dehumanization.py --status "tak" \
+                              --input_fastas_list list_of_dehumanzed_fastas.txt \
+                              --output_path "${params.results_dir}/${sampleId}" \
+                              --output dehumanzed.json
 
     fi
     """
