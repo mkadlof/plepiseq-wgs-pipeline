@@ -6,9 +6,9 @@
                   name="Documentation"
                   start-page="quickstart.md">
     <toc-element topic="quickstart.md"/>
-    <toc-element topic="pipeline-overview.md"/>
     <toc-element topic="Hardware-requirements.md"/>
     <toc-element topic="Software-requirements.md"/>
+    <toc-element topic="pipeline-overview.md"/>
     <toc-element topic="updates.md">
         <toc-element topic="Nextclade.md"/>
         <toc-element topic="Pangolin.md"/>

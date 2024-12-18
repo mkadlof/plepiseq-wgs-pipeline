@@ -19,4 +19,11 @@
     <var name="pangolin.url" value="https://cov-lineages.org/resources/pangolin.html"/>
     <var name="nextclade.url" value="https://clades.nextstrain.org/"/>
     <var name="modeller.url" value="https://salilab.org/modeller/"/>
+
+    <!-- Database sizes-->
+    <var name="db.pangolin.size" value="90.2 MiB"/>
+    <var name="db.nextclade.size" value="19.5 MiB"/>
+    <var name="db.kraken.size" value="80.5 GiB"/>
+    <var name="db.freyja.size" value="113.4 MiB"/>
+    <var name="db.total.size" value="80.8 GiB"/>
 </vars>

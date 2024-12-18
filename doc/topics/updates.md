@@ -1,8 +1,13 @@
 # External databases updates
 
-Some components of the pipeline require access to their two databases, which are updated roughly once every two weeks. Different software pieces need to be updated in different ways. To make this process as smooth and painless as possible, we prepared a dedicated Docker container exactly for this task, along with a bash script for running it with appropriate volume mounts. The script should be placed in either the cron or systemd timer and run on a weekly basis.
+Some components of the pipeline require access to their two databases, which are updated roughly
+once every two weeks. Different software pieces need to be updated in different ways. To make this
+process as smooth and painless as possible, we prepared a dedicated Docker container exactly for
+this task, along with a bash script for running it with appropriate volume mounts. The script should
+be placed in either the cron or systemd timer and run on a weekly basis.
 
 ## Updates procedure {id="updates_procedure"}
+
 Build the dedicated container:
 
 ```bash
@@ -18,16 +23,17 @@ update_external_databases.sh kraken
 update_external_databases.sh freyja
 ```
 
-Total size of downloads is ~55 GiB.
+Total size of downloads is %db.total.size% GiB.
 
-| Database  | Size     |
-|-----------|----------|
-| pangolin  | ~90 MiB  |
-| nextclade | ~1.3 MiB |
-| kraken    | ~55 GiB  |
-| freyja    | ~100 MiB |
+| Database  | Size                |
+|-----------|---------------------|
+| pangolin  | %db.pangolin.size%  |
+| nextclade | %db.nextclade.size% |
+| kraken    | %db.kraken.size%    |
+| freyja    | %db.freyja.size%    |
 
-If everything work fine in directories `data\pangolin` and `data\nextclade` you should see downloaded content like below:
+If everything work fine in directories `data\pangolin` and `data\nextclade` you should see
+downloaded content like below:
 
 ```
 data/nextclade/
@@ -58,9 +64,11 @@ It is recommended to put the following in crontab or equivalently systemd timer.
 
 ## Updates internals
 
-The following section contain information what and how is updated. Unless you need to debug or refactor the code, and you followed guides in chapter [](updates.md#updates_procedure) you can safely skip it.
+The following section contain information what and how is updated. Unless you need to debug or
+refactor the code, and you followed guides in chapter [](updates.md#updates_procedure) you can
+safely skip it.
 
-### List of components that require updates
+### List of modules that require regular updates
 
 * Nextclade
 * Pangolin

@@ -29,10 +29,11 @@ with the actual Modeller key you own. If you don't have one, you can get a free 
   docker build --target manta -f Dockerfile-manta -t pzh_pipeline_viral-4.1-manta .
   docker build --target updater -f Dockerfile-main -t nf_illumina_sars-4.1-updater .
 ```
+ 
+> You may add `--no-cache` flag to avoid caching effects. 
 
-> **TIP**  
-> You may add `--no-cache` to avoid caching effects. 
-
+> If you encounter a `certificate verify failed` error during the build process, it may be due to being on a corporate network that injects its own certificate. In this case, add the following flag to the build command, where you can pass the certificate provided by your administrator into the container.
+> `--build-arg CERT_FILE="$(cat corporate-certificate.crt)"`
 
 6. Download latest version of external databases:
 
