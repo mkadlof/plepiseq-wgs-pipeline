@@ -21,8 +21,7 @@ process snpEff_illumina {
       touch ${sampleId}_detected_variants_consensus_annotated.txt
     else
       
-      # Check which organism we are annalyzing ?
-      # Why aren't we using params.species ?
+      # Check which organism and its type/subtype we are annalyzing 
       if [ `head -1 ${ref_genome_with_index[final_index]} | awk '{split(\$1, a, "/"); {if (a[2] == "A") {print 1} else {print 0} } }'` == 1 ]; then
         snp_eff='hRSV_A'
         cp /home/data/rsv/snpEff/config/snpEff.config /opt/snpEff/snpEff.config

@@ -187,7 +187,7 @@ ENV PATH="/opt/freebayes/bin:$PATH"
 FROM builder-base AS builder-snpeff
 WORKDIR /opt
 ADD third-party/snpEff.tar.gz /opt
-COPY data/sarscov2/snpEff /opt/snpEff
+# COPY data/sarscov2/snpEff /opt/snpEff
 
 # builder-python
 # Here goes all packages installed as python packages.
@@ -504,6 +504,8 @@ ENV PATH="/home/bin/common:"\
 "/opt/nextalign:"\
 "/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
+# snpeff new files
+COPY data/common/snpeff /opt/snpEff
 #COPY .git/refs/heads/master /tmp/git_master_ref
 
 WORKDIR /home
