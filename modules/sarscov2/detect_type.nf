@@ -11,6 +11,7 @@ output:
   tuple val(sampleId), path("primers.bed"), path("pairs.tsv"), emit: primers_and_pairs
   tuple val(sampleId), path("primers.bed"), emit: only_primers // required for nanopore second round
   tuple val(sampleId), path("genome.fasta"), emit: only_genome // indelqual module requires a variable not a tupple
+  tuple val(sampleId), env(REF_GENOME_ID), emit: to_snpeff 
 script:
 """
 

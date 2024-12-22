@@ -4,13 +4,13 @@ process vcf_for_fasta {
     // publishDir "${params.results_dir}/${sampleId}/consensus_vcf", mode: 'copy', pattern: "*vcf*"
 
     input:
-    tuple val(sampleId), path('output_consensus_masked_SV.fa'), path(ref_genome_with_index), val(QC_status)
+    tuple val(sampleId), path('output_consensus_masked_SV.fa'), path(ref_genome_with_index), val(QC_status), val(SUBTYPE_ID)
 
     // tuple val(sampleId), path("consensus.fa"), val(QC_status), path(ref_genome)
     // tuple val(sampleId), path("consensus.fa"), val(QC_status), path(ref_genome_with_index)
 
     output:
-    tuple val(sampleId), path("${sampleId}_final.vcf.gz"), path("${sampleId}_final.vcf.gz.tbi"), path(ref_genome_with_index), val(QC_status), emit: vcf
+    tuple val(sampleId), path("${sampleId}_final.vcf.gz"), path("${sampleId}_final.vcf.gz.tbi"), path(ref_genome_with_index), val(QC_status), val(SUBTYPE_ID), emit: vcf
 
     script:
     def final_index = -1
@@ -32,8 +32,19 @@ process vcf_for_fasta {
       # ponownie nazwa pliku jest taka sama jak segmentu, ale z podmieninymi "," i "/" na "_"
       # sam naglowek fasty zawiera nietypowe znaki
       # pliki reference_ maja sekwencje referencyjna a sample_ sekwencje analizowanej probki
+   
+      # Update Genome refencyjny jest "dostarcznay" przez kontener w /opt/snpEff/data w podkatalogach odpowiadajacych organizmom i podtypom
+      # plik zawsze nazywa sie sequences.fasta
 
-      cat ${ref_genome_with_index[final_index]} | awk '{if (substr(\$0, 1, 1)==">") { new_name=\$0; gsub("\\\\.", "_", new_name); gsub("/", "_", new_name);  filename=("reference_"substr(new_name,2) ".fasta"); print \$0 >> filename } else {print toupper(\$0)  >> filename}}'
+      if [ ${params.species} == "SARS-CoV-2" ]; then
+        GENOME_FASTA="/opt/snpEff/data/MN908947.3/sequences.fa"
+      elif [ ${params.species} == "RSV" ]; then
+        GENOME_FASTA="/opt/snpEff/data/hRSV_${SUBTYPE_ID}/sequences.fa"
+      elif [ ${params.species} == "Influenza" ]; then
+        GENOME_FASTA="/opt/snpEff/data/${SUBTYPE_ID}/sequences.fa"
+      fi
+ 
+      cat \${GENOME_FASTA} | awk '{if (substr(\$0, 1, 1)==">") { new_name=\$0; gsub("\\\\.", "_", new_name); gsub("/", "_", new_name);  filename=("reference_"substr(new_name,2) ".fasta"); print \$0 >> filename } else {print toupper(\$0)  >> filename}}'
       cat output_consensus_masked_SV.fa | awk '{if (substr(\$0, 1, 1)==">") { new_name=\$0; gsub("\\\\.", "_", new_name); gsub("/", "_", new_name);  gsub("_SV", "", new_name);  filename=("sample_"substr(new_name,2) ".fasta"); print \$0 >> filename } else {print toupper(\$0)  >> filename}}' 
       LISTA_VCF=()
       for PLIK in `ls reference_*`; do
