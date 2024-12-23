@@ -50,7 +50,7 @@ process detect_subtype_illumina {
       REF_GENOME_ID_MINI="unk"
     else
 
-      KNOWN_VARIANTS='H1N1 H3N2 H4N6 H5N2 H5N1 H5N6 H5N8 H6N1 H7N9 H9N2 Yamagata Victoria UNK'
+      # KNOWN_VARIANTS='H1N1 H3N2 H4N6 H5N2 H5N1 H5N6 H5N8 H6N1 H7N9 H9N2 Yamagata Victoria UNK'
       ALL_GENOMES=(`ls /home/data/infl/genomes`)
       ALL_SEGMENTS=(PB2 PB1 PA HA NP NA MP NS)
 

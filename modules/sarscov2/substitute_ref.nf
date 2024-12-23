@@ -7,6 +7,7 @@ process substitute_ref_genome {
     tuple val(sampleId), path('output_consensus_masked_SV.fa'), path(ref_genome_with_index), val(QC_status), path('original.fasta')
     output:
     tuple val(sampleId), path('output_consensus_masked_SV.fa'), path('original_reference.*'), val(QC_status), emit: fasta_refgenome_and_qc
+    tuple val(sampleId), path('output_consensus_masked_SV.fa'), val(QC_status), emit: fasta_and_qc // for novel snpeff
     script:
     """
    if [ ${QC_status} == "nie" ]; then

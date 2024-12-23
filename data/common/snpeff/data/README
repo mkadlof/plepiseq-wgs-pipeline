@@ -12,3 +12,14 @@ proteins.fa - plik z bialkami, jesli bym go mial to snpeff ma check-a i sprawdza
 README czasami katalogi maja readme z dodatkowymi informacjami jakie uznalem ze musze zapisac)
 w przypadku sekwencji ktore NIE byly juz referencja jest tez plik gisaid_epiflu_sequence.fasta na ktorym iwdac w naglowku ID szczepu oraz modyfikacje jakie wprowadzelem w sekwencji
 (capitaliki), zwykle zmiany dotyczyly uzupelnienia 5' i 3' koncow sekwencji
+
+# update 23.12
+Pomysl z uzywaniem do snp eff genomow referencyjnych WHO dla grypy nie wypalil
+Snp-eff wraca wiec do swojej pierwotnej funkcji i dla grypy informuje o mutacji wzgledem genu "skladaka" 
+tworzonego w trakcie analzy. Informacje o tym jakie podtypy/klady sa uzywane dla kazdego  segmentu bedzie w json
+W tym katalgou umieszczamy dla grypy kopie katalogu z genomami z /data/infl/genomes/
+dla ktorych przygotowalismy (na laptopie w katalogu /home/michall/Desktop/EQA2024/INFL/genomes/for_snpeff_2) gtf-y
+pliki z tych katalogow beda uzywane do tworzenia hybrydowego gtf-a
+# dla SARS i RSV katalogi tutaj zawieraja przygotowana baze 
+# dla grypowych podkatalogow sa tu pliki gtf potrzebne aby baze stwrzyc, plik sequence.fa jest pro forma, powinien byc on IDENTYCZNY z tym 
+# co jest /infl/genomes i NIE jest potrzebny  

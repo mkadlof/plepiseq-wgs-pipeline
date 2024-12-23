@@ -12,7 +12,7 @@ output:
   tuple val(sampleId), path("primers.bed"), path("pairs.tsv"), emit: primers_and_pairs
   tuple val(sampleId), path("primers.bed"), emit: primers
   tuple val(sampleId), path("genome.fasta"), emit: only_genome // indelqual module requires a variable not a tupple
-  tuple val(sampleId), env(REF_GENOME_ID), emit: to_snpeff
+  tuple val(sampleId), path("genome.fasta"), path("genes.gtf"), emit: to_snpeff
 script:
 """
 
@@ -24,12 +24,14 @@ if [ ${QC_STATUS} == "nie" ]; then
   touch sars2_dummy.fasta.amb
   touch primers.bed
   touch genome.fasta
+  touch genes.gtf
 else
   QC_exit="tak"
   cp /home/data/sarscov2/primers/${params.primers_id}/*bed primers.bed
   cp /home/data/sarscov2/primers/${params.primers_id}/*tsv pairs.tsv
   cp /home/data/sarscov2/genome/* .
   cp /home/data/sarscov2/genome/sarscov2.fasta genome.fasta
+  touch genes.gtf  # this is required so that this module has a consisteny output with its counterparts from infl and RSV
   REF_GENOME_ID=`head -1 genome.fasta | cut -d " " -f1 | tr -d ">"`
 fi
 

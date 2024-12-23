@@ -17,6 +17,7 @@ params.medaka_image = "ontresearch/medaka:sha447c70a639b8bcf17dc49b51e74dfcde647
 // // // // END END END END END // // // // //
 
 
+
 // Input section, only this section can be modified by shell wrapper for Pawel
 // Other parameters should not be modifie to allow reporoducibility between samples
 params.machine = '' // Can be set to either 'Illumina' or 'Nanopore'. Required
@@ -436,16 +437,12 @@ workflow{
   // final vcf + snpEFF, vcf will show mutations with respect to reference sequence for a given organism (or type/sybtype)
   // NOT the genome used for mapping (however for sars-cov2, types of rsv and some infl, reference and mapping genome are identical)
 
-  // For ALL species we need to look back at detetct type/subtype to get
-  // but FOR NOW that process has species-specific names so ...
-  if ( params.species  == 'SARS-CoV-2' ) {
-      for_vcf = final_genome_out.fasta_refgenome_and_qc.join(detect_type_out.to_snpeff, by:0)
-  } else if (params.species  == 'Influenza') { 
-      for_vcf = final_genome_out.fasta_refgenome_and_qc.join(detect_subtype_out.subtype_id, by:0)
-  } else if (params.species  == 'RSV') {
-      for_vcf = final_genome_out.fasta_refgenome_and_qc.join(detect_type_out.json, by:0)
-  }
+  // For snp eff we take sequence of our sample + QC (final_genome_out.fasta_and_qc) and add "reference" genome
+  // hybrid for infl
+  // predefined for SARS and RSV
+  // we also add gtf  to build snpeff database,  again hybrid for influenza,  and predefined for remaining viruses 
  
+  for_vcf = final_genome_out.fasta_and_qc.join(detect_type_out.to_snpeff, by:0)
   vcf_for_fasta_out = vcf_for_fasta(for_vcf)
    
   // illumina/nanopore specific channel 

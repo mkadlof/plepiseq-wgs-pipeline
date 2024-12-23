@@ -14,6 +14,7 @@ process introduce_SV_with_manta {
 
     output:
     tuple val(sampleId), path('consensus_masked_SV.fa'), path(ref_genome_with_index), env(QC_status_exit), emit: fasta_refgenome_and_qc
+    tuple val(sampleId), path('consensus_masked_SV.fa'),  env(QC_status_exit), emit: fasta_and_qc
     tuple val(sampleId), path('consensus.json'), emit: json
     tuple val(sampleId), path('output_*.fasta'), emit: to_pubdir
     // Dal ulatwienia ? na koniec tego segmentu polaczmy wszystkie segmenty w jeden plik, a jelsi dany modul downstream

@@ -17,6 +17,7 @@ process reassortment {
     tuple val(sampleId), path("hybrid_primers.bed"), emit: primers
     tuple val(sampleId), path("hybrid_genome.fasta"), emit: only_genome // indelqual module requires a variable not a tupple
     tuple val(sampleId), path("reassortment.json"), emit: json
+    tuple val(sampleId), path("hybrid_genome.fasta"), path("genes.gtf"), emit: to_snpeff
     script:
     """
     find_segement_position() {
@@ -41,7 +42,7 @@ process reassortment {
       touch pairs.tsv
       REF_GENOME_ID="unk"
       QC_exit="nie"
-      
+      touch genes.gtf
       # json section 
       ERR_MSG="This module recieved failed QC status"
       STATUS="nie"
@@ -121,6 +122,10 @@ process reassortment {
             
             cat \${primers}/\${REF_GENOME_ID}/\${REF_GENOME_ID}_primers.bed | \
                 grep \${segment} >> hybrid_primers.bed
+
+           cat /opt/snpEff/data/\${REF_GENOME_ID}/genes.gtf | \
+                grep \${segment} >> genes.gtf
+ 
             # remove intermediate files
             rm regular_\${REF_GENOME_ID}_chr*
         else
@@ -156,15 +161,25 @@ process reassortment {
               # echo "Reassortment detected for the segment \${segment}: \${REF_GENOME_ID} -> \${SEGMENT_best}\tAverage coverage is \${SEGMENT_best_counts}"
 
               cat regular_\${SEGMENT_best}_chr?_\${segment}.fasta >> hybrid_genome.fasta
+
               cat /home/data/infl/primers/\${SEGMENT_best}/\${SEGMENT_best}_primers.bed | \
                   grep \${segment} >>  hybrid_primers.bed
+
+              cat /opt/snpEff/data/\${SEGMENT_best}/genes.gtf | \
+                grep \${segment} >> genes.gtf
+
             else
                 # Probbably not a true reassortment we use segment from the "expected" subtype
                 cat \${genomes}/\${REF_GENOME_ID}/\${REF_GENOME_ID}.fasta | \
                     awk -v ID=\${REF_GENOME_ID} '{if (substr(\$0, 1, 1)==">") {filename=("regular_"ID"_"substr(\$0,2) ".fasta");  print \$0 >> filename } else {print toupper(\$0)  >> filename}}'
                 cat regular_\${REF_GENOME_ID}_chr?_\${segment}.fasta >> hybrid_genome.fasta
+
                 cat \${primers}/\${REF_GENOME_ID}/\${REF_GENOME_ID}_primers.bed | \
                      grep \${segment} >> hybrid_primers.bed
+
+                cat /opt/snpEff/data/\${REF_GENOME_ID}/genes.gtf | \
+                grep \${segment} >> genes.gtf
+
                 rm regular_\${REF_GENOME_ID}_*
             fi
             rm tmp.fa
