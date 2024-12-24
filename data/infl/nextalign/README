@@ -1,8 +1,12 @@
 pliki gff potrzebne do nextclade dla genomow dla krorych nie ma `nextclade dataset list ` (wszystkie poza h1n1 h3n2 i obu B)
-Wystarczy okreslic tylko granice gdzie sa bialka w genomach referncyjnych. Uwaga gff jest idenksowany od o i jest <> !!! nie jak bed !!!
+Wystarczy okreslic tylko granice gdzie sa bialka w genomach referncyjnych. Uwaga gff jest idenksowany od 1 i jest <> !!! nie jak bed !!!
 
 poprawka nextalign wymaga by w referencji byla tylko jenda sekwencja wiec w katalogu dla podtypu umieszczam
 1. oddzielne fasty dla kazdego segmenty
 2. gff moze byc wspolny (zakladajac poprawnosc nazw w pierwszejkolumnie)
 3. wywolanie
 /nextalign-x86_64-unknown-linux-gnu run -r reference/chr1_PB2.fasta -m gff/H3N2.gff -g PB2 -O wynik output_PB2.fasta 
+
+21.12.2024
+# uwaga sekwencje tutaj sa czasami "stare" przyciete do cds-ow, ale docelowo podmienimy je na fasty i gff-y przygotowywane dla snpeff-a
+* okazjnoanle ambigiouty w sekwencji referencyjnej nie maja tutaj znaczenia, bo celem jest zdobycie sekwencji biallkowej sample'a

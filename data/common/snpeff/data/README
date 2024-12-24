@@ -1,0 +1,25 @@
+ katalogi do przygotowania custom bazy dla snp eff, procedura analizy plikow jest w readme e katalogu H1N1. Ogolnie.
+Sekwencje "referencyjne" (poza H5NX, H6N1 i H4) to szczepy wytypowane przez WHO w dokumencie o analizie opornosc
+dla pozostalych szczepow (poza H5N1) WHO nie owi co jest referencja bo nie badaja opornosci ptasich gryp w tych wypadakch wzialem sekwencje identyczna z ta do mapowania
+dla H5N1 szczep referencyjny ma dziruway genom (ma CDS-a dla HA i NA, ale reszta to kompletna wolna amerykanka), dlatego dla H5N1 "referencyjnym" sczepem dla snpeffa jest H5N1_2212
+opis w readme
+
+pliki w tych katalogach to 
+ZAWSZE
+sequences.fa - sekwencja wszystkich segmentow
+genes.gtf - plik z informacja gdzie sa biala
+proteins.fa - plik z bialkami, jesli bym go mial to snpeff ma check-a i sprawdza czy to co widzi w seqences.fa i  gtf-a  zgadza sie z oczekiwana sekwencja bialka (zrobilem to tylko dla H1 recznie), okazjonalnie sciagnalem tez sekwencje z gisaid-a ale raczej nie planuje tego uzywac. poprawnosc GTFa byl RECZNIE walidowany blastem na baze bialek.
+README czasami katalogi maja readme z dodatkowymi informacjami jakie uznalem ze musze zapisac)
+w przypadku sekwencji ktore NIE byly juz referencja jest tez plik gisaid_epiflu_sequence.fasta na ktorym iwdac w naglowku ID szczepu oraz modyfikacje jakie wprowadzelem w sekwencji
+(capitaliki), zwykle zmiany dotyczyly uzupelnienia 5' i 3' koncow sekwencji
+
+# update 23.12
+Pomysl z uzywaniem do snp eff genomow referencyjnych WHO dla grypy nie wypalil
+Snp-eff wraca wiec do swojej pierwotnej funkcji i dla grypy informuje o mutacji wzgledem genu "skladaka" 
+tworzonego w trakcie analzy. Informacje o tym jakie podtypy/klady sa uzywane dla kazdego  segmentu bedzie w json
+W tym katalgou umieszczamy dla grypy kopie katalogu z genomami z /data/infl/genomes/
+dla ktorych przygotowalismy (na laptopie w katalogu /home/michall/Desktop/EQA2024/INFL/genomes/for_snpeff_2) gtf-y
+pliki z tych katalogow beda uzywane do tworzenia hybrydowego gtf-a
+# dla SARS i RSV katalogi tutaj zawieraja przygotowana baze 
+# dla grypowych podkatalogow sa tu pliki gtf potrzebne aby baze stwrzyc, plik sequence.fa jest pro forma, powinien byc on IDENTYCZNY z tym 
+# co jest /infl/genomes i NIE jest potrzebny  

@@ -9,7 +9,7 @@ process detect_type_illumina {
     tuple val(sampleId), path("RSV*"), path("primers.bed"), path("pairs.tsv"), env(TYPE), env(REF_GENOME_ID), env(QC_exit), emit: all
     tuple val(sampleId), path("RSV*"), path("primers.bed"), env(QC_exit), emit: to_bwa
     tuple val(sampleId), path("primers.bed"), path("pairs.tsv"), emit: primers_and_pairs
-   
+    tuple val(sampleId), path("genome.fasta"), path("genes.gtf"), emit: to_snpeff   
     tuple val(sampleId), path("genome.fasta"), emit: only_genome // indelqual module requires a variable not a tupple
     tuple val(sampleId), env(TYPE), emit: json
 script:
@@ -25,6 +25,7 @@ if [ ${QC_STATUS} == "nie" ]; then
   touch RSV_dummy.fasta.amb
   touch primers.bed
   touch genome.fasta
+  touch genes.gtf
 else
   REFERENCE_GENOME_FASTA="/home/data/rsv/genomes/RSV/RSV.fasta"
   bwa mem -t ${params.threads} \
@@ -46,6 +47,7 @@ else
       touch RSV_dummy.fasta.amb
       touch primers.bed
       touch genome.fasta
+      touch genes.gtf
   elif [[ \${ILE_A} -gt 1000 || \${ILE_B} -gt 1000 ]]; then
     QC_exit="tak"
     if  [ \${ILE_A} -gt \${ILE_B} ]; then
@@ -54,13 +56,14 @@ else
       cp /home/data/rsv/primers/A/${params.primers_id}/*tsv pairs.tsv
       cp /home/data/rsv/genomes/RSV_A/RSV* .
       cp /home/data/rsv/genomes/RSV_A/RSV_A.fasta genome.fasta
+      touch genes.gtf 
     else
       TYPE="B"
       cp /home/data/rsv/primers/B/${params.primers_id}/*bed primers.bed
       cp /home/data/rsv/primers/B/${params.primers_id}/*tsv pairs.tsv
       cp /home/data/rsv/genomes/RSV_B/RSV* .
       cp /home/data/rsv/genomes/RSV_B/RSV_B.fasta genome.fasta
-    
+      touch genes.gtf
     fi
   REF_GENOME_ID=`head -1 genome.fasta | cut -d " " -f1 | tr -d ">"`
   fi
@@ -83,6 +86,7 @@ process detect_type_nanopore {
     tuple val(sampleId), path("primers.bed"), emit: primers 
     tuple val(sampleId), env(TYPE), emit: json
     tuple val(sampleId), path("RSV*fasta"), emit: only_genome
+    tuple val(sampleId), path("genome.fasta"), path("genes.gtf"), emit: to_snpeff
 script:
 """
 # genome jest w kontenerze
@@ -95,6 +99,7 @@ if [ ${QC_STATUS} == "nie" ]; then
   touch RSV_dummy.fasta
   touch RSV_dummy.fasta.amb
   touch primers.bed
+  touch genes.gtf
 else
   REFERENCE_GENOME_FASTA="/home/data/rsv/genomes/RSV/RSV.fasta"
   minimap2 -a -x map-ont -t ${params.threads} -o tmp.sam \${REFERENCE_GENOME_FASTA} ${reads}  >> ${log} 2>&1
@@ -111,6 +116,7 @@ else
       touch RSV_dummy.fasta
       touch RSV_dummy.fasta.amb
       touch primers.bed
+      touch genes.gtf
   elif [[ \${ILE_A} -gt 1000 || \${ILE_B} -gt 1000 ]]; then
     QC_exit="tak"
     if  [ \${ILE_A} -gt \${ILE_B} ]; then
@@ -118,12 +124,13 @@ else
       cp /home/data/rsv/primers/A/${params.primers_id}/*bed primers.bed
       cp /home/data/rsv/primers/A/${params.primers_id}/*tsv pairs.tsv
       cp /home/data/rsv/genomes/RSV_A/RSV* .
+      touch genes.gtf
     else
       TYPE="B"
       cp /home/data/rsv/primers/B/${params.primers_id}/*bed primers.bed
       cp /home/data/rsv/primers/B/${params.primers_id}/*tsv pairs.tsv
       cp /home/data/rsv/genomes/RSV_B/RSV* .
-
+      touch genes.gtf
     fi
   REF_GENOME_ID=`head -1 genome.fasta | cut -d " " -f1 | tr -d ">"`
   fi

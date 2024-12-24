@@ -1,0 +1,19 @@
+EPI_ISL_227813 
+	
+A/California/07/2009 
+ 
+recznie dodano primery co widac jako capitale w  gisaid_epiflu_sequence_2.fasta
+1. snpeff wymaga aby genom byl w pliku o nazwie sequences.fa
+cp gisaid_epiflu_sequence_2.fasta sequences.fa
+2. oprawiamy naglowki zaminiemay sekwencje na lower
+cat sequences.fa  | awk '{ if (substr($0, 1, 1)==">") { split($0, a, "|"); print a[1] } else print tolower($0)}' >> tmp
+mv tmp sequences.fa
+3. Sprawdzamy czy sekwencja to tylko atgc
+cat sequences.fa | grep -v ">" | fold -w1 | grep -v [atgc]
+3. snpeff wymaga pliku genes.gtf przyklad DZIALAJACY jest w pzh:/home/michall/snpeff/data/H3N2. Na nasze potrzeby NIE bedziemy werfikowac tworzonej bazy wiec NIE tworzymy plikow protein.fa i cds.fa (patrz README w pzh:/home/michall/snpeff)
+4. Fla H1N1 zrobimy tylk otest dla bialek profilaktycznie , uwaga na ncbi referencyjne sekwencje bialek maja czasami X ... (PA, HA, NP...) wiec poprawiam je recznie na wlasciwy aminokwas
+a. dla PA i HA poprawiono X z referencji na wlasciwy aminokwas
+a. dla bialak NP wzieto sekwencje APP91838.1
+a
+
+5. na koniec dos2unix * (bo seqviwe dodaje windowsowe znaki).

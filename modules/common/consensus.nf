@@ -22,6 +22,7 @@ process consensus_illumina {
 
 process consensus_nanopore {
     // For nanopore this module provides FINAL sequence for a sample
+    // The output should be equivalent to manta module for illumina_path
     tag "consensus:${sampleId}"
     container  = params.main_image
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "output_*.fasta"
@@ -46,14 +47,15 @@ process consensus_nanopore {
       parse_make_consensus.py --status "nie" --error "\${ERR_MSG}" -o consensus.json
     else
       make_consensus_nanopore.py ${masked_ref_genome_fa} ${sample_genome} ${sampleId}
-
+      rm output.fasta
+     
       # This step is required only for integration with downstream illumina modules
       cp genome.fasta ref_genome.fasta
       bwa index ref_genome.fasta
       # prepare json for this step
       ls output_*.fasta | tr " " "\\n" >> list_of_fasta.txt
       parse_make_consensus.py --status "tak" -o consensus.json --input_fastas list_of_fasta.txt --output_path "${params.results_dir}/${sampleId}"
-      
+      cat  output_*.fasta >> output.fasta 
       sed -i s"|\\|${sampleId}|_SV|"g output.fasta
       sed -i s"|\\|${sampleId}||"g consensus.json
     fi

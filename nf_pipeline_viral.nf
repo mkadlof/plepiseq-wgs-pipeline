@@ -10,7 +10,7 @@ params.external_databases_path=""
 
 // All docker images used by this pipeline
 // All modules now require explicit information which of these images they use
-params.main_image = "nf_viral_main:1.1"
+params.main_image = "nf_viral_main:1.2"
 params.manta_image = "nf_viral_manta:1.1"
 params.medaka_image = "ontresearch/medaka:sha447c70a639b8bcf17dc49b51e74dfcde6474837b-amd64"
 
@@ -382,7 +382,7 @@ workflow{
         novel_genome =  make_genome_from_vcf_1(medaka_varscan_integration_1_out.reference_genome.join(filter_out_non_SNPs_1_out.vcf))
  
         // Second round of medaka using genome obtained in round 1
-        // at the end of this round we need need yo resote the origunal genome as reference (for snpeff)
+        // at the end of this round we need need to resote the origunal genome as reference (for snpeff)
 
         reads_and_updated_genome_and_primers = reads.join(novel_genome.only_fasta, by:0)
         reads_and_updated_genome_and_primers = reads_and_updated_genome_and_primers.join(detect_type_out.primers,  by:0)
@@ -432,12 +432,22 @@ workflow{
   // Pangolin only for SARS, module is species-aware
   pangolin_out = pangolin(final_genome_out.fasta_refgenome_and_qc)
 
-  // final vcf + snpEFF, snpEFF is species-aware
-  vcf_for_fasta_out = vcf_for_fasta(final_genome_out.fasta_refgenome_and_qc)
+  
+   
+  // final vcf + snpEFF, vcf will show mutations with respect to reference sequence for a given organism (or type/sybtype)
+  // NOT the genome used for mapping (however for sars-cov2, types of rsv and some infl, reference and mapping genome are identical)
+
+  // For snp eff we take sequence of our sample + QC (final_genome_out.fasta_and_qc) and add "reference" genome
+  // hybrid for infl
+  // predefined for SARS and RSV
+  // we also add gtf  to build snpeff database,  again hybrid for influenza,  and predefined for remaining viruses 
+ 
+  for_vcf = final_genome_out.fasta_and_qc.join(detect_type_out.to_snpeff, by:0)
+  vcf_for_fasta_out = vcf_for_fasta(for_vcf)
    
   // illumina/nanopore specific channel 
   if(params.machine == 'Illumina') {
-    snpEff_out = snpEff_illumina(vcf_for_fasta_out.vcf.join(indelQual_out.bam_and_qc, by:0))
+    snpEff_out = snpEff_nanopore(vcf_for_fasta_out.vcf.join(indelQual_out.bam_and_qc, by:0))
   }
   else if (params.machine == 'Nanopore') {
     snpEff_out = snpEff_nanopore(vcf_for_fasta_out.vcf.join(minimap2_2_out.bam_and_qc, by:0))  
@@ -470,7 +480,7 @@ workflow{
  
 
   if(params.machine == 'Illumina') {
-    for_json_aggregator = for_json_aggregator.join(final_genome_out.json)
+    for_json_aggregator = for_json_aggregator.join(final_genome_out.json) // tylko illumina
   } else if (params.machine == 'Nanopore') {
     for_json_aggregator = for_json_aggregator.join(prefinal_genome_out.json) // tylko nanopore
   }
