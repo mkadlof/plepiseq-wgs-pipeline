@@ -13,4 +13,4 @@ Kraken2 is a tool capable of detecting contamination in a sample by aligning rea
 
 As a result, users obtain information about the proportions of reads originating from different organisms.
 
-Kraken requires a large database for classification. Details are described in [updates.md#external-databases-updates](updates.md#external-databases-updates).
+Kraken requires a large database for classification. Details are described in [updates.md#external-databases-updates](../updates.md#external-databases-updates).
