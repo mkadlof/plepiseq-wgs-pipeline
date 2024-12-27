@@ -71,7 +71,7 @@ process alphafold {
                                                --data_dir="/db/" \
                                                --db_preset="reduced_dbs" \
                                                --output_dir="wyniki" \
-                                               --uniref90_database_path="/db/uniref90/uniref90.fasta" \
+                                               --uniref90_database_path="/db/uniref50/uniref50.fasta" \
                                                --mgnify_database_path="/db/mgnify/mgy_clusters_2022_05.fa" \
                                                --small_bfd_database_path="/db/small_bfd/bfd-first_non_consensus_sequences.fasta" \
                                                --template_mmcif_dir="/db/pdb_mmcif/mmcif_files/" \
@@ -88,7 +88,7 @@ process alphafold {
         # --uniref30_database_path="/db/uniref30/UniRef30_2021_03" \
 
         sleep `python -c 'import random; print(random.randint(5, 8))'`
-        cp wyniki/`basename ${target_fasta} ".fasta"`/ranked_0.pdb ${sampleId}_spike.pdb
+        cp wyniki/`basename \${target_fasta} ".fasta"`/ranked_0.pdb ${sampleId}_spike.pdb
         
         # align all proteins to a common reference
         # TO DO

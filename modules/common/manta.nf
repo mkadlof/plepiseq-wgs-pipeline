@@ -127,22 +127,23 @@ process introduce_SV_with_manta {
 
       # Check QC of the genome at this stage, if some parameters are not met switch QC_status_exit to nie 
       
-      # count N
+      # TEMPORAL PARAMETER TO  BE SET WITH TOMEK
+      # Number of Ns in sequence is lower than 90% otherwies progam will stop. 
       NUMBER_OF_N=`cat consensus_masked_SV.fa  | grep -v ">" | fold -w1 | sort | uniq -c | grep N | cut -d " " -f3`
       SEQ_LENGTH=`cat consensus_masked_SV.fa  | grep -v ">" | fold -w1 | wc -l`
       
-     if [ -z ${NUMBER-OF_N} ]; then 
+     if [ -z \${NUMBER_OF_N} ]; then 
         # No Ns in a sequence 
         QC_status_exit="tak"
         python3 /home/parse_make_consensus.py --status "\${QC_status_exit}" -o consensus.json --input_fastas list_of_fasta.txt --output_path "${params.results_dir}/${sampleId}"
       else
-        if [ `awk -v n="\${NUMBER_OF_N}" -v total="\${SEQ_LENGTH}" 'BEGIN {wynik=n/total; if (wynik < 0.4) print "1"; else print "0"}'` -eq 1 ]; then
-          # less than 40% of Ns in sequence we can continue ...
+        if [ `awk -v n="\${NUMBER_OF_N}" -v total="\${SEQ_LENGTH}" 'BEGIN {wynik=n/total; if (wynik < 0.9) print "1"; else print "0"}'` -eq 1 ]; then
+          # less than 90% of Ns in sequence we can continue ...
           QC_status_exit="tak"
           python3 /home/parse_make_consensus.py --status "\${QC_status_exit}" -o consensus.json --input_fastas list_of_fasta.txt --output_path "${params.results_dir}/${sampleId}"
         else
           QC_status_exit="nie"
-          ERR_MSG="The sequence contains more than 40% of Ns. Will not execute downstream modules"
+          ERR_MSG="The sequence contains more than 90% of Ns. Will not execute downstream modules"
           python3 /home/parse_make_consensus.py --status "nie" --error "\${ERR_MSG}" -o consensus.json 
         fi
       fi
