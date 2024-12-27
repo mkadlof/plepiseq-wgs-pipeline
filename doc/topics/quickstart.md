@@ -46,20 +46,25 @@ with the actual Modeller key you own. If you don't have one, you can get a free 
 > If you encounter a `certificate verify failed` error during the build process, it may be due to being on a corporate network that injects its own certificate. In this case, add the following flag to the build command, where you can pass the certificate provided by your administrator into the container.
 > `--build-arg CERT_FILE="$(cat corporate-certificate.crt)"`
 
-6. Download latest version of external databases:
+8. Download latest version of external databases:
 
 In project root dir run:
 ```bash
-  ./update_external_databases.sh pangolin
-  ./update_external_databases.sh nextclade
-  ./update_external_databases.sh kraken
-  ./update_external_databases.sh freyja
+  ./update_external_databases.sh --database pangolin --output-path /path/to/external_databases 
+  ./update_external_databases.sh --database nextclade --output-path /path/to/external_databases 
+  ./update_external_databases.sh --database kraken2 --output-path /path/to/external_databases --kraken-type standard_08gb
+  ./update_external_databases.sh --database freyja --output-path /path/to/external_databases 
 ```
+
+> kraken2 require providing database name:
+> One of following: 
+> "standard" "standard_08gb" "standard_16gb" "viral" "minusb" "pluspf" "pluspf_08gb" "pluspf_16gb" "pluspfp" "pluspfp_08gb" "pluspfp_16gb" "nt" "eupathdb48"
+
 For more details read the chapter [](updates.md).
 
-7. Copy `run_nf_pipeline.sh.template` to `run_nf_pipeline.sh` and fill in the paths to the reads and output directory.
+9. Copy `run_nf_pipeline.sh.template` to `run_nf_pipeline.sh` and fill in the paths to the reads and output directory.
 
-8. Run the pipeline:
+10. Run the pipeline:
 
 ```bash
   ./run_nf_pipeline.sh
