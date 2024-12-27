@@ -7,22 +7,33 @@
 
 ```bash
   curl -s https://get.nextflow.io | bash
-  mv nextflow ~/bin
 ```
 
-3. Clone the repository:
+3. Put the Nextflow binary in the PATH. E.g.:
 
 ```bash
-  git clone %git.url%
+sudo mv nextflow /usr/local/bin
+```
+
+4. Clone the repository:
+
+```bash
+  git clone --depth 1 %git.url%
 ````  
 
-4. Copy `third-party/modeller/config.py.template` to `third-party/modeller/config.py` and replace the line
+5. Enter downloaded repo:
+
+```bash
+cd %git.name%
+```
+
+6. Copy `third-party/modeller/config.py.template` to `third-party/modeller/config.py` and replace the line
 
 ```license = 'YOUR_MODELLER_KEY'```
 
 with the actual Modeller key you own. If you don't have one, you can get a free academic license [here](https://salilab.org/modeller/registration.html).
 
-5. Build three containers:
+7. Build three containers:
 
 ```bash
   docker build --target main -f Dockerfile-main -t pzh_pipeline_viral-4.1-main .

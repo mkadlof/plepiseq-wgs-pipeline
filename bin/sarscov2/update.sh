@@ -34,7 +34,9 @@ update_pangolin() {
 # Function to update the kraken database
 update_kraken() {
     local db_path=$1
-    /home/kraken_updater.py standard "${db_path}"
+    local kraken_type=$2
+    echo /home/kraken_updater.py "${db_path}" "$kraken_type"
+    /home/kraken_updater.py "${db_path}" "$kraken_type"
     return $?
 }
 
@@ -62,6 +64,7 @@ update_freyja() {
 # Function to update a specific database
 update_database() {
     local db_name=$1
+    local kraken_type=$2
     local db_path="/home/external_databases"
 
     # Ensure the directory exists
@@ -76,7 +79,7 @@ update_database() {
     elif [ "$db_name" == "pangolin" ]; then
         update_pangolin "$db_path"
     elif [ "$db_name" == "kraken2" ]; then
-        update_kraken "$db_path"
+        update_kraken "$db_path" "$kraken_type"
     elif [ "$db_name" == "freyja" ]; then
         update_freyja "$db_path"
     fi
@@ -84,26 +87,39 @@ update_database() {
 
 # Check if argument is provided
 if [ -z "$1" ]; then
-    echo "No argument supplied. Please provide one of the following: nextclade, pangolin, kraken2, freyja or all"
+    echo "No argument supplied. Please provide one of the following: nextclade, pangolin, kraken2, freyja"
     exit 1
 fi
 
 # Check if argument is valid
-if [ "$1" != "nextclade" ] && [ "$1" != "pangolin" ] && [ "$1" != "kraken2" ] && [ "$1" != "freyja" ] && [ "$1" != "all" ]; then
-    echo "Invalid argument supplied. Please provide one of the following: nextclade, pangolin, kraken2, freyja or all"
+if [ "$1" != "nextclade" ] && [ "$1" != "pangolin" ] && [ "$1" != "kraken2" ] && [ "$1" != "kraken2" ] && [ "$1" != "freyja" ]; then
+    echo "Invalid argument supplied. Please provide one of the following: nextclade, pangolin, kraken2, freyja"
     exit 1
 fi
 
-# Update all databases if 'all' is specified
-if [ "$1" == "all" ]; then
-    update_database "nextclade"
-    update_database "pangolin"
-    update_database "kraken2"
-    update_database "freyja"
-    exit 0
+if [ "$1" == "kraken2" ]; then
+
+    VALID_KRAKEN2_DB=("standard" "standard_08gb" "standard_16gb" "viral" "minusb" "pluspf" "pluspf_08gb" "pluspf_16gb" "pluspfp" "pluspfp_08gb" "pluspfp_16gb" "nt" "eupathdb48")
+    # Check if database name is provided for kraken2
+    if [ -z "$2" ]; then
+        echo "No database name supplied for kraken2. Please provide one of the following: ${VALID_KRAKEN2_DB[*]}"
+        exit 1
+    fi
+
+    # Validate the provided database name
+    if [[ ! " ${VALID_KRAKEN2_DB[*]} " =~ " $2 " ]]; then
+        echo "Invalid database name for kraken2. Please provide one of the following: ${VALID_KRAKEN2_DB[*]}"
+        exit 1
+    fi
+fi
+
+
+if [  "$1" == "kraken2" ]; then
+    echo update_database "$1" "$2"
+    update_database "$1" "$2"
 else
-  # Update the specified database
-  update_database "$1"
+    # Update the specified database
+    update_database "$1"
 fi
 
 exit $?

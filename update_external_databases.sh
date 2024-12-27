@@ -13,41 +13,84 @@
 # 10 3 * * 6 cd /path/to/sars-illumina && bin/update_external_databases.sh freyja
 # 15 3 1 */3 * cd /path/to/sars-illumina && bin/update_external_databases.sh kraken
 
-usage() {
-    echo "Usage: $0 all|pangolin|nextclade|kraken|freyja [PATH]"
-    echo "  all       - Update all databases. Default path: ./external_databases"
-    echo "  pangolin  - Update the pangolin database. Default path: ./external_databases/pangolin"
-    echo "  nextclade - Update the nextclade database. Default path: ./external_databases/nextclade"
-    echo "  kraken2   - Update the kraken database. Default path: ./external_databases/kraken2"
-    echo "  freyja    - Update the freyja database. Default path: ./external_databases/freyja"
-    echo "  PATH      - Optional path to the database directory"
+# Function to display help message
+function show_help() {
+    echo "Usage: $0 --database <pangolin|nextclade|kraken2|freyja> --output-path <path> [--kraken-type <type>]"
+    echo
+    echo "Options:"
+    echo "  --database      Name of the database to update (pangolin, nextclade, kraken2, freyja)."
+    echo "  --output-path   Path to save the downloaded database."
+    echo "  --kraken-type   Type of Kraken database (required if database is kraken)."
+    echo "                 Possible values: standard, standard_08gb, standard_16gb, viral, minusb,"
+    echo "                 pluspf, pluspf_08gb, pluspf_16gb, pluspfp, pluspfp_08gb, pluspfp_16gb,"
+    echo "                 nt, eupathdb48."
+    exit 1
 }
 
-CONTAINER="nf_illumina_sars-4.1-updater:latest"
+# Parse arguments
+DATABASE=""
+OUTPUT_PATH=""
+KRAKEN_TYPE=""
 
-# Check if container exists
-container_id=$(docker images -q $CONTAINER)
-if [ -z "$container_id" ]; then
-    echo "Missing container $CONTAINER. Build it before running this script!"
-    exit 1
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --database)
+            DATABASE="$2"
+            shift 2
+            ;;
+        --output-path)
+            OUTPUT_PATH="$2"
+            shift 2
+            ;;
+        --kraken-type)
+            KRAKEN_TYPE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            show_help
+            ;;
+        *)
+            echo "Unknown argument: $1"
+            show_help
+            ;;
+    esac
+done
+
+# Validate required arguments
+if [[ -z "$DATABASE" ]]; then
+    echo "Error: --database is required."
+    show_help
 fi
 
-# Check if argument is valid
-if [ "$1" != "nextclade" ] && [ "$1" != "pangolin" ] && [ "$1" != "kraken2" ] && [ "$1" != "freyja" ] && [ "$1" != "all" ]; then
-    echo "Invalid argument supplied. Please provide one of the following: all, nextclade, pangolin, kraken2, freyja"
-    usage
-    exit 1
+if [[ -z "$OUTPUT_PATH" ]]; then
+    echo "Error: --output-path is required."
+    show_help
 fi
+
+# Validate Kraken type if database is kraken
+if [[ "$DATABASE" == "kraken2" && -z "$KRAKEN_TYPE" ]]; then
+    echo "Error: --kraken-type is required when --database is 'kraken2'."
+    show_help
+fi
+
+if [[ "$DATABASE" == "kraken2" ]]; then
+    VALID_TYPES=("standard" "standard_08gb" "standard_16gb" "viral" "minusb" \
+                 "pluspf" "pluspf_08gb" "pluspf_16gb" "pluspfp" "pluspfp_08gb" \
+                 "pluspfp_16gb" "nt" "eupathdb48")
+    if [[ ! " ${VALID_TYPES[@]} " =~ " ${KRAKEN_TYPE} " ]]; then
+        echo "Error: Invalid --kraken-type value."
+        show_help
+    fi
+fi
+
+# Output the parsed arguments
+echo "Database: $DATABASE"
+echo "Output Path: $OUTPUT_PATH"
+[[ "$DATABASE" == "kraken2" ]] && echo "Kraken Type: $KRAKEN_TYPE"
 
 # Set default path if not provided
 if [ -z "$2" ]; then
-    if [ "$1" == "all" ]; then
-        PATH_TO_USE="./external_databases"
-    else
-        PATH_TO_USE="./external_databases/$1"
-    fi
-else
-    PATH_TO_USE="$2"
+    PATH_TO_USE="${OUTPUT_PATH}/${DATABASE}"
 fi
 
 # Ensure the directory exists
@@ -64,9 +107,11 @@ fi
 
 PATH_TO_USE=$(realpath ${PATH_TO_USE})
 
+CONTAINER="nf_illumina_sars-4.1-updater:latest"
+
 docker run \
        --volume ${PATH_TO_USE}:/home/external_databases:rw \
        --user $(id -u):$(id -g) \
        --name nf_illumina_sars-3.0-updating-${1} \
        --rm \
-       $CONTAINER $1
+       $CONTAINER ${DATABASE} ${KRAKEN_TYPE}

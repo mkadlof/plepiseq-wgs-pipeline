@@ -62,12 +62,12 @@ def download_from_s3(bucket_name: str, file_name: str, local_path: str):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("local_path", type=str, default=".")
     parser.add_argument("db_name", type=str,
                         choices=['standard', 'standard_08gb', 'standard_16gb', 'viral', 'minusb',
                                  'pluspf', 'pluspf_08gb', 'pluspf_16gb', 'pluspfp', 'pluspfp_08gb',
                                  'pluspfp_16gb', 'nt', 'eupathdb48'],
                         help="Database name (if unsure, use 'standard')")
-    parser.add_argument("local_path", type=str, default=".")
     args = parser.parse_args()
 
     # Bucket name on Amazon S3
