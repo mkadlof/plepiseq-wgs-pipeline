@@ -11,12 +11,45 @@ import json
 import re
 import numpy as np
 
+def parse_mapping_file(plik):
+    """
+    Skrypt do konwersji pliku z informacja jaki szczep i jego id jest referencja dla danego podtypu i kladu
+    Plik ma postac macierzy gdzie 1sz wiersz to naglowek
+    a Kolejne wiersze to nazwa "wewentrzna" genomu, a potem informacja jaka jest nazwa szczepu dla kazdego segmentu
+    wynika to z faktu, ze dla jednego podtpyu H3N2_v nie dalo sie zlozyc genomu z jednego szczpeu
+    @param plik: plik zmapowaniem
+    @type plik: str
+    @return: Slownik gdzie kluczem glownym jest nazwa genomu, podkluczami nazwy segmentu a wartosci dwuelemenotowa lista
+    gdzie pierwszy element to nazwa szczepu a drugi jego identyfiaktor w gisaid
+    @rtype: Dict[Dict -> List]
+    """
+    slownik_wynikow = {}
+    with open(plik) as f:
+        for line in f:
+            line = line.split("\t")
+            line[-1] = line[-1].rstrip()
+            if line[0] == "#Directory":
+                header = line[1:] # niech sam plik trzyma klucze podslownika (moze miznie na chrX_...)
+            else:
+                slownik_wynikow[line[0]] = {}
 
-def parse_intermediate(plik):
+                # dane dla kazdego segmentu
+                slownik_wynikow[line[0]][header[0]] = line[1].split(" ")
+                slownik_wynikow[line[0]][header[1]] = line[2].split(" ")
+                slownik_wynikow[line[0]][header[2]] = line[3].split(" ")
+                slownik_wynikow[line[0]][header[3]] = line[4].split(" ")
+                slownik_wynikow[line[0]][header[4]] = line[5].split(" ")
+                slownik_wynikow[line[0]][header[5]] = line[6].split(" ")
+                slownik_wynikow[line[0]][header[6]] = line[7].split(" ")
+                slownik_wynikow[line[0]][header[7]] = line[8].split(" ")
+
+    return slownik_wynikow
+
+def parse_intermediate(plik, mapowania):
     segment_dict = {}
     list_of_refernces = []
 
-    i = 0 # We only need to looa at lines 0 and 1
+    i = 0 # We only need to look at lines 0 and 1
     with open(plik) as f:
         for line in f:
             j = 0
@@ -40,7 +73,9 @@ def parse_intermediate(plik):
     for element in segment_dict:
         segment_name, segment_reference = segment_dict[element]
         reference_genome_data.append({"segment_name": segment_name,
-                                      "reference_subtype_name" : segment_reference.split('_')[0]})
+                                      "reference_subtype_name" : segment_reference.split('_')[0],
+                                      "reference_strain_name" : f"{mapowania[segment_reference][segment_name][0]}",
+                                      "reference_strain_id" : f"{mapowania[segment_reference][segment_name][1]}"})
 
 
     if len(np.unique(list_of_refernces)) > 1:
@@ -77,18 +112,23 @@ def parse_intermediate(plik):
 @click.option('-s', '--status', help='[INPUT] PREDEFINED status that is transferred to an output json. '
                                      'If this status was either nie or blad fastqc will not run',
               type=click.Choice(['tak', 'nie', 'blad'], case_sensitive=False),  required=True)
+@click.option('-m', '--mapping', help='[INPUT] PREDEFINED file with mapping between internal names of genomes'
+                                      'like H3N2_3C2a1b2a2a3a to strains name like A/Denmark/65/2021 ',
+              type=click.Path(), required=False)
 @click.option('-r', '--error', help='[INPUT] PREDEFINED error message that is put in json. '
                                     'Only used when status was set to nie or blad',
               type=str,  required=False, default="")
 @click.option('-o', '--output', help='[Output] Name of a file with json output',
               type=str,  required=True)
 
-def main_program(status, output, input_file, subtype, error=""):
+def main_program(status, output, input_file, mapping, subtype, error=""):
     if status != "tak":
         json_output = {"reference_genome_prediction_status": status,
                        "reference_genome_prediction_error_message": error}
     else:
-        reference_genome_prediction_data, reasortment_result, typ = parse_intermediate(plik=input_file)
+        mapowania_genom_segment = parse_mapping_file(mapping)
+        reference_genome_prediction_data, reasortment_result, typ = parse_intermediate(plik=input_file,
+                                                                                       mapowania=mapowania_genom_segment)
         json_output = {
             "reference_genome_prediction_status": status,
             "reasortment_result": reasortment_result,

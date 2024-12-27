@@ -206,9 +206,8 @@ process reassortment {
       influenza_reassortment_parser.py --status "tak" \
                                         --output reassortment.json \
                                         --input_file intermediate.txt \
-                                        --subtype \${REF_GENOME_ID}        
-      
- 
+                                        --subtype \${REF_GENOME_ID} \
+                                        --mapping /home/data/infl/strains_name.txt
    fi #koniec if-a na QC
    """
 }
