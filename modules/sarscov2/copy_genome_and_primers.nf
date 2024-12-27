@@ -13,6 +13,7 @@ output:
   tuple val(sampleId), path("primers.bed"), emit: primers
   tuple val(sampleId), path("genome.fasta"), emit: only_genome // indelqual module requires a variable not a tupple
   tuple val(sampleId), path("genome.fasta"), path("genes.gtf"), emit: to_snpeff
+  tuple val(sampleId), env(REF_GENOME_ID), emit: subtype_id // to nextalign, we need a channel with dummy value 
 script:
 """
 

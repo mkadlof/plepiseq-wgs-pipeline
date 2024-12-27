@@ -1,0 +1,3 @@
+here we will put all files required by nextalign i.e. genome (again) + gff file
+# for SARS and MN we use again use predefined files 
+# for influenza we create gff ourselved. However we do need to create gff for each subtype/clade, subtype level files should suffice to produce valid proteins sequence for a sample

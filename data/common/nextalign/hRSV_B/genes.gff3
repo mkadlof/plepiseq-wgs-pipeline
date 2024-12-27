@@ -1,0 +1,12 @@
+##gff-version 3
+hRSV/B/England/RE20000104/2020	feature	gene	99	518	.	.	0	codon_start=1;gene_name=NS1;product=nonstructural
+hRSV/B/England/RE20000104/2020	feature	gene	626	1000	.	.	0	codon_start=1;gene_name=NS2;product=nonstructural
+hRSV/B/England/RE20000104/2020	feature	gene	1139	2314	.	.	0	codon_start=1;gene_name=N;product=nucleocapsid
+hRSV/B/England/RE20000104/2020	feature	gene	2347	3072	.	.	0	codon_start=1;gene_name=P;product=phosphoprotein;protein_id=QPB74305.1
+hRSV/B/England/RE20000104/2020	feature	gene	3262	4032	.	.	0	codon_start=1;gene_name=M;product=matrix
+hRSV/B/England/RE20000104/2020	feature	gene	4301	4498	.	.	0	codon_start=1;gene_name=SH;product=small
+hRSV/B/England/RE20000104/2020	feature	gene	4687	5619	.	.	0	codon_start=1;gene_name=G;product=attachment
+hRSV/B/England/RE20000104/2020	feature	gene	5717	7441	.	.	0	codon_start=1;gene_name=F;product=fusion
+hRSV/B/England/RE20000104/2020	feature	gene	7668	8255	.	.	0	codon_start=1;gene_name=M2-1;product=transcription
+hRSV/B/England/RE20000104/2020	feature	gene	8221	8493	.	.	0	codon_start=1;gene_name=M2-2;product=transcription
+hRSV/B/England/RE20000104/2020	feature	gene	8559	15059	.	.	0	codon_start=1;gene_name=L;product=RNA-directed

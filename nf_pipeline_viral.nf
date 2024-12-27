@@ -8,12 +8,15 @@ modules = "${params.projectDir}/modules" // Modules are part of the project_dir
 
 params.external_databases_path=""
 
+// Temporal location of alphafold data
+params.alphafold_databases_path="/mnt/sda1/michall/db_alphafold/"
+
 // All docker images used by this pipeline
 // All modules now require explicit information which of these images they use
 params.main_image = "nf_viral_main:1.2"
 params.manta_image = "nf_viral_manta:1.1"
 params.medaka_image = "ontresearch/medaka:sha447c70a639b8bcf17dc49b51e74dfcde6474837b-amd64"
-
+params.alphafold_image =" alphafold:1.1" 
 // // // // END END END END END // // // // //
 
 
@@ -245,6 +248,7 @@ include { varScan as varScan_1 } from "${modules}/common/varscan.nf"
 include { varScan as varScan_2 } from "${modules}/common/varscan.nf"
 
 include { substitute_ref_genome } from "${modules}/sarscov2/substitute_ref.nf"
+include { alphafold } from "${modules}/common/alphafold.nf"
 
 // Script execution path
 ExecutionDir = new File('.').absolutePath // all output in json should be relative to this path
@@ -419,16 +423,26 @@ workflow{
   }
   // Post FASTA generation modules mostly common for nanopore and illumina
 
+  // This can be simplified
+  if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
+    to_nextalign = final_genome_out.fasta_and_qc.join(detect_type_out.subtype_id, by:0)
+  }  else if (params.species  == 'Influenza') {
+    to_nextalign = final_genome_out.fasta_and_qc.join(detect_subtype_out.subtype_id, by:0)
+  }
+
+  nextalign_out = nextalign_influenza(to_nextalign)
+  modeller_out = modeller(nextalign_out.to_modeller)
+  alphafold_out = alphafold(nextalign_out.to_modeller)
   if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
       nextclade_out = nextclade_noninfluenza(final_genome_out.fasta_refgenome_and_qc)
   } else if (params.species  == 'Influenza') {
       // manta_out.fasta_refgenome_and_qc.join(detect_subtype_illumina_out.subtype_id, by:0)
       final_genome_and_influenza_subtype = final_genome_out.fasta_refgenome_and_qc.join(detect_subtype_out.subtype_id, by:0)
       nextclade_out = nextclade_influenza(final_genome_and_influenza_subtype)
-      nextalign_out = nextalign_influenza(final_genome_and_influenza_subtype)
-      resistance_out = resistance_influenza(nextalign_out)
+      resistance_out = resistance_influenza(nextalign_out.to_resistance)
   }
-  modeller_out = modeller(nextclade_out.to_modeller)
+  
+  // modeller_out = modeller(nextclade_out.to_modeller)
   // Pangolin only for SARS, module is species-aware
   pangolin_out = pangolin(final_genome_out.fasta_refgenome_and_qc)
 

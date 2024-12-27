@@ -1,0 +1,4 @@
+gff pobrano ze strony ncbi
+https://www.ncbi.nlm.nih.gov/nuccore/MN908947.3/
+ale jako ze nextalign nie rozumie skomplikowanych caseow gen orf1ab ktory mial jeden gen i dwa cds-y (dla a i b)
+zostal zamieniony by byly 2 gen (jden orf1a a drugi orf1b)

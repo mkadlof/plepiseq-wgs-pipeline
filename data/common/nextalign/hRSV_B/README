@@ -1,0 +1,18 @@
+genom B jest inny  w nextclade i u mnie. Ja bralem genom referencyjny dla schematu primerow articowych
+moj >hRSV/B/England/RE20000104/2020 czyli 	EPI_ISL_1647600
+a nextclade EPI_ISL_1653999 czyli 	hRSV/B/Australia/VIC-RCH056/2019
+
+genomy roznia sie tym ze moj jest pelny z primerami sekwencje sa NIEMAL identyczne dlugosciowo
+aby "przemapowac" pozycje z gff-a pobranego z nextclade na "moj" genom do pozycji 4582 nalezy dodac +42 (aby uwzglednic primery obecne u mnie)
+a za to pozycja (+41) aby uwzglednic indercje A w genomie z nextclade
+alignment na moim lapropiw w 
+/home/michall/Desktop/testy_tmp/RSV/RSV/porownanie_B_nextclade_artic
+
+Poprawka gff z nextclade na moj genom
+1. step 1
+sed -i s'|EPI_ISL_1653999|hRSV/B/England/RE20000104/2020|'g genemap.gff
+# Przeliczenie na szczescie zaden gen nie obejmuje momentu przejscia
+(base) michall@compute:~/git/nf_illumina_sars/git_repo/data/common/nextalign/hRSV_B$ cat genemap.gff | awk  'BEGIN {OFS="\t"} {if ($1 ~ /hRSV/) {if ($5 < 4582) {print $1, $2, $3, $4 + 42, $5 + 42, $6, $7, $8, $9} else {print $1, $2, $3, $4 + 41, $5 + 41, $6, $7, $8, $9} } else {print $0}}' >> tmp
+(base) michall@compute:~/git/nf_illumina_sars/git_repo/data/common/nextalign/hRSV_B$ mv tmp genemap.gff
+mv genemap.gff genes.gff # dla uspojnienia z konwenja z sarsa
+

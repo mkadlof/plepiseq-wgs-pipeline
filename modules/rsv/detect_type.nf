@@ -11,7 +11,7 @@ process detect_type_illumina {
     tuple val(sampleId), path("primers.bed"), path("pairs.tsv"), emit: primers_and_pairs
     tuple val(sampleId), path("genome.fasta"), path("genes.gtf"), emit: to_snpeff   
     tuple val(sampleId), path("genome.fasta"), emit: only_genome // indelqual module requires a variable not a tupple
-    tuple val(sampleId), env(TYPE), emit: json
+    tuple val(sampleId), env(TYPE), emit: subtype_id
 script:
 """
 # genome jest w kontenerze

@@ -1,0 +1,12 @@
+#	seqname	source	feature	start	end	score	strand	frame	attribute
+chr1_PB2	GenBank	gene	1	2280	.	+	.	gene_name=PB2
+chr2_PB1	GenBank	gene	1	2274	.	+	.	gene_name=PB1
+chr3_PA	GenBank	gene	1	2151	.	+	.	gene_name=PA
+chr4_HA	GenBank	gene	1	1704	.	+	.	gene_name=HA
+chr5_NP	GenBank	gene	1	1497	.	+	.	gene_name=NP
+chr6_NA	GenBank	gene	1	1350	.	+	.	gene_name=NA
+chr7_MP	GenBank	gene	1	759	.	+	.	gene_name=MP
+chr8_NS	GenBank	gene	1	678	.	+	.	gene_name=NS
+chr7_MP	.	exon	1	26	.	+	.	exon_name=M2_1
+chr7_MP	.	exon	715	982	.	+	.	exon_name=M2_2
+chrX_M2	.	gene	1	294	.	+	.	gene_name=M2

@@ -1,0 +1,5 @@
+zrodlo gff-a
+https://raw.githubusercontent.com/nextstrain/nextclade_data/refs/heads/v2/data/datasets/rsv_a/references/EPI_ISL_412866/versions/2023-11-25T12%3A00%3A00Z/files/genemap.gff
+# podmiana nazwy genomu
+sed -i s'|EPI_ISL_412866|hRSV/A/England/397/2017|'g genemap.gff
+mv genemap.gff genes.gff
