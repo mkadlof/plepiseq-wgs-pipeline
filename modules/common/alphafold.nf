@@ -41,7 +41,7 @@ process alphafold {
      # Options that must be set when  db_preset is set to "full_dbs" , which is a default setting
 
         # --bfd_database_path="/db/bfd/bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt"
-        # --uniref30_database_path="/db/uniref30/UniRef30_2021_03" \
+        # --uniref30_database_path="/db/uniref30/UniRef30_2021_03" 
     }
    
     # Restore names of fasta files as produced by nextalign module
@@ -165,12 +165,11 @@ process alphafold {
         cat nextalign_gene_S.translation.fasta | tr -d "-" | tr -d "X" | tr -d "*" >> tmp
         mv tmp nextalign_gene_S.translation.fasta
         target_fasta="nextalign_gene_S.translation.fasta" 
-        mkdir wyniki
-        run_alpfafold "\${target_fasta}" wyniki
+        run_alpfafold "\${target_fasta}" wynik
 
         # Give some time to clear up memory from a device ...
         sleep `python -c 'import random; print(random.randint(4, 35))'`
-        cp wyniki/`basename \${target_fasta} ".fasta"`/ranked_0.pdb ${sampleId}_spike.pdb
+        cp wynik/`basename \${target_fasta} ".fasta"`/ranked_0.pdb ${sampleId}_spike.pdb
         
         # align all proteins to a common reference
         # TO DO

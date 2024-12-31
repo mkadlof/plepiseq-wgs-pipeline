@@ -9,14 +9,15 @@ modules = "${params.projectDir}/modules" // Modules are part of the project_dir
 params.external_databases_path=""
 
 // Temporal location of alphafold data
-params.alphafold_databases_path="" # on compute /mnt/sda1/michall/db_alphafold/ and on a100 /mnt/md0/michall/db_alphafold/
+params.alphafold_databases_path="" 
+// on compute "/mnt/sda1/michall/db_alphafold/" and on a100 "/mnt/md0/michall/db_alphafold/"
 
 // All docker images used by this pipeline
 // All modules now require explicit information which of these images they use
 params.main_image = "nf_viral_main:1.2"
 params.manta_image = "nf_viral_manta:1.1"
-params.medaka_image = "ontresearch/medaka:sha447c70a639b8bcf17dc49b51e74dfcde6474837b-amd64" # this image is available on both compute and a100
-params.alphafold_image =" alphafold:1.1"  # this image is available on both compute and a100
+params.medaka_image = "ontresearch/medaka:sha447c70a639b8bcf17dc49b51e74dfcde6474837b-amd64" // this image is available on both compute and a100
+params.alphafold_image =" alphafold:1.1"  // this image is available on both compute and a100
 // // // // END END END END END // // // // //
 
 
