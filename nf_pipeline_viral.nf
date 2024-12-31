@@ -9,14 +9,14 @@ modules = "${params.projectDir}/modules" // Modules are part of the project_dir
 params.external_databases_path=""
 
 // Temporal location of alphafold data
-params.alphafold_databases_path="/mnt/sda1/michall/db_alphafold/"
+params.alphafold_databases_path="" # on compute /mnt/sda1/michall/db_alphafold/ and on a100 /mnt/md0/michall/db_alphafold/
 
 // All docker images used by this pipeline
 // All modules now require explicit information which of these images they use
 params.main_image = "nf_viral_main:1.2"
 params.manta_image = "nf_viral_manta:1.1"
-params.medaka_image = "ontresearch/medaka:sha447c70a639b8bcf17dc49b51e74dfcde6474837b-amd64"
-params.alphafold_image =" alphafold:1.1" 
+params.medaka_image = "ontresearch/medaka:sha447c70a639b8bcf17dc49b51e74dfcde6474837b-amd64" # this image is available on both compute and a100
+params.alphafold_image =" alphafold:1.1"  # this image is available on both compute and a100
 // // // // END END END END END // // // // //
 
 
@@ -196,7 +196,7 @@ include { snpEff_nanopore } from "${modules}/sarscov2/snpEff.nf"
 
 include { nextclade as nextclade_noninfluenza } from "${modules}/sarscov2/nextclade.nf"
 
-include { modeller } from "${modules}/sarscov2/modeller.nf"
+// include { modeller } from "${modules}/sarscov2/modeller.nf"
 
 // SARS specific modules
 include { copy_genome_and_primers } from "${modules}/sarscov2/copy_genome_and_primers.nf"
@@ -431,8 +431,10 @@ workflow{
   }
 
   nextalign_out = nextalign_influenza(to_nextalign)
-  modeller_out = modeller(nextalign_out.to_modeller)
+  // modeller_out = modeller(nextalign_out.to_modeller)
+  
   alphafold_out = alphafold(nextalign_out.to_modeller)
+  
   if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
       nextclade_out = nextclade_noninfluenza(final_genome_out.fasta_refgenome_and_qc)
   } else if (params.species  == 'Influenza') {
@@ -502,7 +504,7 @@ workflow{
   for_json_aggregator = for_json_aggregator.join(pangolin_out.json)
   for_json_aggregator = for_json_aggregator.join(nextclade_out.json)
   for_json_aggregator = for_json_aggregator.join(snpEff_out)
-  for_json_aggregator = for_json_aggregator.join(modeller_out.json)
+  for_json_aggregator = for_json_aggregator.join(alphafold_out.json)
   
   if ( params.species  == 'Influenza' ) {
     for_json_aggregator = for_json_aggregator.join(resistance_out.json)
