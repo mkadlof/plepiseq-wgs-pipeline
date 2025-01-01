@@ -52,7 +52,7 @@ process alphafold {
     done
 
     # in case multiple processes are spawned by nextflow at the same time add random sleep...
-    sleep `python -c 'import random; print(random.randint(4, 35))'`
+    sleep `python -c 'import random; print(random.randint(10, 60))'`
 
     # increase number of CPUs for jackhammer and hhblits for alignment
     sed -i s"|n_cpu: int = 8|n_cpu: int = ${task.cpus}|"g /app/alphafold/alphafold/data/tools/jackhmmer.py
@@ -88,7 +88,9 @@ process alphafold {
     if [ ${QC_status} == "nie" ]; then
       # failed QC 
       touch ${sampleId}.pdb
-      echo -e "{\\"protein_structure_status\\":\\"nie\\"}" >> alphafold.json
+      ERR_MSG="This modue was entered with bad QC"
+      echo -e "{\\"status\\":\\"nie\\", 
+                \\"error_message\\": \\"\${ERR_MSG}\\"}" >> alphafold.json
     elif [ ${params.species} == "RSV" ]; then
       # For RSV we predict structures of G and F proteins
 
@@ -182,7 +184,10 @@ process alphafold {
                                                }]}" >> alphafold.json
       else
         touch ${sampleId}.pdb
-        echo -e "{\\"protein_structure_status\\":\\"nie\\"}" >> alphafold.json
+        ERR_MSG="No fasta for Spike protein"
+        echo -e "{\\"status\\":\\"nie\\",
+                  \\"error_message\\": \\"\${ERR_MSG}\\"}" >> alphafold.json
+
       fi
     fi
    """

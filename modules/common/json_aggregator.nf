@@ -17,7 +17,7 @@ process json_aggregator_sars_illumina {
           path(pangolin_json), 
           path(nextclade_json),
           path(snpeff),
-          path(modeller)
+          path(alphafold)
     val(ExecutionDir)
     output:
     path("${sampleId}.json")
@@ -43,7 +43,7 @@ process json_aggregator_sars_illumina {
                         --consensus "${consensus_json}" \
                         --pangolin "${pangolin_json}" \
                         --nextclade "${nextclade_json}" \
-                        --modeller "${modeller}" \
+                        --alphafold "${alphafold}" \
                         --snpeff "${snpeff}" \
                         --mapping "${mapping_json}" \
                         --executiondir ${ExecutionDir}
@@ -69,7 +69,7 @@ process json_aggregator_rsv_illumina {
           path(pangolin_json),
           path(nextclade_json),
           path(snpeff),
-          path(modeller)
+          path(alphafold)
     val(ExecutionDir)
 
     output:
@@ -95,6 +95,7 @@ process json_aggregator_rsv_illumina {
                         --consensus "${consensus_json}" \
                         --pangolin "${pangolin_json}" \
                         --nextclade "${nextclade_json}" \
+                        --alphafold "${alphafold}" \
                         --snpeff ${snpeff} \
                         --mapping "${mapping_json}" \
                         --executiondir ${ExecutionDir}
@@ -122,7 +123,7 @@ process json_aggregator_influenza_illumina {
           path(pangolin_json),
           path(nextclade_json),
           path(snpeff),
-          path(modeller),
+          path(alphafold),
           path(resistance_json)
     val(ExecutionDir)
 
@@ -150,7 +151,7 @@ process json_aggregator_influenza_illumina {
                         --pangolin "${pangolin_json}" \
                         --nextclade "${nextclade_json}" \
                         --snpeff ${snpeff} \
-                        --modeller ${modeller} \
+                        --alphafold ${alphafold} \
                         --reassortment ${reassortment_json} \
                         --drug_resistance ${resistance_json} \
                         --mapping "${mapping_json}" \
@@ -180,7 +181,7 @@ process json_aggregator_sars_nanopore {
           path(pangolin_json),
           path(nextclade_json),
           path(snpeff),
-          path(modeller)
+          path(alphafold)
     val(ExecutionDir)
 
     output:
@@ -207,7 +208,7 @@ process json_aggregator_sars_nanopore {
                         --consensus "${consensus_json}" \
                         --pangolin "${pangolin_json}" \
                         --nextclade "${nextclade_json}" \
-                        --modeller "${modeller}" \
+                        --alphafold "${alphafold}" \
                         --snpeff ${snpeff} \
                         --mapping "${mapping_json}" \
                         --executiondir ${ExecutionDir}
@@ -232,7 +233,7 @@ process json_aggregator_rsv_nanopore {
           path(pangolin_json),
           path(nextclade_json),
           path(snpeff),
-          path(modeller)
+          path(alphafold)
     val(ExecutionDir)
  
     output:
@@ -257,6 +258,7 @@ process json_aggregator_rsv_nanopore {
                         --consensus "${consensus_json}" \
                         --pangolin "${pangolin_json}" \
                         --nextclade "${nextclade_json}" \
+                        --alphafold "${alphafold}" \
                         --snpeff ${snpeff} \
                         --mapping "${mapping_json}" \
                         --executiondir ${ExecutionDir}
@@ -282,7 +284,7 @@ process json_aggregator_influenza_nanopore {
           path(pangolin_json),
           path(nextclade_json),
           path(snpeff),
-          path(modeller),
+          path(alphafold),
           path(resistance_json)
     val(ExecutionDir)
 
@@ -309,7 +311,7 @@ process json_aggregator_influenza_nanopore {
                         --pangolin "${pangolin_json}" \
                         --nextclade "${nextclade_json}" \
                         --snpeff ${snpeff} \
-                        --modeller ${modeller} \
+                        --alphafold ${alphafold} \
                         --reassortment ${reassortment_json} \
                         --drug_resistance ${resistance_json} \
                         --mapping "${mapping_json}" \

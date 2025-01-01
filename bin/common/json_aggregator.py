@@ -5,12 +5,9 @@ import datetime
 import json
 
 
-def fill_sars_data(output_local, modeller="", custom_coinfection="", freyja=""):
+def fill_sars_data(output_local, custom_coinfection="", freyja=""):
     output_local["output"]["sars_data"] = {}
 
-    if modeller:
-        output_local["output"]["sars_data"] = {**output_local["output"]["sars_data"],
-                                               **json.load(open(modeller))}
     if custom_coinfection:
         output_local["output"]["sars_data"] = {**output_local["output"]["sars_data"],
                                                **json.load(open(custom_coinfection))}
@@ -20,12 +17,9 @@ def fill_sars_data(output_local, modeller="", custom_coinfection="", freyja=""):
     return output_local
 
 
-def fill_infl_data(output_local, modeller="", resistance="", reassortment=""):
+def fill_infl_data(output_local, resistance="", reassortment=""):
     output_local["output"]["infl_data"] = {}
 
-    if modeller:
-        output_local["output"]["infl_data"] = {**output_local["output"]["infl_data"],
-                                               **json.load(open(modeller))}
     if resistance:
         output_local["output"]["infl_data"] = {**output_local["output"]["infl_data"],
                                                **json.load(open(resistance))}
@@ -167,11 +161,13 @@ def json_aggregator(args):
     if args.dehumanized:
         output["output"]["dehumanized_data"] = json.load(open(args.dehumanized))
 
-    if (args.freyja or args.modeller or args.coinfection) and args.pathogen == "sars2":
+    if (args.freyja or args.coinfection) and args.pathogen == "sars2":
         output = fill_sars_data(output_local=output,
-                                modeller=args.modeller,
                                 freyja=args.freyja,
                                 custom_coinfection=args.coinfection)
+
+    if args.alphafold:
+        output["output"]["structural_data"] = json.load(open(args.alphafold))
 
     if args.pangolin:
         if "viral_classification_data" not in output["output"].keys():
@@ -211,9 +207,8 @@ def json_aggregator(args):
     else:
         output["output"]["viral_mutation_data"] = []
 
-    if (args.reassortment or args.modeller or args.drug_resistance) and args.pathogen == "influenza":
+    if (args.reassortment or args.drug_resistance) and args.pathogen == "influenza":
         output = fill_infl_data(output_local=output,
-                                modeller=args.modeller,
                                 resistance=args.drug_resistance,
                                 reassortment=args.reassortment)
     if args.mapping:
@@ -239,7 +234,7 @@ def main():
     parser.add_argument('--pangolin', help="JSON from viral classification module (pangolin)")
     parser.add_argument('--nextclade', help="JSON from viral classification module (nextclade)")
     parser.add_argument('--snpeff', help="Output of snpeff for selected organisms)")
-    parser.add_argument('--modeller', help="Output for modeller module")
+    parser.add_argument('--alphafold', help="Output for alphafold module")
     parser.add_argument('--reassortment', help="Output for reassortment module for influenza")
     parser.add_argument('--drug_resistance', help="Output for drug resistance analysis for influenza")
     parser.add_argument('--mapping', help="Output of bwa/minimap2 module")
