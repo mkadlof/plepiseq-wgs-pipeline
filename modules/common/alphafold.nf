@@ -116,7 +116,7 @@ process alphafold {
       
        
       pdb_path_2="${params.results_dir}/${sampleId}/${sampleId}_G.pdb"
-      echo -e "{\\"protein_structure_status\\":\\"tak\\",
+      echo -e "{\\"status\\":\\"tak\\",
                 \\"protein_structure_data\\":[{\\"protein_name\\":\\"F\\",
                                                \\"pdb_file\\":\\"\${pdb_path_1}\\"
                                               },
@@ -150,7 +150,7 @@ process alphafold {
       # TO DO
       # json
       pdb_path_2="${params.results_dir}/${sampleId}/${sampleId}_HA.pdb"
-      echo -e "{\\"protein_structure_status\\":\\"tak\\",
+      echo -e "{\\"status\\":\\"tak\\",
                 \\"protein_structure_data\\":[{\\"protein_name\\":\\"HA\\",
                                                \\"pdb_file\\":\\"\${pdb_path_1}\\"
                                               },
@@ -178,7 +178,7 @@ process alphafold {
 
         # json
         pdb_path="${params.results_dir}/${sampleId}/${sampleId}_spike.pdb"
-        echo -e "{\\"protein_structure_status\\":\\"tak\\",
+        echo -e "{\\"status\\":\\"tak\\",
                 \\"protein_structure_data\\":[{\\"protein_name\\":\\"Spike\\",
                                                \\"pdb_file\\":\\"\${pdb_path}\\"
                                                }]}" >> alphafold.json
