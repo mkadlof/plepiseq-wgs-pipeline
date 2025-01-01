@@ -21,8 +21,8 @@ process alphafold {
     """
 
     run_alpfafold() {
-      # Zmienna $1 to plik z fasta
-      # Zmienna $2 to sciezka do katalogu z wynikami
+      # Zmienna \$1 to plik z fasta
+      # Zmienna \$2 to sciezka do katalogu z wynikami
       python /app/alphafold/run_alphafold.py  --fasta_paths="\$1" \
                                                --data_dir="/db/" \
                                                --db_preset="reduced_dbs" \
