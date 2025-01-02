@@ -52,7 +52,7 @@ process alphafold {
     done
 
     # in case multiple processes are spawned by nextflow at the same time add random sleep...
-    sleep `python -c 'import random; print(random.randint(10, 60))'`
+    # sleep `python -c 'import random; print(random.randint(10, 60))'`
 
     # increase number of CPUs for jackhammer and hhblits for alignment
     sed -i s"|n_cpu: int = 8|n_cpu: int = ${task.cpus}|"g /app/alphafold/alphafold/data/tools/jackhmmer.py
@@ -170,7 +170,7 @@ process alphafold {
         run_alpfafold "\${target_fasta}" wynik
 
         # Give some time to clear up memory from a device ...
-        sleep `python -c 'import random; print(random.randint(4, 35))'`
+        # sleep `python -c 'import random; print(random.randint(4, 35))'`
         cp wynik/`basename \${target_fasta} ".fasta"`/ranked_0.pdb ${sampleId}_spike.pdb
         
         # align all proteins to a common reference

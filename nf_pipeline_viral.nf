@@ -433,8 +433,10 @@ workflow{
 
   nextalign_out = nextalign_influenza(to_nextalign)
   // modeller_out = modeller(nextalign_out.to_modeller)
-  
-  alphafold_out = alphafold(nextalign_out.to_modeller)
+  delayed_alphafold = nextalign_out.to_modeller.map {it -> sleep(20000); it} // Delay each element in channel by 20s
+
+  alphafold_out = alphafold(delayed_alphafold) 
+ 
   
   if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
       nextclade_out = nextclade_noninfluenza(final_genome_out.fasta_refgenome_and_qc)
