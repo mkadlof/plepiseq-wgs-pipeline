@@ -2,7 +2,7 @@ process lofreq {
     tag "lofreq:${sampleId}"
     container  = params.main_image
     // publishDir "${params.results_dir}/${sampleId}/lofreq", mode: 'copy'
-
+    cpus { params.threads > 15 ? 15 : params.threads }
     input:
     tuple val(sampleId), path(bam), path(bai), val(QC_status), path(ref_genome)
 
@@ -17,7 +17,7 @@ process lofreq {
       # this module recieves only genome in fasta format 
       samtools faidx $ref_genome
 
-      lofreq call-parallel --pp-threads ${params.threads} \
+      lofreq call-parallel --pp-threads ${task.cpus} \
                            --ref ${ref_genome} \
                            --max-depth ${params.max_depth} \
                            --min-cov ${params.min_cov} \

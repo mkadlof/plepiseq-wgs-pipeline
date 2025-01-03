@@ -1,7 +1,7 @@
 process indelQual {
     tag "indelQual:${sampleId}"
     container  = params.main_image
-
+    cpus 1
     // publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "forvariants.bam*"
 
     input:

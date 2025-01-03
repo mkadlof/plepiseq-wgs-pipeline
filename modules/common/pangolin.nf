@@ -1,6 +1,7 @@
 process pangolin {
     tag "pangolin:${sampleId}"
     container = params.main_image
+    cpus { params.threads > 15 ? 15 : params.threads }
     // publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "pangolin_lineage.csv"
     containerOptions "--volume ${params.external_databases_path}:/home/external_databases/"
 
@@ -31,7 +32,7 @@ process pangolin {
 
     else
         pangolin --outfile pangolin_lineage.csv \
-               --threads ${params.threads} \
+               --threads ${task.cpus} \
                output_consensus_masked_SV.fa
         parse_pangolin_output_csv2json.py pangolin_lineage.csv pangolin_sars.json
         jq -s "." pangolin_sars.json > pangolin.json

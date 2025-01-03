@@ -1,6 +1,7 @@
 process nextalign {
     tag "nextalign:${sampleId}"
     container = params.main_image
+    cpus 1
     // publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "*.fasta"
 
     input:

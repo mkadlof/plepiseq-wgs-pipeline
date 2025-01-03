@@ -1,6 +1,7 @@
 process coinfection_analysis_illumina {
     tag "coinfection_analysis:${sampleId}"
     container  = params.main_image
+    cpus 1
     publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "*allele_usage_histogram.txt"
 
     input:
@@ -48,6 +49,7 @@ process coinfection_analysis_nanopore {
     // The only difference with respect to illumina is that we use different "reference" files
     tag "coinfection_analysis:${sampleId}"
     container  = params.main_image
+    cpus 1
     publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "*allele_usage_histogram.txt"
 
     input:

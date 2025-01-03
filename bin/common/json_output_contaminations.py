@@ -27,6 +27,7 @@ import click
               type=str,  required=True)
 def main_program(input_kraken, input_metaphlan_genera, input_metaphlan_species, input_kmerfinder,
                  status, error, output):
+
     full_output = []
     # Kraken2 results section
     if input_kraken == "skip":
@@ -53,6 +54,12 @@ def main_program(input_kraken, input_metaphlan_genera, input_metaphlan_species, 
                     genus_dict[line[5]] = float(line[0])
             genus_names_sorted = sorted(genus_dict, key=lambda x: genus_dict[x], reverse=True)
             species_names_sorted = sorted(species_dict, key=lambda x: species_dict[x], reverse=True)
+            if len(genus_names_sorted) == 1:
+                genus_names_sorted.append('None')
+                genus_dict['None'] = 0
+            if len(species_names_sorted) == 1:
+                species_names_sorted.append('None')
+                species_dict['None'] = 0
             kraken2_json = {"program_name": "kraken2",
                             "status": "tak",
                             "main_genus_name": genus_names_sorted[0],
@@ -158,6 +165,7 @@ def main_program(input_kraken, input_metaphlan_genera, input_metaphlan_species, 
 
         full_output.append(kmerfinder_json)
 
+    # patch
     with open(output, 'w') as f:
         f.write(json.dumps(full_output, indent = 4))
 

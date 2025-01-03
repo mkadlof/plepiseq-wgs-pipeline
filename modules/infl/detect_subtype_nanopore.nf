@@ -3,7 +3,7 @@ process detect_subtype_nanopore {
     // but we use minimap2 instead of bwa and reads variable is not a tuple
     tag "detect_subtype:${sampleId}"
     container  = params.main_image
-    maxForks = 5
+    cpus params.threads
     input:
     tuple val(sampleId), path(reads), val(QC_STATUS)
     output:
@@ -15,7 +15,7 @@ process detect_subtype_nanopore {
     # Functions
     run_minimap() {
     for GENOME in "\${@}"; do
-        minimap2 -a -x map-ont -t ${params.threads} -o \${GENOME}.sam /home/data/infl/genomes/\${GENOME}/\${GENOME}.fasta ${reads}
+        minimap2 -a -x map-ont -t ${task.cpus} -o \${GENOME}.sam /home/data/infl/genomes/\${GENOME}/\${GENOME}.fasta ${reads}
         samtools view -bS -F 2052 \${GENOME}.sam > \${GENOME}.bam
         samtools sort -o \${GENOME}_sorted.bam \${GENOME}.bam
         mv \${GENOME}_sorted.bam \${GENOME}.bam

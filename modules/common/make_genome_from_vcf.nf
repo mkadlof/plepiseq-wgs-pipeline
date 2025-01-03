@@ -1,7 +1,7 @@
 process make_genome_from_vcf {
     tag "varScan:${sampleId}"
     container  = params.main_image
-
+    cpus 1
     input:
     tuple val(sampleId),  path('genome.fasta'),  val(QC_status), path('input.vcf.gz'), path('input.vcf.gz.tbi')
 

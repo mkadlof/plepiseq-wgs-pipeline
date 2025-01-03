@@ -4,7 +4,7 @@ process medaka_varscan_integration_first_round {
     // due to complex underlying genotype of a region
     tag "programs integration:${sampleId}"
     container  = params.main_image
-
+    cpus 1
     input:
     tuple val(sampleId), path('medaka_annotated_filtered.vcf.gz'), path('medaka_annotated_filtered.vcf.gz.tbi'), path('genome.fasta'), val(QC_status),  path('detected_variants_varscan.txt')
 
@@ -40,7 +40,7 @@ process medaka_varscan_integration_second_round {
     // In second round varscan is used to introduce ambigous nucleotides
     tag "programs integration:${sampleId}"
     container  = params.main_image
-
+    cpus 1
     input:
     tuple val(sampleId), path('medaka_annotated_filtered.vcf.gz'), path('medaka_annotated_filtered.vcf.gz.tbi'), path('medaka_annotated.vcf.gz'), path('medaka_annotated.vcf.gz.tbi'), path('genome.fasta'), val(QC_status),  path('detected_variants_varscan.txt')
 

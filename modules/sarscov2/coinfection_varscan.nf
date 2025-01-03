@@ -1,7 +1,7 @@
 process coinfection_varscan {
     tag "coinfection_varscan:${sampleId}"
     container  = params.main_image
-
+    cpus 1
     input:
     tuple val(sampleId), path(for_contamination_mpileup), val(QC_status)
 

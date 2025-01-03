@@ -3,7 +3,7 @@ process masking {
     container  = params.main_image
     input:
     tuple val(sampleId), path(bam), path(bai), path(primers), path(pairs), val(QC_status)
-
+    cpus 1
     output:
     tuple val(sampleId), path('ivar_trimmed_all.bam'), val(QC_status)
 
@@ -31,6 +31,7 @@ process masking_nanopore {
     // omisjac krok trimmingu gdy mamy do czynienia z sekwencjonowaniem metagenomicznym wirusow jak w EQA2024
     tag "masking:${sampleId}"
     container  = params.main_image
+    cpus 1
     input:
     tuple val(sampleId), path(bam), path(bai), path(genome), path(primers), val(QC_status)
     val(tolerance)

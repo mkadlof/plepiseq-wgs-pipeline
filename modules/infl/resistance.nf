@@ -1,6 +1,7 @@
 process resistance {
     tag "resistance:${sampleId}"
     container = params.main_image
+    cpus 1
     input:
     tuple val(sampleId), path("to_resistance.fasta"), path("sample_M2.fasta"), val(QC_status), val(SAMPLE_SUBTYPE)
 

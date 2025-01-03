@@ -1,13 +1,13 @@
 process alphafold {
     tag "alphafold:${sampleId}"
     maxRetries 3
-    cpus 15 
+    cpus { params.threads > 15 ? 15 : params.threads }
     // Set to 15. We have 96 COU on compute and  8 GPUs,  so 15 CPUs per task  * 7 tasks will require 95 CPus total 
     errorStrategy 'retry' 
     maxForks 8 
     // Let us leave one GPU free just in case a "failed" process rebounce and quickly ask for an empy GPU
     container  = params.alphafold_image
-    containerOptions "--volume ${params.alphafold_databases_path}:/db --gpus all"
+    containerOptions "--volume ${params.external_databases_path}/alphafold:/db --gpus all"
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "*.pdb"
 
     input:

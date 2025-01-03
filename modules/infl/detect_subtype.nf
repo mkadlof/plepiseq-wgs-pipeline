@@ -1,7 +1,7 @@
 process detect_subtype_illumina {
     tag "detect_subtype:${sampleId}"
     container  = params.main_image
-    maxForks 5
+    cpus params.threads
 
     input:
     tuple val(sampleId), path(reads), val(QC_STATUS)
@@ -16,9 +16,9 @@ process detect_subtype_illumina {
 
     run_bwa() {
         for GENOME in "\${@}"; do
-            bwa mem -t ${params.threads} -T 30 /home/data/infl/genomes/\${GENOME}/\${GENOME}.fasta ${reads[0]} ${reads[1]} | \
-                samtools view -@ ${params.threads} -Sb -f 3 -F 2048 - | \
-                samtools sort -@ ${params.threads} -o \${GENOME}.bam -
+            bwa mem -t ${task.cpus} -T 30 /home/data/infl/genomes/\${GENOME}/\${GENOME}.fasta ${reads[0]} ${reads[1]} | \
+                samtools view -@ ${task.cpus} -Sb -f 3 -F 2048 - | \
+                samtools sort -@ ${task.cpus} -o \${GENOME}.bam -
             samtools index \${GENOME}.bam
         done
     }

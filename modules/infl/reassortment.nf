@@ -2,7 +2,7 @@ process reassortment {
     tag "reassortment:${sampleId}"
     container  = params.main_image 
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "hybrid_genome.fasta"
-    maxForks 5
+    cpus 1
 
     input:
     tuple val(sampleId), path('subtype_mean_coverage_each_segment.txt'), path('subtype_scores_each_segment.txt'), val(REF_GENOME_ID_entry), val(QC_status)

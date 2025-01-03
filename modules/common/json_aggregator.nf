@@ -3,7 +3,7 @@ process json_aggregator_sars_illumina {
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}.json"
     container  = params.main_image
     containerOptions "--volume ${params.projectDir}:/home/projectDir:ro"
-
+    cpus 1
     input:
     tuple val(sampleId), path(fastqc_pre_json_forward), path(fastqc_pre_json_reverse),
           path(kraken_contamination),
@@ -57,7 +57,7 @@ process json_aggregator_rsv_illumina {
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}.json"
     container  = params.main_image
     containerOptions "--volume ${params.projectDir}:/home/projectDir:ro"
-
+    cpus 1
     input:
     tuple val(sampleId), path(fastqc_pre_json_forward), path(fastqc_pre_json_reverse),
           path(kraken_contamination),
@@ -110,7 +110,7 @@ process json_aggregator_influenza_illumina {
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}.json"
     container  = params.main_image
     containerOptions "--volume ${params.projectDir}:/home/projectDir:ro"
-
+    cpus 1
     input:
     tuple val(sampleId), path(fastqc_pre_json_forward), path(fastqc_pre_json_reverse),
           path(kraken_contamination),
@@ -168,7 +168,7 @@ process json_aggregator_sars_nanopore {
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}.json"
     container  = params.main_image
     containerOptions "--volume ${params.projectDir}:/home/projectDir:ro"
-
+    cpus 1
     input:
     tuple val(sampleId), path(fastqc_pre_json_forward),
           path(kraken_contamination),
@@ -222,7 +222,7 @@ process json_aggregator_rsv_nanopore {
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}.json"
     container  = params.main_image
     containerOptions "--volume ${params.projectDir}:/home/projectDir:ro"
-
+    cpus 1
     input:
     tuple val(sampleId), path(fastqc_pre_json_forward),
           path(kraken_contamination),
@@ -272,7 +272,7 @@ process json_aggregator_influenza_nanopore {
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}.json"
     container  = params.main_image
     containerOptions "--volume ${params.projectDir}:/home/projectDir:ro"
-
+    cpus 1
     input:
     tuple val(sampleId), path(fastqc_pre_json_forward),
           path(kraken_contamination),

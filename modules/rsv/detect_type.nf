@@ -1,7 +1,7 @@
 process detect_type_illumina {
   // Determine if we are dealing with RSV A or B based on score ratio after mapping to two genome
   tag "Detecting type for sample:${sampleId}"
-  maxForks 5
+  cpus params.threads
   container  = params.main_image
   input:
     tuple val(sampleId), path(reads), val(QC_STATUS)
@@ -28,12 +28,12 @@ if [ ${QC_STATUS} == "nie" ]; then
   touch genes.gtf
 else
   REFERENCE_GENOME_FASTA="/home/data/rsv/genomes/RSV/RSV.fasta"
-  bwa mem -t ${params.threads} \
+  bwa mem -t ${task.cpus} \
           -T 30 \
           "\${REFERENCE_GENOME_FASTA}" \
           ${reads[0]} \
           ${reads[1]}  | \
-          samtools view -@ ${params.threads} -Sb -o type_determination.bam -f 3 -F 2048 -
+          samtools view -@ ${task.cpus} -Sb -o type_determination.bam -f 3 -F 2048 -
 
   ILE_A=`samtools view type_determination.bam | grep "hRSV/A/England/397/2017" | wc -l `
   ILE_B=`samtools view type_determination.bam | grep "hRSV/B/England/RE20000104/2020" | wc -l `
@@ -76,7 +76,7 @@ fi
 process detect_type_nanopore {
   // Determine if we are dealing with RSV A or B based on score ratio after mapping to two genomes
   tag "Detecting type for sample:${sampleId}"
-  maxForks 5
+  cpus params.threads
   container  = params.main_image
   input:
     tuple val(sampleId), path(reads), val(QC_STATUS)
@@ -102,8 +102,8 @@ if [ ${QC_STATUS} == "nie" ]; then
   touch genes.gtf
 else
   REFERENCE_GENOME_FASTA="/home/data/rsv/genomes/RSV/RSV.fasta"
-  minimap2 -a -x map-ont -t ${params.threads} -o tmp.sam \${REFERENCE_GENOME_FASTA} ${reads}  >> ${log} 2>&1
-  samtools view -@ ${params.threads} -Sb -o type_determination.bam -F 2052 tmp.sam
+  minimap2 -a -x map-ont -t ${task.cpus} -o tmp.sam \${REFERENCE_GENOME_FASTA} ${reads}  >> ${log} 2>&1
+  samtools view -@ ${task.cpus} -Sb -o type_determination.bam -F 2052 tmp.sam
 
   ILE_A=`samtools view type_determination.bam | grep "hRSV/A/England/397/2017" | wc -l `
   ILE_B=`samtools view type_determination.bam | grep "hRSV/B/England/RE20000104/2020" | wc -l `

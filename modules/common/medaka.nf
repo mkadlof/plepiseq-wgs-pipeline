@@ -2,6 +2,7 @@ process medaka_first_round {
     // Odplaenie medaki podczas pierwszej rundy analizy
     tag "medaka_first_round:${sampleId}"
     container  = params.medaka_image
+    cpus params.threads
     input:
     tuple val(sampleId), path('trimmed.bam'), path('trimmed.bam.bai'), val(QC_status), path('genome.fasta')
     output:
@@ -37,6 +38,7 @@ process medaka_second_round {
     // Co pozwala dobrac inne wartosci --chunk_len i --chunk_ovlp
     tag "medaka_second_roud:${sampleId}"
     container  = params.medaka_image
+    cpus params.threads
     input:
     tuple val(sampleId), path('trimmed.bam'), path('trimmed.bam.bai'), val(QC_status), path('genome.fasta')
     output:

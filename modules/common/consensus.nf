@@ -3,7 +3,7 @@ process consensus_illumina {
     // That is why for illumina valid sequence and valid json is provided by manta module 
     tag "consensus:${sampleId}"
     container  = params.main_image
-
+    cpus 1
     input:
     tuple val(sampleId), path(masked_ref_genome_fa), path(varscan_fa), path(freebayes_fa), val(QC_status), path(lofreq_fa)
 
@@ -26,7 +26,7 @@ process consensus_nanopore {
     tag "consensus:${sampleId}"
     container  = params.main_image
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "output_*.fasta"
-
+    cpus 1
     input:
     tuple val(sampleId), path(masked_ref_genome_fa), path(sample_genome), val(QC_status), path('genome.fasta')
 

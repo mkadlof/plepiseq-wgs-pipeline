@@ -1,7 +1,7 @@
 process lowCov {
     tag "lowCov:${sampleId}"
     container  = params.main_image
-
+    cpus 1
     input:
     tuple val(sampleId), path(bam), path(bai), val(QC_status), path(ref_genome)
 

@@ -2,7 +2,7 @@ process trimmomatic {
     // This module only passes QC to downstream modules
     container  = params.main_image
     tag "trimmomatic:${sampleId}"
-
+    cpus 1
     input:
     tuple val(sampleId), path(reads), val(QC_status)
 

@@ -2,7 +2,7 @@ process dehumanization_illumina  {
     tag "dehumanization:${sampleId}"
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}*nohuman.fastq.gz"
     container  = params.main_image
-
+    cpus 1
     input:
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), val(QC_status), path(reads)
 
@@ -56,7 +56,7 @@ process dehumanization_nanopore {
     container  = params.main_image
     input:
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), val(QC_status), path(reads)
-
+    cpus 1
     output:
     tuple val(sampleId), path("*nohuman.fastq.gz"), emit: to_pubdir
     tuple val(sampleId), path('dehumanzed.json'), emit: json

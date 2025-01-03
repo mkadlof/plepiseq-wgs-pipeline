@@ -2,7 +2,7 @@ process filter_out_non_SNPs {
     // This simple modules keeps only SNPs in a vcf file
     tag "filtering out non-SNPs:${sampleId}"
     container  = params.main_image
-
+    cpus 1
     input:
     tuple val(sampleId), path('input.vcf.gz'), path('input.vcf.gz.tbi'), val(QC_status)
 

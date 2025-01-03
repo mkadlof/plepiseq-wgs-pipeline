@@ -3,7 +3,7 @@ process introduce_SV_with_manta {
     tag "manta:$sampleId"
     publishDir "${params.results_dir}/${sampleId}/", mode: 'copy', pattern: "output*fasta"
     container = params.manta_image
-
+    cpus { params.threads > 15 ? 15 : params.threads }
     input:
     tuple val(sampleId), path(bam_files), path(bai_files),  path(ref_genome_with_index), path("mediana_per_segment.txt"), val(QC_status_picard), path(consensus_files), val(QC_status_consensus)
 
@@ -83,7 +83,7 @@ process introduce_SV_with_manta {
         else
           samtools faidx reference_\${segment_clean}.fasta
           python /opt/docker/manta/bin/configManta.py --bam \${bam} --reference reference_\${segment_clean}.fasta --runDir Manta_results_\${segment_clean}
-          python Manta_results_\${segment_clean}/runWorkflow.py -j ${params.threads} --quiet
+          python Manta_results_\${segment_clean}/runWorkflow.py -j ${task.cpus} --quiet
           if [ -e Manta_results_\${segment_clean}/results/variants/diploidSV.vcf.gz ]; then
             # Manta produced an output for this segment
             # Wywalamy skomplikowane SV jak translokacje itd typu BND

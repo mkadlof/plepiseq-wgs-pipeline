@@ -1,6 +1,7 @@
 process freeBayes {
     tag "freeBayes:${sampleId}"
     container  = params.main_image
+    cpus 1
     // publishDir "${params.results_dir}/${sampleId}/freebayes", mode: 'copy'
 
     input:

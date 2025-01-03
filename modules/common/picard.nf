@@ -1,6 +1,7 @@
 process picard_downsample {
     tag "picard:${sampleId}"
     container  = params.main_image
+    cpus 1
     input:
     tuple val(sampleId), path(bam), path(bai), path(ref_genome_with_index), val(QC_status)
 
@@ -46,6 +47,7 @@ process picard_downsample_multisegment {
     // W ten sposob unikamy probek w ktorym calosc odczytow to absurdalny spike pokrycia w waskim regionie
     // segmentu przy "pustych" czesciach resty segmentu
     container  = params.main_image
+    cpus 1
     input:
     tuple val(sampleId), path(bam), path(bai), path(ref_genome_with_index), val(QC_status)
 

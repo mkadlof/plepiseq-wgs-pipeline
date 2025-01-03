@@ -1,6 +1,7 @@
 process nextclade {
     tag "nextclade:${sampleId}"
     container  = params.main_image
+    cpus 1
     // publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "nextstrain_lineage.csv"
     containerOptions "--volume ${params.external_databases_path}:/home/external_databases/"
 
