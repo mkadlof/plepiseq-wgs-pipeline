@@ -404,11 +404,6 @@ WORKDIR /downloads/kraken2
 RUN mkdir -p /opt/kraken2 && \
     ./install_kraken2.sh /opt/kraken2/bin
 
-# builder-modeller
-FROM builder-base AS builder-modeller
-ADD third-party/modeller/modeller.tar.gz /opt
-ADD third-party/modeller/config.py /opt/modeller/modlib/modeller/config.py
-
 # builder-nextalign
 FROM builder-base AS builder-nextalign
 WORKDIR /opt/nextalign
@@ -434,17 +429,18 @@ RUN apt update && \
                                            libgomp1 \
                                            libgsl27 \
                                            libprotobuf32 \
-                                           mafft \
                                            minimap2 \
                                            muscle3 \
                                            openjdk-17-jre-headless \
                                            procps \
                                            seqtk \
                                            seqkit \
-                                           jq
+                                           jq \
+                                           vim \
+                                           wget
 
-ADD third-party/mafft/mafft_7.520-1_amd64.deb /
-RUN dpkg -i mafft_7.520-1_amd64.deb && \
+RUN wget https://mafft.cbrc.jp/alignment/software/mafft_7.520-1_amd64.deb ;\
+    dpkg -i mafft_7.520-1_amd64.deb && \
     rm -f /mafft_7.520-1_amd64.deb
 
 COPY --from=builder-base /opt /opt
@@ -471,7 +467,6 @@ COPY --from=builder-usher /opt/usher/bin/usher /opt/usher/bin/usher
 COPY --from=builder-usher /opt/tbb /opt/tbb
 COPY --from=builder-nextclade /opt/nextclade /opt/nextclade
 COPY --from=builder-kraken2 /opt/kraken2 /opt/kraken2
-COPY --from=builder-modeller /opt/modeller /opt/modeller
 COPY --from=builder-nextalign /opt/nextalign /opt/nextalign
 
 ADD data /home/data
@@ -483,7 +478,6 @@ ENV PYTHONPATH="/home/external_databases/pangolin"
 ENV PATH="/home/bin/common:"\
 "/home/bin/sarscov2:"\
 "/home/bin/infl:"\
-"/opt/modeller/bin:"\
 "/opt/kraken2/bin:"\
 "/opt/usher/bin:"\
 "/opt/blat/bin:"\
