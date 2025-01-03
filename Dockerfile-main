@@ -437,6 +437,7 @@ RUN apt update && \
                                            seqkit \
                                            jq \
                                            vim \
+                                           perl \ 
                                            wget
 
 RUN wget https://mafft.cbrc.jp/alignment/software/mafft_7.520-1_amd64.deb ;\
