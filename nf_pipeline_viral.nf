@@ -17,10 +17,10 @@ if ( params.external_databases_path  == '' ) {
 }
 
 // //  All docker images used by this pipeline
-params.main_image = "nf_viral_main:1.2" // main image wit most tools
-params.manta_image = "nf_viral_manta:1.1" // Manta container with python2
-params.medaka_image = "ontresearch/medaka:sha447c70a639b8bcf17dc49b51e74dfcde6474837b-amd64" // External image, publicly available from dockerhub
-params.alphafold_image =" alphafold:1.1"  // image with alphafold
+params.main_image = "" // main image wit most tools
+params.manta_image = "" // Manta container with python2
+params.medaka_image = "" // External image, publicly available from dockerhub
+params.alphafold_image =""  // image with alphafold
 
 // // ExecutionDir - all paths in json are relative to this path
 ExecutionDir = new File('.').absolutePath 
