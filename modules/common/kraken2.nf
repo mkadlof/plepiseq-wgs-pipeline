@@ -9,7 +9,7 @@ process kraken2_illumina {
     container  = params.main_image
     containerOptions "--volume ${params.external_databases_path}:/home/external_databases/:ro"
     cpus params.threads
-    memory '40 GB'
+    memory '80 GB'
     // publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "Summary_kraken*"
     // publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "contaminations.json"
 
@@ -87,7 +87,7 @@ process kraken2_nanopore {
     container  = params.main_image
     containerOptions "--volume ${params.external_databases_path}:/home/external_databases/:ro"
     cpus params.threads
-    memory '40 GB'
+    memory '80 GB'
     // publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "Summary_kraken*"
     // publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "contaminations.json"
     input:
