@@ -55,7 +55,7 @@ params.max_number_for_SV = 100000
 }
 
 // // High-level parameters 
-params.memory = 4048
+// params.memory = 4048
 params.threads = 1
 
 // // All sequencing platform-specific parameters

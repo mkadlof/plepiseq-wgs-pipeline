@@ -27,7 +27,7 @@ alphafold_image="alphafold:1.1"
 
 # Parmaters related to resources available to the pipeline (max PER sample) if N samples are analyzed the pipeline will use at most N times more resuorces
 # For testing purpose can be change, but for production invariable
-memory=4048
+# memory=4048
 threads=40
 
 # Parameters without DEFAULTS that MUST be specified by a user (adapters_id) is an execpetion
@@ -91,8 +91,6 @@ usage() {
     echo "  --adapters_id VALUE    Adapters used during Illumina-based sequencing (default: $adapters_id)"
     echo "                         Nazwa adapterow stosowanych podczas sekwencjonowania z wykorzysyniem platformy Illumina"
     echo "                         Akceptowane wartosci NexteraPE-PE TruSeq2-PE TruSeq2-SE TruSeq3-PE-2 TruSeq3-PE TruSeq3-SE"
-    echo "  --memory VALUE         Memory allocation (default: $memory)"
-    echo "                         Ilosc pamieci dostepna dla analizy pojedynczej probki"
     echo "  --threads VALUE        Thread count (default: $threads)"
     echo "                         Maksymalna ilosci CPU uzywana do analizy pojedycznej probki"
     echo "  --all                  Display hidden parameters for advanced configuration"
@@ -121,8 +119,6 @@ show_all_parameters() {
     echo "  --adapters_id VALUE             Adapters used during Illumina-based sequencing (default: $adapters_id)"
     echo "                                  Nazwa adapterow stosowanych podczas sekwencjonowania z wykorzysyniem platformy Illumina"
     echo "                                  Akceptowane wartosci NexteraPE-PE TruSeq2-PE TruSeq2-SE TruSeq3-PE-2 TruSeq3-PE TruSeq3-SE"
-    echo "  --memory VALUE                  Memory allocation (default: $memory)"
-    echo "                                  Ilosc pamieci dostepna dla analizy pojedynczej probki"
     echo "  --threads VALUE                 Thread count (default: $threads)"
     echo "                                  Maksymalna ilosci CPU uzywana do analizy pojedycznej probki"
     echo "  --all                           Display hidden parameters for advanced configuration"
@@ -200,7 +196,7 @@ show_all_parameters() {
 
 
 # Parse arguments
-OPTIONS=$(getopt -o h --long machine:,reads:,primers_id:,species:,adapters_id:,memory:,threads:,projectDir:,external_databases_path:,main_image:,manta_image:,medaka_image:,alphafold_image:,max_number_for_SV:,variant:,min_number_of_reads:,expected_genus_value:,min_median_quality:,quality_initial:,length:,max_depth:,min_cov:,mask:,quality_snp:,pval:,lower_ambig:,upper_ambig:,window_size:,min_mapq:,quality_for_coverage:,freyja_minq:,bed_offset:,extra_bed_offset:,medaka_model:,medaka_chunk_len:,medaka_chunk_overlap:,first_round_pval:,second_round_pval:,results_dir:,all,help -- "$@")
+OPTIONS=$(getopt -o h --long machine:,reads:,primers_id:,species:,adapters_id:,threads:,projectDir:,external_databases_path:,main_image:,manta_image:,medaka_image:,alphafold_image:,max_number_for_SV:,variant:,min_number_of_reads:,expected_genus_value:,min_median_quality:,quality_initial:,length:,max_depth:,min_cov:,mask:,quality_snp:,pval:,lower_ambig:,upper_ambig:,window_size:,min_mapq:,quality_for_coverage:,freyja_minq:,bed_offset:,extra_bed_offset:,medaka_model:,medaka_chunk_len:,medaka_chunk_overlap:,first_round_pval:,second_round_pval:,results_dir:,all,help -- "$@")
 
 eval set -- "$OPTIONS"
 
@@ -231,10 +227,6 @@ while true; do
             ;;
         --adapters_id)
             adapters_id="$2"
-            shift 2
-            ;;
-        --memory)
-            memory="$2"
             shift 2
             ;;
         --threads)
@@ -507,7 +499,6 @@ nextflow run ${projectDir}/nf_pipeline_viral.nf \
     --manta_image ${manta_image} \
     --medaka_image ${medaka_image} \
     --alphafold_image ${alphafold_image} \
-    --memory ${memory} \
     --threads ${threads} \
     --variant ${variant} \
     --max_number_for_SV ${max_number_for_SV} \
