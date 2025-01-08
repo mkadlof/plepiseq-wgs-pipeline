@@ -126,7 +126,8 @@ include { fastqc as fastqc_2 } from "${modules}/common/fastqc.nf"
 include { kraken2_illumina } from "${modules}/common/kraken2.nf"
 include { trimmomatic } from "${modules}/common/trimmomatic.nf"
 // // // // Nanopore
-include { run_fastqc_nanopore as run_fastqc_nanopore_1 } from "${modules}/common/fastqc_nanopore.nf"
+include { fastqc as run_fastqc_nanopore_1 } from "${modules}/common/fastqc.nf"
+
 include { kraken2_nanopore } from "${modules}/common/kraken2.nf"
 // // End of Section // //
 
