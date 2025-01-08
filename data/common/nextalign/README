@@ -1,3 +1,18 @@
 here we will put all files required by nextalign i.e. genome (again) + gff file
 # for SARS and MN we use again use predefined files 
 # for influenza we create gff ourselved. However we do need to create gff for each subtype/clade, subtype level files should suffice to produce valid proteins sequence for a sample
+# genome present prior to 08.01.2025 are not based on genomes from data/common/snpEff/data/
+# but they are still OK (the "old" datam might include only CDS which are ok, we dont need anything else to get protein sequence)
+
+# In retrospective for nextalign we don't need to provide data for each clade , subtype-level should be eough for nextalign program to align "our" segment with "reference" segment and produce valid protein sequence. Even if we were to provide "reference" on a clade-level the alignment wouldn't change that much ...
+
+For following new subtypes not orignially present we use following data:
+
+H1, H5, H6 and H9 data are based on reference genome for H1N1_6b1a5a2a1 from data/common/snpEff/data/ dir
+1. The procedure is straight
+a. We split genome into subfastas with segments (HA.fasta, NA.fasta ...)
+cat sequences.fa  | awk '{if (substr($0, 1, 1)==">") { filename=(substr($0,7) ".fasta"); print $0 >> filename } else {print toupper($0)  >> filename}}'
+b. we modify gtf to gff (we save only gene feature)
+cat genes.gtf  | awk '{if ($3=="gene") print $0}' | sed s'/id /id=/'g | tr -d '"' >> ${subtype}.gff
+c. We MANUALLY add M2 data for custom script (nextalign cannot  handle frameshifts). WE do that by aligninf M2 segment to KNOWN M2 sequence (preferably from this type, but M2 is kind a conserved so even full M2 from H3 is ok). I used blast from ncbu (remember to increse e-value to 100 and decrease word size to 2) this way we will get alignment of both 1-40 segment and 700+ segment in the alignment section
+d For B/ the mechanism of M1/M2 is different. The last nucleotide of the stop codon of M1, serves as the first nucleotide of the start codon of M2 (so frame of M2 /BM2 to be precise/ is different than that of M1). But unlike A/ the cds is continous, however, i still use "exon" in name so my script can correctly process this protein.

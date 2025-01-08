@@ -49,8 +49,7 @@ process nextalign {
         NEXTALIGN_DB="/home/data/common/nextalign"
       
         # For these subtypes we prepared custom files to get sequences of ALL proteins 
-        TO_NEXTALIGN='H3N2 H5N1 H5N5 H5N6 H5N8 H7N9'
-        # TO DO add gff for H1, H4, Yam and Vic
+        TO_NEXTALIGN='H1N1 H3N2 H4N6 H5N1 H5N2 H5N5 H5N6 H5N8 H6N1 H7N9 H9N2 Yamagata Victoria'
         if [[ \${TO_NEXTALIGN[@]} =~ ${SAMPLE_SUBTYPE} ]]; then
           for FILE in `ls sample_*.fasta`
           do

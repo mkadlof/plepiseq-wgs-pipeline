@@ -1,0 +1,12 @@
+chr1_PB2	.	gene	28	2307	.	+	.	gene_id=PB2; gene_name=PB2
+chr2_PB1	.	gene	25	2301	.	+	.	gene_id=PB1; gene_name=PB1
+chr3_PA	.	gene	25	2175	.	+	.	gene_name=PA;  gene_id=PA
+chr4_HA	.	gene	33	1715	.	+	.	gene_name=HA; gene_id=HA
+chr5_NP	.	gene	46	1542	.	+	.	gene_name=NP; gene_id=NP
+chr6_NA	.	gene	20	1429	.	+	.	gene_name=NA; gene_id=NA
+chr7_MP	.	gene	26	784	.	+	.	gene_name=MP; gene_id=MP
+chr8_NS	.	gene	27	719	.	+	.	gene_name=NS; gene_id=NS
+chr7_MP	.	exon	26	51	.	+	.	exon_name=M2_1
+chr7_MP	.	exon	740	1007	.	+	.	exon_name=M2_2
+chrX_M2	.	gene	1	294	.	+	.	gene_name=M2
+
