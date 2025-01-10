@@ -8,14 +8,14 @@ process dehumanization_illumina  {
 
     output:
     tuple val(sampleId), path("*nohuman.fastq.gz"), emit: to_pubdir
-    tuple val(sampleId), path('dehumanzed.json'), emit: json
+    tuple val(sampleId), path('dehumanized.json'), emit: json
 
     script:
     """
     if [ ${QC_status} == "nie" ]; then
       touch nohuman.fastq.gz
       ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
-      parse_dehumanization.py --status "nie" --error "\${ERR_MSG}" -o dehumanzed.json
+      parse_dehumanization.py --status "nie" --error "\${ERR_MSG}" -o dehumanized.json
     else
       samtools view mapped_reads.bam | cut -f1 | sort | uniq > lista_id_nohuman.txt
       # check if fastq file contains "\1" in R1, if so remove it, to match names of reads in bwa-produced bam file
@@ -41,11 +41,11 @@ process dehumanization_illumina  {
         seqtk subseq ${reads[1]} lista_id_nohuman.txt | gzip > ${sampleId}_reverse_paired_nohuman.fastq.gz
       fi
 
-      find . -name "*paired_nohuman*gz" >> list_of_dehumanzed_fastas.txt
+      find . -name "*paired_nohuman*gz" >> list_of_dehumanized_fastas.txt
       parse_dehumanization.py --status "tak" \
-                              --input_fastas_list list_of_dehumanzed_fastas.txt \
+                              --input_fastas_list list_of_dehumanized_fastas.txt \
                               --output_path "${params.results_dir}/${sampleId}" \
-                              --output dehumanzed.json
+                              --output dehumanized.json
     fi
     """
 }
@@ -59,23 +59,23 @@ process dehumanization_nanopore {
     cpus 1
     output:
     tuple val(sampleId), path("*nohuman.fastq.gz"), emit: to_pubdir
-    tuple val(sampleId), path('dehumanzed.json'), emit: json
+    tuple val(sampleId), path('dehumanized.json'), emit: json
 
     script:
     """
     if [ ${QC_status} == "nie" ]; then
       touch nohuman.fastq.gz
       ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
-      parse_dehumanization.py --status "nie" --error "\${ERR_MSG}" -o dehumanzed.json
+      parse_dehumanization.py --status "nie" --error "\${ERR_MSG}" -o dehumanized.json
     else
       
       samtools view mapped_reads.bam | cut -f1 | sort | uniq >> lista_id_nohuman.txt
       seqtk subseq ${reads} lista_id_nohuman.txt | gzip >> ${sampleId}_nohuman.fastq.gz
-      find . -name "*nohuman.fastq.gz" >> list_of_dehumanzed_fastas.txt
+      find . -name "*nohuman.fastq.gz" >> list_of_dehumanized_fastas.txt
       parse_dehumanization.py --status "tak" \
-                              --input_fastas_list list_of_dehumanzed_fastas.txt \
+                              --input_fastas_list list_of_dehumanized_fastas.txt \
                               --output_path "${params.results_dir}/${sampleId}" \
-                              --output dehumanzed.json
+                              --output dehumanized.json
 
     fi
     """

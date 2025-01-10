@@ -2,7 +2,7 @@ process lofreq {
     tag "lofreq:${sampleId}"
     container  = params.main_image
     // publishDir "${params.results_dir}/${sampleId}/lofreq", mode: 'copy'
-    cpus { params.threads > 15 ? 15 : params.threads }
+    cpus { params.threads > 10 ? 10 : params.threads }
     input:
     tuple val(sampleId), path(bam), path(bai), val(QC_status), path(ref_genome)
 

@@ -19,7 +19,29 @@ process alphafold {
 
     script:
     """
+    # This function can be used to model multimers with alphafold
+    # It requires two additiona databases pdb_seqres_database_path and uniprot_database_path
+    run_alpfafold_mer() {
+      python /app/alphafold/run_alphafold.py  --fasta_paths="\$1" \
+                                               --data_dir="/db/" \
+                                               --db_preset="reduced_dbs" \
+                                               --output_dir="\$2" \
+                                               --uniref90_database_path="/db/uniref50/uniref50.fasta" \
+                                               --mgnify_database_path="/db/mgnify/mgy_clusters_2022_05.fa" \
+                                               --small_bfd_database_path="/db/small_bfd/bfd-first_non_consensus_sequences.fasta" \
+                                               --template_mmcif_dir="/db/pdb_mmcif/mmcif_files/" \
+                                               --max_template_date="2024-05-14" \
+                                               --obsolete_pdbs_path="/db/pdb_mmcif/obsolete.dat" \
+                                               --use_gpu_relax=true \
+                                               --pdb70_database_path="/db/pdb70/pdb70" \
+                                               --models_to_relax=best \
+                                               --model_preset=multimer \
+                                               --pdb_seqres_database_path="/db/pdb_seqres/pdb_seqres.txt" \
+                                               --uniprot_database_path=/db/uniprot/uniprot.fasta
 
+    }   
+
+    # Original alphafold function
     run_alpfafold() {
       # Zmienna \$1 to plik z fasta
       # Zmienna \$2 to sciezka do katalogu z wynikami
@@ -43,6 +65,27 @@ process alphafold {
         # --bfd_database_path="/db/bfd/bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt"
         # --uniref30_database_path="/db/uniref30/UniRef30_2021_03" 
     }
+
+    # This function is reimplementation of run_alphafold 
+    # It uses only custom-made uniref50_viral to propose alignment, and replaces the BFD and mgnify databases all together
+    run_custom_alpfafold() {
+      python /app/alphafold/run_alphafold.py  --fasta_paths="\$1" \
+                                               --data_dir="/db/" \
+                                               --db_preset="reduced_dbs" \
+                                               --output_dir="\$2" \
+                                               --uniref90_database_path="/db/uniref_viruses/uniref50_viral.fasta" \
+                                               --mgnify_database_path="/db/uniref_viruses/uniref50_viral.fasta" \
+                                               --small_bfd_database_path="/db/uniref_viruses/uniref50_viral.fasta" \
+                                               --template_mmcif_dir="/db/pdb_mmcif/mmcif_files/" \
+                                               --max_template_date="2024-05-14" \
+                                               --obsolete_pdbs_path="/db/pdb_mmcif/obsolete.dat" \
+                                               --use_gpu_relax=true \
+                                               --pdb70_database_path="/db/pdb70/pdb70" \
+                                               --models_to_relax=best \
+                                               --model_preset=monomer
+    }
+
+    /db/uniref_viruses/uniref50_viral.fasta"
    
     # Restore names of fasta files as produced by nextalign module
     for link in \$(find . -maxdepth 1 -type l); do
@@ -97,7 +140,7 @@ process alphafold {
       cat nextalign_gene_F.translation.fasta | tr -d "-" | tr -d "X" | tr -d "*" >> tmp
       mv tmp nextalign_gene_F.translation.fasta
       target_fasta_F="nextalign_gene_F.translation.fasta"
-      run_alpfafold "\${target_fasta_F}" wynik
+      run_custom_alpfafold "\${target_fasta_F}" wynik
       
       cp wynik/`basename \${target_fasta_F} ".fasta"`/ranked_0.pdb ${sampleId}_F.pdb
       # align all proteins to a common reference
@@ -110,7 +153,7 @@ process alphafold {
       cat nextalign_gene_G.translation.fasta | tr -d "-" | tr -d "X" | tr -d "*" >> tmp
       mv tmp nextalign_gene_G.translation.fasta
       target_fasta_G="nextalign_gene_G.translation.fasta"
-      run_alpfafold "\${target_fasta_G}" wynik
+      run_custom_alpfafold "\${target_fasta_G}" wynik
       cp wynik/`basename \${target_fasta_G} ".fasta"`/ranked_0.pdb ${sampleId}_G.pdb
       # againg align to reference
       
@@ -130,7 +173,7 @@ process alphafold {
       cat nextalign_gene_HA.translation.fasta | tr -d "-" | tr -d "X" | tr -d "*" >> tmp
       mv tmp nextalign_gene_HA.translation.fasta
       target_fasta_HA="nextalign_gene_HA.translation.fasta"
-      run_alpfafold "\${target_fasta_HA}" wynik
+      run_custom_alpfafold "\${target_fasta_HA}" wynik
 
       cp wynik/`basename \${target_fasta_HA} ".fasta"`/ranked_0.pdb ${sampleId}_HA.pdb
 
@@ -142,7 +185,7 @@ process alphafold {
       cat nextalign_gene_NA.translation.fasta | tr -d "-" | tr -d "X" | tr -d "*" >> tmp
       mv tmp nextalign_gene_NA.translation.fasta
       target_fasta_NA="nextalign_gene_NA.translation.fasta"
-      run_alpfafold "\${target_fasta_NA}" wynik
+      run_custom_alpfafold "\${target_fasta_NA}" wynik
 
       cp wynik/`basename \${target_fasta_NA} ".fasta"`/ranked_0.pdb ${sampleId}_NA.pdb
 
@@ -167,7 +210,7 @@ process alphafold {
         cat nextalign_gene_S.translation.fasta | tr -d "-" | tr -d "X" | tr -d "*" >> tmp
         mv tmp nextalign_gene_S.translation.fasta
         target_fasta="nextalign_gene_S.translation.fasta" 
-        run_alpfafold "\${target_fasta}" wynik
+        run_custom_alpfafold "\${target_fasta}" wynik
 
         # Give some time to clear up memory from a device ...
         # sleep `python -c 'import random; print(random.randint(4, 35))'`

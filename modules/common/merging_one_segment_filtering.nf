@@ -1,7 +1,7 @@
 process merging {
     tag "merging:${sampleId}"
     container  = params.main_image
-    cpus { params.threads > 15 ? 15 : params.threads }
+    cpus { params.threads > 5 ? 5 : params.threads }
     input:
     tuple val(sampleId), path(filtering_bam), path(ivar_bam), val(QC_status)
 
