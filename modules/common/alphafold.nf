@@ -33,7 +33,6 @@ process alphafold {
                                                --max_template_date="2024-05-14" \
                                                --obsolete_pdbs_path="/db/pdb_mmcif/obsolete.dat" \
                                                --use_gpu_relax=true \
-                                               --pdb70_database_path="/db/pdb70/pdb70" \
                                                --models_to_relax=best \
                                                --model_preset=multimer \
                                                --pdb_seqres_database_path="/db/pdb_seqres/pdb_seqres.txt" \
@@ -110,7 +109,9 @@ process alphafold {
     ID=0
     while read L; do
       SMI_1=`echo \${L} | cut -d " " -f1`
-      if [ \${SMI_1} -lt 50 ]; then
+      if [ \${SMI_1} -lt 5000 ]; then
+        # a given GPU usues less than 5Gb of memory, and can
+        # be used for calculations
         break
       else
         ID=`echo "\${ID} + 1" | bc -l`

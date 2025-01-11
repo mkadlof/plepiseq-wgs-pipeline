@@ -32,6 +32,7 @@ RUN apt-get update --quiet \
         kalign \
         tzdata \
         wget \
+        seqtk \
         bc \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get autoremove --yes \
