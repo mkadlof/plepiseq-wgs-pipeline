@@ -1,4 +1,4 @@
-process freyja_rsv {
+process freyja_infl {
     // We need to repeat mapping for RSV as Freyja needs a different genome than we used in main pipeline
     // We also "attach" this module not AFTER bwa/minmap2 but NEXT to it
     // We do not mask primers here

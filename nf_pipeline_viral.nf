@@ -296,7 +296,7 @@ include { coinfection_analysis_nanopore as coinfection_analysis_nanopore_sars } 
 include { freyja_rsv } from "${modules}/rsv/freyja_rsv.nf"
 // // // Influenza
 // // // //
-include { freyja_influenza } from "${modules}/infl/freyja_rsv.nf"
+include { freyja_infl } from "${modules}/infl/freyja_infl.nf"
 
 // // End of Section // //
 
