@@ -12,6 +12,7 @@ process detect_type_illumina {
     tuple val(sampleId), path("genome.fasta"), path("genes.gtf"), emit: to_snpeff   
     tuple val(sampleId), path("genome.fasta"), emit: only_genome // indelqual module requires a variable not a tupple
     tuple val(sampleId), env(TYPE), emit: subtype_id
+    tuple val(sampleId), path(reads), env(TYPE), env(QC_exit), emit: to_freyja
 script:
 """
 # genome jest w kontenerze
@@ -83,7 +84,8 @@ process detect_type_nanopore {
   output:
     tuple val(sampleId), path("RSV*fasta"), path("primers.bed"), env(QC_exit), emit: all_nanopore
     tuple val(sampleId), path("RSV*fasta"), env(QC_exit), emit: to_minimap2
-    tuple val(sampleId), path("primers.bed"), emit: primers 
+    tuple val(sampleId), path("primers.bed"), emit: primers
+    tuple val(sampleId), path(reads), env(TYPE), env(QC_exit), emit: to_freyja
     tuple val(sampleId), env(TYPE), emit: json
     tuple val(sampleId), path("RSV*fasta"), emit: only_genome
     tuple val(sampleId), path("genome.fasta"), path("genes.gtf"), emit: to_snpeff

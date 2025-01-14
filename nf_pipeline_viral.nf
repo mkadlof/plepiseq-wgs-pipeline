@@ -284,13 +284,20 @@ include { alphafold } from "${modules}/common/alphafold.nf"
 // // Modules to predict potential coinfections 
 // // // SARS-CoV-2
 // // // // Common
-include { freyja as freyja_sars } from "${modules}/sarscov2/freyja.nf"
+include { freyja_sars } from "${modules}/sarscov2/freyja.nf"
 include { coinfection_genome_masking_illumina } from "${modules}/sarscov2/coinfection_ivar.nf"
 include { coinfection_genome_masking_nanopore } from "${modules}/sarscov2/coinfection_ivar.nf"
 
 include { coinfection_varscan as coinfection_varscan_sars } from "${modules}/sarscov2/coinfection_varscan.nf"
 include { coinfection_analysis_illumina as coinfection_analysis_illumina_sars } from "${modules}/sarscov2/coinfection_analysis.nf"
 include { coinfection_analysis_nanopore as coinfection_analysis_nanopore_sars } from "${modules}/sarscov2/coinfection_analysis.nf"
+// // // RSV
+// // // // Common
+include { freyja_rsv } from "${modules}/rsv/freyja_rsv.nf"
+// // // Influenza
+// // // //
+include { freyja_influenza } from "${modules}/infl/freyja_rsv.nf"
+
 // // End of Section // //
 
 
@@ -345,13 +352,19 @@ workflow{
     // Dehumanization
     dehumanization_out = dehumanization_illumina(bwa_out.only_bam.join(trimmomatic_out.proper_reads, by:0))
 
-    // coinfection analysis for SARS ONLY !
+    // coinfection analysis 
     if ( params.species  == 'SARS-CoV-2' ) {
         coinfection_ivar_sars_out = coinfection_genome_masking_illumina(bwa_out.to_coinfection)
         freyja_out =  freyja_sars(coinfection_ivar_sars_out.to_freyja)
         coinfection_varscan_out = coinfection_varscan_sars(coinfection_ivar_sars_out.to_custom_analysis)
         coinfection_analysis_sars_out = coinfection_analysis_illumina_sars(coinfection_varscan_out)
         coinfection_json = freyja_out.json.join(coinfection_analysis_sars_out.json)
+    } else if (params.species  == 'Influenza') {
+        freyja_out =  freyja_infl(detect_subtype_out.to_freyja)
+        coinfection_json=freyja_out.json
+    } else if (params.species  == 'RSV') {
+        freyja_out =  freyja_rsv(detect_type_out.to_freyja)
+        coinfection_json=freyja_out.json
     }
 
     // Filtering script is different for one-segment and multiple-segments organisms
@@ -414,12 +427,18 @@ workflow{
         minimap2_1_out = minimap2_1(reads_and_genome_and_primers)
       
         if ( params.species  == 'SARS-CoV-2' ) {
-          // kanal minimap2_1 jest itenconalnie
-          coinfection_genome_masking_out = coinfection_genome_masking_nanopore(minimap2_1_out.bam_and_genome_and_primers)
-          freyja_out =  freyja_sars(coinfection_genome_masking_out.to_freyja)
-          coinfection_varscan_out = coinfection_varscan_sars(coinfection_genome_masking_out.to_custom_analysis)
-          coinfection_analysis_sars_out = coinfection_analysis_nanopore_sars(coinfection_varscan_out)
-          coinfection_json = freyja_out.json.join(coinfection_analysis_sars_out.json)
+            // kanal minimap2_1 jest itenconalnie
+            coinfection_genome_masking_out = coinfection_genome_masking_nanopore(minimap2_1_out.bam_and_genome_and_primers)
+            freyja_out =  freyja_sars(coinfection_genome_masking_out.to_freyja)
+            coinfection_varscan_out = coinfection_varscan_sars(coinfection_genome_masking_out.to_custom_analysis)
+            coinfection_analysis_sars_out = coinfection_analysis_nanopore_sars(coinfection_varscan_out)
+            coinfection_json = freyja_out.json.join(coinfection_analysis_sars_out.json)
+        } else if (params.species  == 'Influenza') {
+            freyja_out =  freyja_infl(detect_subtype_out.to_freyja)
+            coinfection_json = freyja_out.json
+        } else if (params.species  == 'RSV') {
+            freyja_out =  freyja_rsv(detect_type_out.to_freyja)
+            coinfection_json = freyja_out.json
         }
  
         if ( params.species  == 'SARS-CoV-2' ||  params.species  == 'RSV') {
@@ -547,9 +566,7 @@ workflow{
     for_json_aggregator = for_json_aggregator.join(minimap2_1_out.json)
   }
 
-  if ( params.species  == 'SARS-CoV-2' ) {
-    for_json_aggregator = for_json_aggregator.join(coinfection_json)
-  }
+  for_json_aggregator = for_json_aggregator.join(coinfection_json)
 
   for_json_aggregator = for_json_aggregator.join(dehumanization_out.json) 
   for_json_aggregator = for_json_aggregator.join(wgsMetrics_out.json)

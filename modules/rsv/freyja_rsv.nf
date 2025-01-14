@@ -1,34 +1,50 @@
-process freyja_sars {
+process freyja_rsv {
+    // We need to repeat mapping for RSV as Freyja needs a different genome than we used in main pipeline
+    // We also "attach" this module not AFTER bwa/minmap2 but NEXT to it
+    // We do not mask primers here
+ 
     tag "freyja:${sampleId}"
     container  = params.main_image
-    cpus 1
-    // publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "coinfections.tsv"
+    cpus params.threads
     containerOptions "--volume ${params.external_databases_path}:/home/external_databases/"
 
     input:
-    tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), path(ref_genome_with_index), val(QC_status)
+    tuple val(sampleId), path(reads), val(TYPE), val(QC_status)
 
     output:
-    // tuple val(sampleId), path('coinfections.tsv'), emit: to_pubdir
     tuple val(sampleId), path('coinfections_freyja.json'), emit: json
 
     script:
-    def final_index = -1
-    ref_genome_with_index.eachWithIndex { filename, index ->
-        if (filename.toString().endsWith(".fasta")) {
-         final_index = index
-        }
-    }
     """
     if [ ${QC_status} == "nie" ]; then
-      # echo "No reads in the bam file"
       touch coinfections.tsv
       freyja_status="nie"
       echo -e "{\\"freyja_status\\":\\"\${freyja_status}\\"}" >> coinfections_freyja.json
     else
       mkdir variants_files depth_files demix_files
-      freyja variants mapped_reads.bam --minq ${params.freyja_minq} --variants variants_files/test.variants.tsv --depths depth_files/test.depth --ref ${ref_genome_with_index[final_index]}
-      freyja demix variants_files/test.variants.tsv depth_files/test.depth --output demix_files/test.output --confirmedonly --barcodes  /home/external_databases/freyja/sarscov2/usher_barcodes.csv
+
+      cp /home/external_databases/freyja/RSV_${TYPE}/reference.fasta .
+      bwa index reference.fasta
+
+      # We map  reads all the reads to Freyja-required genome 
+      if [ ${params.machine} == 'Illumina' ]; then  
+        bwa mem -t ${task.cpus} -T 30 reference.fasta ${reads[0]} ${reads[1]} | \
+        samtools view -@ ${task.cpus} -Sb -f 3 -F 2048 - | \
+        samtools sort -@ ${task.cpus} -o mapped_reads.bam -
+        samtools index mapped_reads.bam
+      elif [ ${params.machine} == 'Nanopore' ]; then
+        minimap2 -a -x map-ont -t ${task.cpus} -o tmp.sam reference.fasta ${reads}
+        samtools view -@ ${params.threads} -Sb -F 2052 tmp.sam | \
+        samtools sort -@ ${params.threads} -o mapped_reads.bam -
+        samtools index mapped_reads.bam
+      fi
+
+
+      # We call variants with freyja
+ 
+      freyja variants mapped_reads.bam --minq ${params.freyja_minq} --variants variants_files/test.variants.tsv --depths depth_files/test.depth --ref reference.fasta
+      freyja demix variants_files/test.variants.tsv depth_files/test.depth --output demix_files/test.output --confirmedonly --barcodes  /home/external_databases/freyja/RSV_${TYPE}/barcode.csv
+
       freyja aggregate demix_files/ --output coinfections.tsv
       freyja_status="tak"
       freyja_lineage_1_name=`cat coinfections.tsv  | cut -f3 | tail -1 | cut -d " " -f1`

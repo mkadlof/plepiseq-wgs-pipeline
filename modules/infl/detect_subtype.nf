@@ -9,6 +9,7 @@ process detect_subtype_illumina {
     output:
     tuple val(sampleId), path("subtype_mean_coverage_each_segment.txt"), path("subtype_scores_each_segment.txt"), env(REF_GENOME_ID), val(QC_STATUS), emit: segments_scores
     tuple val(sampleId), env(REF_GENOME_ID_MINI), emit: subtype_id
+    tuple val(sampleId), path(reads), env(REF_GENOME_ID_MINI), val(QC_STATUS), emit: to_freyja
 
     script:
     """
