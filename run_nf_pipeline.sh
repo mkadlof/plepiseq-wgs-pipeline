@@ -472,7 +472,7 @@ fi
 
 # Check primers
 CORRECT_ID=0
-ALL_PRIMERS=(EQA2023.SARS1 EQA2023.SARS2 EQA2024.V4_1 EQA2024.V5_3 V1 V1200 V2 V3 V4 V4.1 V5.3.2 VarSkip2 V0)
+ALL_PRIMERS=(EQA2023.SARS1 EQA2023.SARS2 EQA2024.V4_1 EQA2024.V4_1.nanopore EQA2024.V5_3 V1 V1200 V2 V3 V4 V4.1 V5.3.2 VarSkip2 V0)
 for var in ${ALL_PRIMERS[@]}; do
     if [ ${primers_id} == ${var} ];then
            CORRECT_ID=1
@@ -490,7 +490,7 @@ echo "Running pipeline..."
 nextflow run ${projectDir}/nf_pipeline_viral.nf \
     --projectDir ${projectDir} \
     --external_databases_path ${external_databases_path} \
-    --reads ${reads} \
+    --reads "${reads}" \
     --primers_id ${primers_id} \
     --adapters_id ${adapters_id} \
     --machine ${machine} \

@@ -84,7 +84,6 @@ process alphafold {
                                                --model_preset=monomer
     }
 
-    /db/uniref_viruses/uniref50_viral.fasta"
    
     # Restore names of fasta files as produced by nextalign module
     for link in \$(find . -maxdepth 1 -type l); do
