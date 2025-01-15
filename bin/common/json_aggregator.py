@@ -5,15 +5,6 @@ import datetime
 import json
 
 
-def fill_sars_data(output_local, custom_coinfection=""):
-    output_local["output"]["sars_data"] = {}
-
-    if custom_coinfection:
-        output_local["output"]["sars_data"] = {**output_local["output"]["sars_data"]}
-
-    return output_local
-
-
 def fill_infl_data(output_local, resistance="", reassortment=""):
     output_local["output"]["infl_data"] = {}
 
@@ -159,11 +150,11 @@ def json_aggregator(args):
         output["output"]["dehumanized_data"] = json.load(open(args.dehumanized))
 
     if args.coinfection and args.pathogen == "sars2":
-        output = fill_sars_data(output_local=output,
-                                custom_coinfection=args.coinfection)
+        output["output"]["sars_data"] = json.load(open(args.coinfection))
 
     if args.freyja:
         output["output"]["freyja_data"] = json.load(open(args.freyja))
+
     if args.alphafold:
         output["output"]["structural_data"] = json.load(open(args.alphafold))
 
