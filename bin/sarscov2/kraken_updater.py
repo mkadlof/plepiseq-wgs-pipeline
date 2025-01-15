@@ -7,6 +7,7 @@ Read more: https://benlangmead.github.io/aws-indexes/k2
 """
 
 import argparse
+import os
 import os.path
 import re
 from datetime import datetime
@@ -54,6 +55,7 @@ def download_from_s3(bucket_name: str, file_name: str, local_path: str):
     try:
         print(f"Downloading {file_name} from S3 to {local_path}")
         s3.download_file(bucket_name, file_name, local_path)
+        os.system(f"gunzip {file_name}")
         print(f"File downloaded successfully.")
     except Exception as e:
         print(f"Error while downloading file: {e}")
