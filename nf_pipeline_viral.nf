@@ -542,7 +542,7 @@ workflow{
    
   // illumina/nanopore have custom named channels
   if(params.machine == 'Illumina') {
-    snpEff_out = snpEff(vcf_fr_fasta_out.vcf.join(indelQual_out.bam_and_qc, by:0))
+    snpEff_out = snpEff(vcf_from_fasta_out.vcf.join(indelQual_out.bam_and_qc, by:0))
   }
   else if (params.machine == 'Nanopore') {
     snpEff_out = snpEff(vcf_from_fasta_out.vcf.join(minimap2_2_out.bam_and_qc, by:0))  
