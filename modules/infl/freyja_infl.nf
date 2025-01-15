@@ -19,7 +19,9 @@ process freyja_infl {
     if [ ${QC_status} == "nie" ]; then
       touch coinfections.tsv
       freyja_status="nie"
-      echo -e "{\\"freyja_status\\":\\"\${freyja_status}\\"}" >> coinfections_freyja.json
+      ERR_MSG="This module recieved a failed QC status and was not executed"
+      echo -e "{\\"status\\":\\"\${freyja_status}\\".
+                \\"error_message\\":\\"\${ERR_MSG}\\"}" >> coinfections_freyja.json
     else
       TO_FREYJA='H1N1 H3N2 H5N1 H5N2 H5N5 H5N6 H5N6 Victoria'
       if [[ \${TO_FREYJA[@]} =~ ${SAMPLE_SUBTYPE} ]]; then
@@ -54,8 +56,8 @@ process freyja_infl {
 
          freyja aggregate demix_files/ --output coinfections.tsv
          freyja_status="tak"
-         freyja_lineage_1_name=`cat coinfections.tsv  | cut -f3 | tail -1 | cut -d " " -f1`
-         freyja_lineage_2_name=`cat coinfections.tsv  | cut -f3 | tail -1 | cut -d " " -f2`
+         freyja_lineage_1_name=`cat coinfections.tsv  | cut -f3 | tail -1 | cut -d " " -f1 | sed s"|\${FREYJA_SUBTYPE}-||"g`
+         freyja_lineage_2_name=`cat coinfections.tsv  | cut -f3 | tail -1 | cut -d " " -f2 |  sed s"|\${FREYJA_SUBTYPE}-||"g`
          freyja_lineage_1_abundance=`cat coinfections.tsv  | cut -f4 | tail -1 | cut -d " " -f1 | awk '{printf "%.2f", \$0}'`
          freyja_lineage_2_abundance=`cat coinfections.tsv  | cut -f4 | tail -1 | cut -d " " -f2 | awk '{printf "%.2f", \$0}'`
 
@@ -71,7 +73,7 @@ process freyja_infl {
            freyja_lineage_2_abundance=0
          fi
 
-         echo -e "{\\"freyja_status\\":\\"\${freyja_status}\\",
+         echo -e "{\\"status\\":\\"\${freyja_status}\\",
                    \\"freyja_lineage1_name\\":\\"\${freyja_lineage_1_name}\\",
                    \\"freyja_lineage2_name\\":\\"\${freyja_lineage_2_name}\\",
                    \\"freyja_lineage1_abundance\\":\${freyja_lineage_1_abundance},
@@ -80,7 +82,9 @@ process freyja_infl {
          ERR_MSG="Freyja module works only with following influenza subtypes H1N1, H3N2, H5Nx and Victoria"
          touch coinfections.tsv
          freyja_status="nie"
-         echo -e "{\\"freyja_status\\":\\"\${freyja_status}\\"}" >> coinfections_freyja.json
+         ERR_MSG="This module recieved a failed QC status and was not executed"
+         echo -e "{\\"status\\":\\"\${freyja_status}\\".
+                   \\"error_message\\":\\"\${ERR_MSG}\\"}" >> coinfections_freyja.json
        fi
 
     fi

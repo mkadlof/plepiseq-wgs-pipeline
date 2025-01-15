@@ -24,7 +24,9 @@ process freyja_sars {
       # echo "No reads in the bam file"
       touch coinfections.tsv
       freyja_status="nie"
-      echo -e "{\\"freyja_status\\":\\"\${freyja_status}\\"}" >> coinfections_freyja.json
+      ERR_MSG="This module recieved a failed QC status and was not executed"
+      echo -e "{\\"status\\":\\"\${freyja_status}\\".
+                \\"error_message\\":\\"\${ERR_MSG}\\"}" >> coinfections_freyja.json
     else
       mkdir variants_files depth_files demix_files
       freyja variants mapped_reads.bam --minq ${params.freyja_minq} --variants variants_files/test.variants.tsv --depths depth_files/test.depth --ref ${ref_genome_with_index[final_index]}
@@ -48,7 +50,7 @@ process freyja_sars {
         freyja_lineage_2_abundance=0
       fi
 
-      echo -e "{\\"freyja_status\\":\\"\${freyja_status}\\",
+      echo -e "{\\"status\\":\\"\${freyja_status}\\",
                 \\"freyja_lineage1_name\\":\\"\${freyja_lineage_1_name}\\",
                 \\"freyja_lineage2_name\\":\\"\${freyja_lineage_2_name}\\",
                 \\"freyja_lineage1_abundance\\":\${freyja_lineage_1_abundance},

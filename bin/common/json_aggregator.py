@@ -5,15 +5,12 @@ import datetime
 import json
 
 
-def fill_sars_data(output_local, custom_coinfection="", freyja=""):
+def fill_sars_data(output_local, custom_coinfection=""):
     output_local["output"]["sars_data"] = {}
 
     if custom_coinfection:
-        output_local["output"]["sars_data"] = {**output_local["output"]["sars_data"],
-                                               **json.load(open(custom_coinfection))}
-    if freyja:
-        output_local["output"]["sars_data"] = {**output_local["output"]["sars_data"],
-                                               **json.load(open(freyja))}
+        output_local["output"]["sars_data"] = {**output_local["output"]["sars_data"]}
+
     return output_local
 
 
@@ -161,11 +158,12 @@ def json_aggregator(args):
     if args.dehumanized:
         output["output"]["dehumanized_data"] = json.load(open(args.dehumanized))
 
-    if (args.freyja or args.coinfection) and args.pathogen == "sars2":
+    if args.coinfection and args.pathogen == "sars2":
         output = fill_sars_data(output_local=output,
-                                freyja=args.freyja,
                                 custom_coinfection=args.coinfection)
 
+    if args.freyja:
+        output["output"]["freyja_data"] = json.load(open(args.freyja))
     if args.alphafold:
         output["output"]["structural_data"] = json.load(open(args.alphafold))
 
@@ -226,7 +224,7 @@ def main():
     parser.add_argument('--fastqc_pre', nargs='+', help='At least one file from fastqc module (pre_filtering)')
     parser.add_argument('--fastqc_post', nargs='+', help='At least a file from fastqc module (post_filtering)')
     parser.add_argument('--contamination', help="JSON from contamination detection (kraken2)")
-    parser.add_argument('--freyja', help="Freyja output for SARS-CoV-2 organism")
+    parser.add_argument('--freyja', help="Output of various freyja modules")
     parser.add_argument('--coinfection', help="Output for custom coinfection analysis for SARS-CoV-2 organism")
     parser.add_argument('--dehumanized', help="Output of defumanization procedure")
     parser.add_argument('--wgsMetrics', help="WGS metrics file")
