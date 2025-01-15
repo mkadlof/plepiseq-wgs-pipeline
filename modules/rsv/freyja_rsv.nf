@@ -20,7 +20,7 @@ process freyja_rsv {
       touch coinfections.tsv
       freyja_status="nie"
       ERR_MSG="This module recieved a failed QC status and was not executed"
-      echo -e "{\\"status\\":\\"\${freyja_status}\\".
+      echo -e "{\\"status\\":\\"\${freyja_status}\\",
                 \\"error_message\\":\\"\${ERR_MSG}\\"}" >> coinfections_freyja.json
     else
       mkdir variants_files depth_files demix_files

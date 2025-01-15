@@ -20,7 +20,7 @@ process freyja_infl {
       touch coinfections.tsv
       freyja_status="nie"
       ERR_MSG="This module recieved a failed QC status and was not executed"
-      echo -e "{\\"status\\":\\"\${freyja_status}\\".
+      echo -e "{\\"status\\":\\"\${freyja_status}\\",
                 \\"error_message\\":\\"\${ERR_MSG}\\"}" >> coinfections_freyja.json
     else
       TO_FREYJA='H1N1 H3N2 H5N1 H5N2 H5N5 H5N6 H5N6 Victoria'
@@ -83,7 +83,7 @@ process freyja_infl {
          touch coinfections.tsv
          freyja_status="nie"
          ERR_MSG="This module recieved a failed QC status and was not executed"
-         echo -e "{\\"status\\":\\"\${freyja_status}\\".
+         echo -e "{\\"status\\":\\"\${freyja_status}\\",
                    \\"error_message\\":\\"\${ERR_MSG}\\"}" >> coinfections_freyja.json
        fi
 
