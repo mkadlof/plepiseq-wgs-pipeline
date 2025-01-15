@@ -255,7 +255,7 @@ include { consensus_nanopore } from "${modules}/common/consensus.nf"
 // // Modules to predict "final vcf" with effect of mutations on proteins 
 // // // Common
 // // // // Common
-include { vcf_for_fasta } from "${modules}/common/vcf_for_fasta.nf"
+include { vcf_from_fasta } from "${modules}/common/vcf_from_fasta.nf"
 include { snpEff_nanopore as snpEff } from "${modules}/common/snpEff.nf"
 // // End of Section // //
 
@@ -538,14 +538,14 @@ workflow{
   // we also add gtf  to build snpeff database,  again hybrid for influenza,  and predefined for remaining viruses 
  
   for_vcf = final_genome_out.fasta_and_qc.join(detect_type_out.to_snpeff, by:0)
-  vcf_for_fasta_out = vcf_for_fasta(for_vcf)
+  vcf_from_fasta_out = vcf_from_fasta(for_vcf)
    
   // illumina/nanopore have custom named channels
   if(params.machine == 'Illumina') {
-    snpEff_out = snpEff(vcf_for_fasta_out.vcf.join(indelQual_out.bam_and_qc, by:0))
+    snpEff_out = snpEff(vcf_fr_fasta_out.vcf.join(indelQual_out.bam_and_qc, by:0))
   }
   else if (params.machine == 'Nanopore') {
-    snpEff_out = snpEff(vcf_for_fasta_out.vcf.join(minimap2_2_out.bam_and_qc, by:0))  
+    snpEff_out = snpEff(vcf_from_fasta_out.vcf.join(minimap2_2_out.bam_and_qc, by:0))  
   }
 
 
