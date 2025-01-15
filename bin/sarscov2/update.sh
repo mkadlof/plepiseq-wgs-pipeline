@@ -37,6 +37,7 @@ update_kraken() {
     local kraken_type=$2
     echo /home/kraken_updater.py "${db_path}" "$kraken_type"
     /home/kraken_updater.py "${db_path}" "$kraken_type"
+
     return $?
 }
 

@@ -263,7 +263,7 @@ include { snpEff_nanopore as snpEff } from "${modules}/common/snpEff.nf"
 // // Modules to virus classification
 // // // SARS-CoV-2 or RSV
 // // // // Common
-include { nextclade as nextclade_noninfluenza } from "${modules}/sarscov2/nextclade.nf"
+include { nextclade as nextclade_noninfluenza } from "${modules}/common/nextclade_noninfluenza.nf"
 // // // Influenza
 // // // // Common
 include { nextclade as nextclade_influenza } from "${modules}/infl/nextclade.nf"
