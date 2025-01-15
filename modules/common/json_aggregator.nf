@@ -30,6 +30,7 @@ process json_aggregator_sars_illumina {
     else
       version="unknown"
     fi
+
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \
@@ -97,6 +98,7 @@ process json_aggregator_rsv_illumina {
                         --pangolin "${pangolin_json}" \
                         --nextclade "${nextclade_json}" \
                         --alphafold "${alphafold}" \
+                        --freyja "${freyja}" \
                         --snpeff ${snpeff} \
                         --mapping "${mapping_json}" \
                         --executiondir ${ExecutionDir}
@@ -153,6 +155,7 @@ process json_aggregator_influenza_illumina {
                         --pangolin "${pangolin_json}" \
                         --nextclade "${nextclade_json}" \
                         --snpeff ${snpeff} \
+                        --freyja "${freyja}" \
                         --alphafold ${alphafold} \
                         --reassortment ${reassortment_json} \
                         --drug_resistance ${resistance_json} \
@@ -197,7 +200,8 @@ process json_aggregator_sars_nanopore {
     else
       version="unknown"
     fi
- 
+
+
     json_aggregator.py  --version \${version} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \
@@ -263,6 +267,7 @@ process json_aggregator_rsv_nanopore {
                         --nextclade "${nextclade_json}" \
                         --alphafold "${alphafold}" \
                         --snpeff ${snpeff} \
+                        --freyja "${freyja}" \
                         --mapping "${mapping_json}" \
                         --executiondir ${ExecutionDir}
 
@@ -315,6 +320,7 @@ process json_aggregator_influenza_nanopore {
                         --pangolin "${pangolin_json}" \
                         --nextclade "${nextclade_json}" \
                         --snpeff ${snpeff} \
+                        --freyja "${freyja}" \
                         --alphafold ${alphafold} \
                         --reassortment ${reassortment_json} \
                         --drug_resistance ${resistance_json} \
