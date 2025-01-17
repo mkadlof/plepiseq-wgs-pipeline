@@ -73,9 +73,12 @@ RUN yum install -y epel-release
 RUN yum install -y tar python2-pip
 
 WORKDIR /opt/docker
-ADD third-party/mafft/mafft-7.520-gcc_fc6.x86_64.rpm /opt/docker
-RUN rpm -Uvh mafft-7.520-gcc_fc6.x86_64.rpm && \
-    rm -f /opt/docker/mafft-7.520-gcc_fc6.x86_64.rpm
+
+RUN  curl  -o mafft-7.520-gcc_fc6.x86_64.rpm https://mafft.cbrc.jp/alignment/software/mafft-7.520-gcc_fc6.x86_64.rpm ;\
+     rpm -Uvh mafft-7.520-gcc_fc6.x86_64.rpm && \
+     rm -f /opt/docker/mafft-7.520-gcc_fc6.x86_64.rpm
+
+
 
 ## Kopiowanie wymaganych plikow
 RUN mkdir -p /SARS-CoV2/ 
