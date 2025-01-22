@@ -16,11 +16,28 @@ from typing import List
 import boto3
 from botocore import UNSIGNED
 from botocore.config import Config
+import hashlib
 
 
 # It employs the boto3 library to interact with the S3 service.
 # It is assumed that the database name contains a date in the format YYYYMMDD.
 # The script is using regex to extract the date from the database name, and then it finds the latest database.
+
+
+def calculate_md5(file_path):
+    """
+    Calculate md5 sum of a file within python
+    @param file_path:
+    @type file_path:
+    @return:
+    @rtype:
+    """
+    hash_md5 = hashlib.md5()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
+
 
 def list_available_databases(bucket_name: str, prefix: str) -> List[str]:
     s3 = boto3.client("s3", config=Config(signature_version=UNSIGNED))
@@ -55,11 +72,62 @@ def download_from_s3(bucket_name: str, file_name: str, local_path: str):
     try:
         print(f"Downloading {file_name} from S3 to {local_path}")
         s3.download_file(bucket_name, file_name, local_path)
-        os.system(f"gunzip {file_name}")
+
+        real_path = os.path.dirname(local_path)
+        os.system(f"tar -zxf {local_path} -C {real_path}")
         print(f"File downloaded successfully.")
     except Exception as e:
         print(f"Error while downloading file: {e}")
         exit(1)
+
+def check_updates(bucket_name: str, file_name: str, local_path: str):
+    """
+    Function checks if database version stored locally is identical to latest version available online
+    @param bucket_name: Addres of database on AWS ?
+    @type bucket_name: str
+    @param file_name: This is actually a path to a .gz with database within "bucket"
+    @type file_name: str
+    @param local_path: This is a relative path where file from AWS is saved. Relative to the execution dir
+    @type local_path: str
+    @return: True if md5sums are different, Fasle  if latest version is available
+    @rtype: bool
+    """
+    """Download a file from Amazon S3 and save it locally."""
+    s3 = boto3.client("s3", config=Config(signature_version=UNSIGNED))
+
+    # md5 files are stored in a differenct directory on aws so we need to adjust it
+    # for
+    # kraken/k2_standard_20240904.tar.gz
+    # md5 is in
+    # https://genome-idx.s3.amazonaws.com/kraken/standard_20240904/standard.md5
+    real_name = os.path.basename(file_name)
+    _ , typ, date = real_name.split('_')
+    date = date.split('.')[0]
+
+    local_path = os.path.dirname(local_path)
+    new_file_name = f"kraken/{typ}_{date}/{typ}.md5"
+    s3.download_file(bucket_name, new_file_name, f'{local_path}/{typ}.md5')
+
+    with open(f"{local_path}/{typ}.md5") as f:
+        for line in f:
+            line = line.split()
+            line[-1] = line[-1].rstrip()
+            if "tar.gz" in line[-1]:
+                novel_md5 = line[0]
+                break
+
+    for plik in os.listdir(local_path):
+        if "tar.gz" in plik:
+            old_md5 = calculate_md5(f'{local_path}/{plik}')
+            break
+
+    # Remove EVERYTHING from directory where kraken2 database will be saved
+    os.system(f'rm {local_path}/{typ}.md5')
+    # compare md5 sums of files return True if md5 sums are different and one need to perform update
+    if novel_md5 == old_md5:
+        return False
+    else:
+        return True
 
 
 def main():
@@ -75,7 +143,7 @@ def main():
     # Bucket name on Amazon S3
     bucket_name = "genome-idx"
 
-    # Prefix for databases
+    # Prefix for databases this is actually a directory where kraken2 database is stored on AWS
     prefix = "kraken/"
 
     # DB name regexp
@@ -85,13 +153,30 @@ def main():
     databases = list_available_databases(bucket_name, prefix)
     target_db = find_latest_database(databases, db_name_regexp)
 
+    if not os.path.exists(args.local_path):
+        print(f" Provided directory {args.local_path} does not exists. Sorry you must create it yourself")
+        exit(1)
+
+
     if target_db:
         local_path = os.path.join(args.local_path, target_db.split("/")[-1])
-        # Check if the file already exists
+        #  local_path is a full path to a file that will be downloaded from AWS (so .tar.gz)
+        # Check if this file already exists
         if not os.path.exists(local_path):
             download_from_s3(bucket_name, target_db, local_path)
         else:
-            print(f"File {local_path} already exists. Skipping download.")
+            print('Directory you provided is not empty. Checking if database can  be updated')
+            if check_updates(bucket_name, target_db, local_path):
+                print('New version of  database found, downloading new data')
+                #  usuwam wszystko z katalogu gdzie bedzie baza
+                real_local_path = os.path.dirname(local_path)
+                os.system(f'rm {real_local_path}/*')
+                #  perform regular download
+                download_from_s3(bucket_name, target_db, local_path)
+            else:
+                print(
+                    f"In direcotry: {local_path} latest version of database {target_db} is already present. Exiting")
+                exit(1)
     else:
         print("Database was not found.")
         exit(1)
