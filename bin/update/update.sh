@@ -159,6 +159,21 @@ bash INSTALL.sh /home/external_databases/kmerfinder/ bacteria
 
 }
 
+# Generic CGE updater
+## No update mechanism for CGE 
+update_cge() {
+	local db=$1
+	if [ -d "/home/external_databases/${db}" ]; then
+		rm -rf /home/external_databases/${db}/*
+	else
+		mkdir /home/external_databases/${db}/
+	fi
+	cd /home/external_databases
+	git clone https://bitbucket.org/genomicepidemiology/${db}/
+	cd ${db}
+	python3 INSTALL.py /home/kma/kma_index non_interactive
+}
+
 #############
 # Main code *
 #############
@@ -175,6 +190,13 @@ if [ ${db_name} == "all" ];then
 	update_amrfinder >> /dev/null 2>&1
 	update_kmerfinder >> /dev/null 2>&1
 	update_metaphlan >> /dev/null 2>&1
+	update_cge pointfinder_db >> /dev/null 2>&1
+	update_cge disinfinder_db >> /dev/null 2>&1
+	update_cge mlst_db >> /dev/null 2>&1
+	update_cge plasmidfinder_db >> /dev/null 2>&1
+	update_cge resfinder_db >> /dev/null 2>&1
+	update_cge spifinder_db >> /dev/null 2>&1
+	update_cge virulencefinder_db >> /dev/null 2>&1
 elif [ ${db_name} == "kraken2" ]; then
 	update_kraken2 "$kraken_type" >> /dev/null 2>&1
 elif [ ${db_name} == "pangolin" ]; then
@@ -189,4 +211,18 @@ elif [ ${db_name} == "kmerfinder" ]; then
         update_kmerfinder >> /dev/null 2>&1 
 elif [ ${db_name} == "metaphlan" ]; then
         update_metaphlan >> /dev/null 2>&1 
+elif [ ${db_name} == "pointfinder" ]; then
+        update_cge pointfinder_db >> /dev/null 2>&1
+elif [ ${db_name} == "disinfinder" ]; then
+        update_cge disinfinder_db >> /dev/null 2>&1
+elif [ ${db_name} == "mlstfinder" ]; then
+        update_cge mlst_db >> /dev/null 2>&1
+elif [ ${db_name} == "plasmidfinder" ]; then
+        update_cge plasmidfinder_db >> /dev/null 2>&1
+elif [ ${db_name} == "resfinder" ]; then
+        update_cge resfinder_db >> /dev/null 2>&1
+elif [ ${db_name} == "spifinder" ]; then
+        update_cge spifinder_db >> /dev/null 2>&1
+elif [ ${db_name} == "virulencefinder" ]; then
+        update_cge virulencefinder_db >> /dev/null 2>&1
 fi
