@@ -133,6 +133,21 @@ update_amrfinder() {
 
 }
 
+# Kmerfinder
+## There is no update mechanism so we remove all the files 
+update_kmerfinder() {
+if [ -d "/home/external_databases/kmerfinder" ]; then
+        rm -rf /home/external_databases/kmerfinder/*
+else
+	mkdir /home/external_databases/kmerfinder/
+fi
+cd /tmp
+git clone https://bitbucket.org/genomicepidemiology/kmerfinder_db.git
+cd kmerfinder_db/
+bash INSTALL.sh /home/external_databases/kmerfinder/ bacteria
+
+}
+
 #############
 # Main code *
 #############
@@ -147,6 +162,7 @@ if [ ${db_name} == "all" ];then
         update_freyja >> /dev/null 2>&1
         update_nextclade >> /dev/null 2>&1
 	update_amrfinder >> /dev/null 2>&1
+	update_kmerfinder >> /dev/null 2>&1
 elif [ ${db_name} == "kraken2" ]; then
 	update_kraken2 "$kraken_type" >> /dev/null 2>&1
 elif [ ${db_name} == "pangolin" ]; then
@@ -157,4 +173,7 @@ elif [ ${db_name} == "nextclade" ]; then
 	update_nextclade >> /dev/null 2>&1
 elif [ ${db_name} == "amrfinder_plus" ]; then
 	update_amrfinder >> /dev/null 2>&1
+elif [ ${db_name} == "kmerfinder" ]; then
+        update_kmerfinder >> /dev/null 2>&1 
+
 fi
