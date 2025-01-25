@@ -20,10 +20,10 @@ results_dir="./results"
 
 # docker images required to execute this pipeline
 ## Existing images, for testing purpose can be change, but for production invariable
-main_image="nf_viral_main:1.2"
-manta_image="nf_viral_manta:1.1"
+main_image="pzh_pipeline_viral_main:latest"
+manta_image="pzh_pipeline_viral_manta:latest"
 medaka_image="ontresearch/medaka:sha447c70a639b8bcf17dc49b51e74dfcde6474837b-amd64"
-alphafold_image="alphafold:1.1"
+alphafold_image="alphafold2:latest"
 
 # Parmaters related to resources available to the pipeline (max PER sample) if N samples are analyzed the pipeline will use at most N times more resuorces
 # For testing purpose can be change, but for production invariable
