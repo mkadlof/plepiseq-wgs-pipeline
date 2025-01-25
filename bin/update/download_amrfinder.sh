@@ -3,6 +3,12 @@
 # download the files from an ftp server
 # and index the database
 
+# updating mechanism 
+# on the ftp server there is a version.txt file with date
+
+# This path is HARDCODED
+cd /home/external_databases/amrfinder_plus
+
 if [ -e version.txt ]; then
 	# Download the data only if new version is availalbe
 	OLD_VERSION=`cat version.txt`
@@ -11,7 +17,7 @@ else
 	OLD_VERSION="1990-01-01"
 fi
 
-if [ ${OLD_VERSION} !=  ${NEW_VERSION} ]; then
+if [ "${OLD_VERSION}" !=  "${NEW_VERSION}" ]; then
 	echo "New version: ${NEW_VERSION} detected"
 
 	curl -u anonymous:anonymous ftp://ftp.ncbi.nlm.nih.gov/pathogen/Antimicrobial_resistance/AMRFinderPlus/database/latest/ | while read -r line; do
@@ -20,7 +26,6 @@ if [ ${OLD_VERSION} !=  ${NEW_VERSION} ]; then
     	rm ${FILE_NAME}*
     	# Download each file
     	curl -u anonymous:anonymous ftp://ftp.ncbi.nlm.nih.gov/pathogen/Antimicrobial_resistance/AMRFinderPlus/database/latest/$FILE_NAME -O
-    	#curl -u $FTP_USER:$FTP_PASS ftp://$FTP_SERVER/$REMOTE_DIR/$FILE_NAME -O
     
     	# check if file is in fasta format and whether it contains nucl or ptotein sequence
     	HEADER=`head -1 ${FILE_NAME} | grep ">" | wc -l`

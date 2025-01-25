@@ -521,7 +521,7 @@ RUN if [ -n "${CERT_FILE}" ]; then \
 
 COPY --from=builder-nextclade /opt/nextclade /opt/nextclade
 RUN apt update && \
-    apt install -y --no-install-recommends git wget curl vim aria2 && \
+    apt install -y build-essential zlib1g-dev git wget curl vim aria2 && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -540,9 +540,11 @@ ENV PATH="/blast/bin/:$PATH"
 # install missing python packages
 RUN pip install requests Bio 
 
+# install kma 
+RUN cd /home; git clone https://bitbucket.org/genomicepidemiology/kma.git; cd kma ; make; cd /home
+
 # create /home/update diectory within a contained to store all the scripts
 WORKDIR /home/update
-ADD bin/update/update.sh /home/update/update.sh
-ADD bin/update/kraken_updater.py /home/update/kraken_updater.py
+ADD bin/update/ /home/update/
 WORKDIR /home
 ENTRYPOINT ["/home/update/update.sh"]
