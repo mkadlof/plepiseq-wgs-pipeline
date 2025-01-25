@@ -123,13 +123,24 @@ update_freyja() {
 
 
 # AMRfinder_plus
-# Database has an update mechanism
+## Database has an update mechanism
 update_amrfinder() {
 	if [ ! -d "/home/external_databases/amrfinder_plus" ]; then
 		 mkdir /home/external_databases/amrfinder_plus
 	fi
 	
 	/home/update/download_amrfinder.sh 
+
+}
+
+# Metaphlan
+## Database has an update mechanism and dedicated script
+update_metaphlan() {
+        if [ ! -d "/home/external_databases/metaphlan" ]; then
+                 mkdir /home/external_databases/metaphlan
+        fi
+
+        /home/update/download_metaphlan.sh
 
 }
 
@@ -163,6 +174,7 @@ if [ ${db_name} == "all" ];then
         update_nextclade >> /dev/null 2>&1
 	update_amrfinder >> /dev/null 2>&1
 	update_kmerfinder >> /dev/null 2>&1
+	update_metaphlan >> /dev/null 2>&1
 elif [ ${db_name} == "kraken2" ]; then
 	update_kraken2 "$kraken_type" >> /dev/null 2>&1
 elif [ ${db_name} == "pangolin" ]; then
@@ -175,5 +187,6 @@ elif [ ${db_name} == "amrfinder_plus" ]; then
 	update_amrfinder >> /dev/null 2>&1
 elif [ ${db_name} == "kmerfinder" ]; then
         update_kmerfinder >> /dev/null 2>&1 
-
+elif [ ${db_name} == "metaphlan" ]; then
+        update_metaphlan >> /dev/null 2>&1 
 fi

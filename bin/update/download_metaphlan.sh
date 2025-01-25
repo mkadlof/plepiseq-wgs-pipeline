@@ -3,6 +3,9 @@
 # Skrypt sciaga aktualna baze z serwera http://cmprod1.cibio.unitn.it/biobakery4/metaphlan_databases/
 # Uwaga baza MetaPhlana jest duza > 60Gb 
 
+# This path is HARDCODED
+cd /home/external_databases/metaphlan
+
 if [ -e mpa_latest ]; then
 	OLD_PREFIX=`cat mpa_latest`
 	rm mpa_latest
