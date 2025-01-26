@@ -174,6 +174,19 @@ update_cge() {
 	python3 INSTALL.py /home/kma/kma_index non_interactive
 }
 
+#VFDB
+## No update
+### For now the python script has HARDCODED usage of 96 CPUs !!!
+update_vfdb() {
+        if [ -d "/home/external_databases/vfdb" ]; then
+                rm -rf /home/external_databases/vfdb/*
+        else
+                mkdir /home/external_databases/vfdb/
+        fi
+        cd /home/external_databases/vfdb
+        python3 /home/update/download_vfdb.py
+}
+
 #############
 # Main code *
 #############
@@ -197,6 +210,7 @@ if [ ${db_name} == "all" ];then
 	update_cge resfinder_db >> /dev/null 2>&1
 	update_cge spifinder_db >> /dev/null 2>&1
 	update_cge virulencefinder_db >> /dev/null 2>&1
+	update_vfdb >> /dev/null 2>&1
 elif [ ${db_name} == "kraken2" ]; then
 	update_kraken2 "$kraken_type" >> /dev/null 2>&1
 elif [ ${db_name} == "pangolin" ]; then
@@ -225,4 +239,6 @@ elif [ ${db_name} == "spifinder" ]; then
         update_cge spifinder_db >> /dev/null 2>&1
 elif [ ${db_name} == "virulencefinder" ]; then
         update_cge virulencefinder_db >> /dev/null 2>&1
+elif [ ${db_name} == "vfdb" ]; then
+	update_vfdb  >> /dev/null 2>&1 
 fi
