@@ -197,7 +197,7 @@ update_mlst_campylo() {
 	local spec=${2}
 	local db=${3}
 	if [ -d ${directory} ]; then
-		rm ${directory}/*
+		rm -f ${directory}/*
 	else
 		mkdir -p ${directory}
 	fi
@@ -210,9 +210,7 @@ update_mlst() {
 	local genus=${1}
 	# Salmonella Escherichia Campylobacter
 	if [ ${genus} == "Campylobacter" ]; then
-		if [ -d "/home/external_databases/mlst/Campylobacter" ]; then
-			rm -rf /home/external_databases/mlst/Campylobacter/*
-		else
+		if [ ! -d "/home/external_databases/mlst/Campylobacter" ]; then
 			mkdir -p /home/external_databases/mlst/Campylobacter
 		fi
 		#each species has its own seprate MLST
@@ -240,7 +238,7 @@ update_mlst() {
 		update_mlst_campylo "/home/external_databases/mlst/Campylobacter/jejuni" "${SPEC}" "MLST"
 	elif [ ${genus} == "Salmonella" ]; then
 		if [ -d "/home/external_databases/mlst/Salmonella" ]; then
-                        rm -rf /home/external_databases/mlst/Salmonella/*
+                        rm -f /home/external_databases/mlst/Salmonella/*
                 else
                         mkdir -p /home/external_databases/mlst/Salmonella
                 fi
@@ -248,7 +246,7 @@ update_mlst() {
 		python3 /home/update/download_mlst_salmonella.py
 	elif [ ${genus} == "Escherichia" ]; then
 		if [ -d "/home/external_databases/mlst/Escherichia" ]; then
-                        rm -rf /home/external_databases/mlst/Escherichia/*
+                        rm -f /home/external_databases/mlst/Escherichia/*
                 else
                         mkdir -p /home/external_databases/mlst/Escherichia
                 fi
@@ -256,7 +254,7 @@ update_mlst() {
                 python3 /home/update/download_mlst_escherichia.py
 	elif [ ${genus} == "all" ]; then
                 if [ -d "/home/external_databases/mlst/Salmonella" ]; then
-                        rm -rf /home/external_databases/mlst/Salmonella/*
+                        rm -f /home/external_databases/mlst/Salmonella/*
                 else
                         mkdir -p /home/external_databases/mlst/Salmonella
                 fi
@@ -264,16 +262,14 @@ update_mlst() {
                 python3 /home/update/download_mlst_salmonella.py
 
 		if [ -d "/home/external_databases/mlst/Escherichia" ]; then
-                        rm -rf /home/external_databases/mlst/Escherichia/*
+                        rm -f /home/external_databases/mlst/Escherichia/*
                 else
                         mkdir -p /home/external_databases/mlst/Escherichia
                 fi
                 cd /home/external_databases/mlst/Escherichia
                 python3 /home/update/download_mlst_escherichia.py
 
-		if [ -d "/home/external_databases/mlst/Campylobacter" ]; then
-                        rm -rf /home/external_databases/mlst/Campylobacter/*
-                else
+		if [ ! -d "/home/external_databases/mlst/Campylobacter" ]; then
                         mkdir -p /home/external_databases/mlst/Campylobacter
                 fi
                 #each species has its own seprate MLST
@@ -312,7 +308,7 @@ update_cgmlst() {
 
 	if [ ${genus} == "Campylobacter" ]; then
 		if [ -d "/home/external_databases/cgmlst/Campylobacter/jejuni" ]; then
-                        rm -rf /home/external_databases/cgmlst/Campylobacter/jejuni/*
+                        rm -f /home/external_databases/cgmlst/Campylobacter/jejuni/*
                 else
                         mkdir -p /home/external_databases/cgmlst/Campylobacter/jejuni/
                 fi
@@ -320,7 +316,7 @@ update_cgmlst() {
 		python3 /home/update/download_cgmlst_pubmlst.py
 	elif [ ${genus} == "Salmonella" ]; then
                 if [ -d "/home/external_databases/cgmlst/Salmonella" ]; then
-                        rm -rf /home/external_databases/cgmlst/Salmonella/*
+                        rm -f /home/external_databases/cgmlst/Salmonella/*
                 else
                         mkdir -p /home/external_databases/cgmlst/Salmonella
                 fi
@@ -331,7 +327,7 @@ update_cgmlst() {
 		python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}"
         elif [ ${genus} == "Escherichia" ]; then
                 if [ -d "/home/external_databases/cgmlst/Escherichia" ]; then
-                        rm -rf /home/external_databases/cgmlst/Escherichia/*
+                        rm -f /home/external_databases/cgmlst/Escherichia/*
                 else
                         mkdir -p /home/external_databases/cgmlst/Escherichia
                 fi
@@ -343,7 +339,7 @@ update_cgmlst() {
         elif [ ${genus} == "all" ]; then
 		echo "Downloading data for Escherichia"	
 		if [ -d "/home/external_databases/cgmlst/Escherichia" ]; then
-                        rm -rf /home/external_databases/cgmlst/Escherichia/*
+                        rm -f /home/external_databases/cgmlst/Escherichia/*
                 else
                         mkdir -p /home/external_databases/cgmlst/Escherichia
                 fi
@@ -355,7 +351,7 @@ update_cgmlst() {
 		
 		echo "Downloading data for Salmonella"
 		if [ -d "/home/external_databases/cgmlst/Salmonella" ]; then
-                        rm -rf /home/external_databases/cgmlst/Salmonella/*
+                        rm -f /home/external_databases/cgmlst/Salmonella/*
                 else
                         mkdir -p /home/external_databases/cgmlst/Salmonella
                 fi
@@ -367,7 +363,7 @@ update_cgmlst() {
 
 		echo "Downloading data for Campylobacter"
 		if [ -d "/home/external_databases/cgmlst/Campylobacter/jejuni" ]; then
-                        rm -rf /home/external_databases/cgmlst/Campylobacter/jejuni/*
+                        rm -f /home/external_databases/cgmlst/Campylobacter/jejuni/*
                 else
                         mkdir -p /home/external_databases/cgmlst/Campylobacter/jejuni/
                 fi
@@ -425,7 +421,7 @@ update_pubmlst() {
 		mkdir -p /home/external_databases/pubmlst/Campylobacter/jejuni
 	fi
 	cd /home/external_databases/pubmlst/Campylobacter/jejuni
-	python3 /home/update/download_cgmls_pubmlst.py
+	python3 /home/update/download_pubmlst_data.py
 
 }
 
