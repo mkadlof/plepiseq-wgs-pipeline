@@ -187,6 +187,121 @@ update_vfdb() {
         python3 /home/update/download_vfdb.py
 }
 
+# MLST data
+## No update mechanism
+## Data for different genuses originate from eirther pubmlst or enterobase
+
+update_mlst_campylo() {
+# subfunction for update_mlst
+	local directory=${1}
+	local spec=${2}
+	local db=${3}
+	if [ -d ${directory} ]; then
+		rm ${directory}/*
+	else
+		mkdir -p ${directory}
+	fi
+	
+	cd ${directory}
+	python3 /home/update/download_mlst_campylobacter.py "${spec}" "${db}"
+}
+
+update_mlst() {
+	local genus=${1}
+	# Salmonella Escherichia Campylobacter
+	if [ ${genus} == "Campylobacter" ]; then
+		if [ -d "/home/external_databases/mlst/Campylobacter" ]; then
+			rm -rf /home/external_databases/mlst/Campylobacter/*
+		else
+			mkdir -p /home/external_databases/mlst/Campylobacter
+		fi
+		#each species has its own seprate MLST
+		SPEC="pubmlst_campylobacter_nonjejuni_seqdef"
+		# fetus
+		update_mlst_campylo "/home/external_databases/mlst/Campylobacter/fetus" "${SPEC}" "C. fetus MLST"
+		# helveticus
+		update_mlst_campylo "/home/external_databases/mlst/Campylobacter/helveticus" "${SPEC}" "C. helveticus MLST"
+		# concisus
+		update_mlst_campylo "/home/external_databases/mlst/Campylobacter/concisus" "${SPEC}" "C. concisus/curvus MLST"
+		# hyointestinalis
+		update_mlst_campylo "/home/external_databases/mlst/Campylobacter/hyointestinalis" "${SPEC}" "C. hyointestinalis MLST"
+		# upsaliensis
+		update_mlst_campylo "/home/external_databases/mlst/Campylobacter/upsaliensis" "${SPEC}" "C. upsaliensis MLST"
+		# lari
+		update_mlst_campylo "/home/external_databases/mlst/Campylobacter/lari" "${SPEC}" "C. lari MLST"
+		# insulaenigrae
+		update_mlst_campylo "/home/external_databases/mlst/Campylobacter/insulaenigrae" "${SPEC}" "C. insulaenigrae MLST"
+		# lanienae
+		update_mlst_campylo "/home/external_databases/mlst/Campylobacter/lanienae" "${SPEC}" "C. lanienae MLST"
+		# sputorum
+		update_mlst_campylo "/home/external_databases/mlst/Campylobacter/sputorum" "${SPEC}" "C. sputorum MLST"
+		SPEC="pubmlst_campylobacter_seqdef"
+		# jejuni
+		update_mlst_campylo "/home/external_databases/mlst/Campylobacter/jejuni" "${SPEC}" "MLST"
+	elif [ ${genus} == "Salmonella" ]; then
+		if [ -d "/home/external_databases/mlst/Salmonella" ]; then
+                        rm -rf /home/external_databases/mlst/Salmonella/*
+                else
+                        mkdir -p /home/external_databases/mlst/Salmonella
+                fi
+		cd /home/external_databases/mlst/Salmonella
+		python3 /home/update/download_salmonella_mlst.py
+	elif [ ${genus} == "Escherichia" ]; then
+		if [ -d "/home/external_databases/mlst/Escherichia" ]; then
+                        rm -rf /home/external_databases/mlst/Escherichia/*
+                else
+                        mkdir -p /home/external_databases/mlst/Escherichia
+                fi
+                cd /home/external_databases/mlst/Escherichia
+                python3 /home/update/download_escherichia_mlst.py
+	elif [ ${genus} == "all" ]; then
+                if [ -d "/home/external_databases/mlst/Salmonella" ]; then
+                        rm -rf /home/external_databases/mlst/Salmonella/*
+                else
+                        mkdir -p /home/external_databases/mlst/Salmonella
+                fi
+                cd /home/external_databases/mlst/Salmonella
+                python3 /home/update/download_salmonella_mlst.py
+
+		if [ -d "/home/external_databases/mlst/Escherichia" ]; then
+                        rm -rf /home/external_databases/mlst/Escherichia/*
+                else
+                        mkdir -p /home/external_databases/mlst/Escherichia
+                fi
+                cd /home/external_databases/mlst/Escherichia
+                python3 /home/update/download_escherichia_mlst.py
+
+		if [ -d "/home/external_databases/mlst/Campylobacter" ]; then
+                        rm -rf /home/external_databases/mlst/Campylobacter/*
+                else
+                        mkdir -p /home/external_databases/mlst/Campylobacter
+                fi
+                #each species has its own seprate MLST
+                SPEC="pubmlst_campylobacter_nonjejuni_seqdef"
+                # fetus
+                update_mlst_campylo "/home/external_databases/mlst/Campylobacter/fetus" "${SPEC}" "C. fetus MLST"
+                # helveticus
+                update_mlst_campylo "/home/external_databases/mlst/Campylobacter/helveticus" "${SPEC}" "C. helveticus MLST"
+                # concisus
+                update_mlst_campylo "/home/external_databases/mlst/Campylobacter/concisus" "${SPEC}" "C. concisus/curvus MLST"
+                # hyointestinalis
+                update_mlst_campylo "/home/external_databases/mlst/Campylobacter/hyointestinalis" "${SPEC}" "C. hyointestinalis MLST"
+                # upsaliensis
+                update_mlst_campylo "/home/external_databases/mlst/Campylobacter/upsaliensis" "${SPEC}" "C. upsaliensis MLST"
+                # lari
+                update_mlst_campylo "/home/external_databases/mlst/Campylobacter/lari" "${SPEC}" "C. lari MLST"
+                # insulaenigrae
+                update_mlst_campylo "/home/external_databases/mlst/Campylobacter/insulaenigrae" "${SPEC}" "C. insulaenigrae MLST"
+                # lanienae
+                update_mlst_campylo "/home/external_databases/mlst/Campylobacter/lanienae" "${SPEC}" "C. lanienae MLST"
+                # sputorum
+                update_mlst_campylo "/home/external_databases/mlst/Campylobacter/sputorum" "${SPEC}" "C. sputorum MLST"
+                SPEC="pubmlst_campylobacter_seqdef"
+                # jejuni
+                update_mlst_campylo "/home/external_databases/mlst/Campylobacter/jejuni" "${SPEC}" "MLST"
+	fi
+
+}
 #############
 # Main code *
 #############
@@ -211,6 +326,7 @@ if [ ${db_name} == "all" ];then
 	update_cge spifinder_db >> /dev/null 2>&1
 	update_cge virulencefinder_db >> /dev/null 2>&1
 	update_vfdb >> /dev/null 2>&1
+	update_mlst ${genus}  >> /dev/null 2>&1
 elif [ ${db_name} == "kraken2" ]; then
 	update_kraken2 "$kraken_type" >> /dev/null 2>&1
 elif [ ${db_name} == "pangolin" ]; then
@@ -241,4 +357,6 @@ elif [ ${db_name} == "virulencefinder" ]; then
         update_cge virulencefinder_db >> /dev/null 2>&1
 elif [ ${db_name} == "vfdb" ]; then
 	update_vfdb  >> /dev/null 2>&1 
+elif [ ${db_name} == "mlst" ]; then
+        update_mlst ${genus} >> /dev/null 2>&1 
 fi

@@ -9,10 +9,11 @@ import time
 from Bio import SeqIO
 import numpy as np
 
+
 API_TOKEN=open('/home/update/enterobase_api.txt').readlines()[0].rstrip()
 DATABASE="senterica" # ecoli, yersinia, mcatarrhalis API 2.0
-scheme_name="cgMLST_v2" # according to API 2.0 
-scheme_dir="Salmonella.cgMLSTv2" # take a look inside https://enterobase.warwick.ac.uk//schemes/ for names of specific schemes
+scheme_name="MLST_Achtman" # according to API 2.0 
+scheme_dir="Salmonella.Achtman7GeneMLST" # take a look inside https://enterobase.warwick.ac.uk//schemes/ for names of specific schemes
 
 
 def __create_request(request_str):
@@ -59,6 +60,12 @@ if os.path.exists('slownik_wszystkich_alleli.npy'):
 address = f'https://enterobase.warwick.ac.uk/api/v2.0/{DATABASE}/{scheme_name}/loci?limit=10000&scheme={scheme_name}&offset=0'
 slownik_alleli = {}
 try:
+    os.remove('all_allels.fasta')
+    os.remove("MLST_Achtman_ref.fasta")
+except FileNotFoundError:
+    pass
+
+try:
     response = urlopen(__create_request(address))
     data = json.load(response)
     for locus in data['loci']:
@@ -83,8 +90,20 @@ try:
     with open(f"profiles.list.gz", 'wb') as output_profile:
         output_profile.write(response_profile.read())
     execute_command(f"gunzip profiles.list.gz")
+
+    # merge all fasta into one file
+    execute_command(f"cat *fasta > all_allels.fasta")
+    
+    # download reference fasta
+    # File is created when preparing MLSTdb 
+    #fasta_link = f"https://enterobase.warwick.ac.uk//schemes/{scheme_dir}/MLST_Achtman_ref.fasta"
+    #fasta_response = urlopen(fasta_link)
+    #with open(f"MLST_Achtman_ref.fasta", 'wb') as output_profile:
+    #    output_profile.write(fasta_response.read())
+
 except HTTPError as Response_error:
     print(f"{Response_error.code} {Response_error.reason}. URL: {Response_error.geturl()}\\n Reason: {Response_error.read()}")
+
 
 np.save('slownik_wszystkich_alleli.npy', slownik_alleli, allow_pickle=True, fix_imports=True)
 if not os.path.exists('local'):
@@ -92,4 +111,3 @@ if not os.path.exists('local'):
 
 if not os.path.exists('local/profiles_local.list'):
     execute_command(f"head -1 profiles.list >> local/profiles_local.list")
-
