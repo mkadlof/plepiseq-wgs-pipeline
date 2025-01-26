@@ -164,9 +164,7 @@ bash INSTALL.sh /home/external_databases/kmerfinder/ bacteria
 update_cge() {
 	local db=$1
 	if [ -d "/home/external_databases/${db}" ]; then
-		rm -rf /home/external_databases/${db}/*
-	else
-		mkdir /home/external_databases/${db}/
+		rm -rf /home/external_databases/${db}/
 	fi
 	cd /home/external_databases
 	git clone https://bitbucket.org/genomicepidemiology/${db}/
