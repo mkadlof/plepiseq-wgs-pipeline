@@ -8,11 +8,12 @@ import subprocess
 import time
 from Bio import SeqIO
 import numpy as np
+import sys
 
 API_TOKEN=open('/home/update/enterobase_api.txt').readlines()[0].rstrip()
-DATABASE="senterica" # ecoli, yersinia, mcatarrhalis API 2.0
-scheme_name="cgMLST_v2" # according to API 2.0 
-scheme_dir="Salmonella.cgMLSTv2" # take a look inside https://enterobase.warwick.ac.uk//schemes/ for names of specific schemes
+DATABASE=sys.argv[1] # ecoli, yersinia, mcatarrhalis API 2.0
+scheme_name=sys.argv[2] # according to API 2.0 
+scheme_dir=sys.argv[3] # take a look inside https://enterobase.warwick.ac.uk//schemes/ for names of specific schemes
 
 
 def __create_request(request_str):
