@@ -17,12 +17,12 @@ database="all" #  name of the database to update, alternatively "all" can can be
 kraken_type="standard" #  name of the kraken2 subdatabase, only valid if performning "kraken2" update
 genus="all" #  name of the genus for which database is updated, only valid if mlsr or cgmlst databases are updated
 output=""  #  top-level directory with databases, each database will be a subdirectory of it, hierarchy of databases in that directory is PREDEFINED
-image_name="pzh_pipeline_viral_updated:latest" #  name of the image within which all updates are performed
+image_name="pzh_pipeline_viral_updater:latest" #  name of the image within which all updates are performed
 
 
 # Function to display help message
 function show_help() {
-    echo "Usage: $0 --database <string> --output <path> --image_name <string> [--kraken-type <type> --genus <Salmonella|Escherichia|Campylobacter>]"
+    echo "Usage: $0 --database <string> --output <path> --image_name <string> [--kraken-type <type> --genus <Salmonella|Escherichia|Campylobacter|all>]"
     echo
     echo "Options:"
     echo "  --database      Name of the database to download or update"
@@ -168,6 +168,7 @@ fi
 echo "Database: $database"
 echo "Output Path: $output"
 echo "Docker image: ${image_name}"
+echo "Downloading all databases may take several hours"
 [[ "$database" == "kraken2" ]] && echo "Kraken Type: ${kraken_type}"
 [[ "$database" == "mlst"  ||  "$database" == "cgmlst" || "$database" == "enterobase" ]] && echo "Genus: ${genus}"
 

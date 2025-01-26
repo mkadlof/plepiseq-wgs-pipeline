@@ -215,7 +215,7 @@ RUN curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/${NEXT
     chmod +x nextclade
 RUN mkdir -p /SARS-CoV2/
 ENV PATH="/opt/nextclade/bin:$PATH"
-RUN nextclade dataset get --name='sars-cov-2' --output-dir=/SARS-CoV2/nextclade/
+# RUN nextclade dataset get --name='sars-cov-2' --output-dir=/SARS-CoV2/nextclade/
 
 # builder-fastqc
 FROM builder-base AS builder-fastqc
