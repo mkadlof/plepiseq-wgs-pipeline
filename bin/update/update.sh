@@ -245,7 +245,7 @@ update_mlst() {
                         mkdir -p /home/external_databases/mlst/Salmonella
                 fi
 		cd /home/external_databases/mlst/Salmonella
-		python3 /home/update/download_salmonella_mlst.py
+		python3 /home/update/download_mlst_salmonella.py
 	elif [ ${genus} == "Escherichia" ]; then
 		if [ -d "/home/external_databases/mlst/Escherichia" ]; then
                         rm -rf /home/external_databases/mlst/Escherichia/*
@@ -253,7 +253,7 @@ update_mlst() {
                         mkdir -p /home/external_databases/mlst/Escherichia
                 fi
                 cd /home/external_databases/mlst/Escherichia
-                python3 /home/update/download_escherichia_mlst.py
+                python3 /home/update/download_mlst_escherichia.py
 	elif [ ${genus} == "all" ]; then
                 if [ -d "/home/external_databases/mlst/Salmonella" ]; then
                         rm -rf /home/external_databases/mlst/Salmonella/*
@@ -261,7 +261,7 @@ update_mlst() {
                         mkdir -p /home/external_databases/mlst/Salmonella
                 fi
                 cd /home/external_databases/mlst/Salmonella
-                python3 /home/update/download_salmonella_mlst.py
+                python3 /home/update/download_mlst_salmonella.py
 
 		if [ -d "/home/external_databases/mlst/Escherichia" ]; then
                         rm -rf /home/external_databases/mlst/Escherichia/*
@@ -269,7 +269,7 @@ update_mlst() {
                         mkdir -p /home/external_databases/mlst/Escherichia
                 fi
                 cd /home/external_databases/mlst/Escherichia
-                python3 /home/update/download_escherichia_mlst.py
+                python3 /home/update/download_mlst_escherichia.py
 
 		if [ -d "/home/external_databases/mlst/Campylobacter" ]; then
                         rm -rf /home/external_databases/mlst/Campylobacter/*
@@ -317,7 +317,7 @@ update_cgmlst() {
                         mkdir -p /home/external_databases/cgmlst/Campylobacter/jejuni/
                 fi
 		cd /home/external_databases/cgmlst/Campylobacter/jejuni/
-		python3 /home/update/download_cgmls_pubmlst.py
+		python3 /home/update/download_cgmlst_pubmlst.py
 	elif [ ${genus} == "Salmonella" ]; then
                 if [ -d "/home/external_databases/cgmlst/Salmonella" ]; then
                         rm -rf /home/external_databases/cgmlst/Salmonella/*
@@ -328,7 +328,7 @@ update_cgmlst() {
 		DATABASE="senterica"
 		scheme_name="cgMLST_v2"
 		scheme_dir="Salmonella.cgMLSTv2"
-		python3 /home/update/download_cgmls_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}"
+		python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}"
         elif [ ${genus} == "Escherichia" ]; then
                 if [ -d "/home/external_databases/cgmlst/Escherichia" ]; then
                         rm -rf /home/external_databases/cgmlst/Escherichia/*
@@ -339,7 +339,7 @@ update_cgmlst() {
 		DATABASE="ecoli"
 		scheme_name="cgMLST" 
 		scheme_dir="Escherichia.cgMLSTv1"
-		python3 /home/update/download_cgmls_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}"
+		python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}"
         elif [ ${genus} == "all" ]; then
 		echo "Downloading data for Escherichia"	
 		if [ -d "/home/external_databases/cgmlst/Escherichia" ]; then
@@ -351,7 +351,7 @@ update_cgmlst() {
                 DATABASE="ecoli"
                 scheme_name="cgMLST"
                 scheme_dir="Escherichia.cgMLSTv1"
-                python3 /home/update/download_cgmls_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}"
+                python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}"
 		
 		echo "Downloading data for Salmonella"
 		if [ -d "/home/external_databases/cgmlst/Salmonella" ]; then
@@ -363,7 +363,7 @@ update_cgmlst() {
                 DATABASE="senterica"
                 scheme_name="cgMLST_v2"
                 scheme_dir="Salmonella.cgMLSTv2"
-                python3 /home/update/download_cgmls_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}"
+                python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}"
 
 		echo "Downloading data for Campylobacter"
 		if [ -d "/home/external_databases/cgmlst/Campylobacter/jejuni" ]; then
@@ -372,9 +372,63 @@ update_cgmlst() {
                         mkdir -p /home/external_databases/cgmlst/Campylobacter/jejuni/
                 fi
                 cd /home/external_databases/cgmlst/Campylobacter/jejuni/
-                python3 /home/update/download_cgmls_pubmlst.py
+                python3 /home/update/download_cgmlst_pubmlst.py
 	fi
 }
+
+# Downloading data regarding known strains from enterobase
+## There is an update mechanism so we do not remove files
+update_enterobase() {
+	local genus=${1}
+
+	if [ ${genus} == "Escherichia" ]; then
+                if [ ! -d "/home/external_databases/enterobase/Escherichia" ]; then
+			mkdir -p /home/external_databases/enterobase/Escherichia
+                fi
+		cd /home/external_databases/enterobase/Escherichia
+		DATABASE="ecoli" 
+		CGNAME="cgMLST" 
+		python3 /home/update/download_enterobase_data.py "${DATABASE}" "${CGNAME}"
+        elif [ ${genus} == "Salmonella" ]; then
+		if [ ! -d "/home/external_databases/enterobase/Salmonella" ]; then
+                        mkdir -p /home/external_databases/enterobase/Salmonella
+                fi
+                cd /home/external_databases/enterobase/Salmonella
+		DATABASE="senterica" 
+		CGNAME="cgMLST_v2" 
+		python3 /home/update/download_enterobase_data.py "${DATABASE}" "${CGNAME}"
+	elif [[ ${genus} == "all" || ${genus} == "Campylobacter" ]]; then
+		if [ ! -d "/home/external_databases/enterobase/Escherichia" ]; then
+                        mkdir -p /home/external_databases/enterobase/Escherichia
+                fi
+                cd /home/external_databases/enterobase/Escherichia
+                DATABASE="ecoli"
+                CGNAME="cgMLST"
+                python3 /home/update/download_enterobase_data.py "${DATABASE}" "${CGNAME}"
+
+		if [ ! -d "/home/external_databases/enterobase/Salmonella" ]; then
+                        mkdir -p /home/external_databases/enterobase/Salmonella
+                fi
+                cd /home/external_databases/enterobase/Salmonella
+                DATABASE="senterica"
+                CGNAME="cgMLST_v2"
+                python3 /home/update/download_enterobase_data.py "${DATABASE}" "${CGNAME}"
+	fi
+
+}
+
+# Downloading data to get analogue of pHierCC for C.jejuni and for historical analysis
+## There is an update mechanism
+
+update_pubmlst() {
+	if [ ! -d "/home/external_databases/pubmlst/Campylobacter/jejuni" ]; then
+		mkdir -p /home/external_databases/pubmlst/Campylobacter/jejuni
+	fi
+	cd /home/external_databases/pubmlst/Campylobacter/jejuni
+	python3 /home/update/download_cgmls_pubmlst.py
+
+}
+
 
 #############
 # Main code *
@@ -402,6 +456,8 @@ if [ ${db_name} == "all" ];then
 	update_vfdb >> /dev/null 2>&1
 	update_mlst ${genus}  >> /dev/null 2>&1
 	update_cgmlst ${genus}  >> /dev/null 2>&1
+	update_pubmlst >> /dev/null 2>&1
+	update_enterobase ${genus} >> /dev/null 2>&1
 elif [ ${db_name} == "kraken2" ]; then
 	update_kraken2 "$kraken_type" >> /dev/null 2>&1
 elif [ ${db_name} == "pangolin" ]; then
@@ -435,5 +491,9 @@ elif [ ${db_name} == "vfdb" ]; then
 elif [ ${db_name} == "mlst" ]; then
         update_mlst ${genus} >> /dev/null 2>&1 
 elif [ ${db_name} == "cgmlst" ]; then
-	update_cgmlst ${genus} 
+	update_cgmlst ${genus} >> /dev/null 2>&1
+elif [ ${db_name} == "pubmlst" ]; then
+	update_pubmlst >> /dev/null 2>&1
+elif [ ${db_name} == "enterobase" ]; then
+	update_enterobase ${genus}
 fi
