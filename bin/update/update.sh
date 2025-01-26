@@ -430,6 +430,83 @@ update_pubmlst() {
 }
 
 
+# Data from custom clustering of cgMLST data
+## No update mechanism so we donload again files
+update_phiercc() {
+	local genus=${1}
+	if [ ${genus} == "Campylobacter" ]; then
+		if [ -d "/home/external_databases/phiercc_local/Campylobacter/jejuni" ]; then
+			rm -rf /home/external_databases/phiercc_local/Campylobacter/jejuni/*
+		else
+			mkdir -p /home/external_databases/phiercc_local/Campylobacter/jejuni/
+		fi
+		cd /home/external_databases/phiercc_local/Campylobacter/jejuni/	
+		wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Campylobacter/jejuni/profile_complete_linkage.HierCC.gz
+		wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Campylobacter/jejuni/profile_complete_linkage.HierCC.index
+		wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Campylobacter/jejuni/profile_single_linkage.HierCC.gz
+		wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Campylobacter/jejuni/profile_single_linkage.HierCC.index
+
+	elif [ ${genus} == "Escherichia" ]; then
+		if [ -d "/home/external_databases/phiercc_local/Escherichia" ]; then
+                        rm -rf /home/external_databases/phiercc_local/Escherichia/*
+		else
+			mkdir -p /home/external_databases/phiercc_local/Escherichia
+		fi
+		cd /home/external_databases/phiercc_local/Escherichia
+		wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Escherichia/profile_complete_linkage.HierCC.gz
+		wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Escherichia/profile_complete_linkage.HierCC.index
+		wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Escherichia/profile_single_linkage.HierCC.gz
+		wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Escherichia/profile_single_linkage.HierCC.index
+
+	elif [ ${genus} == "Salmonella" ]; then
+		if [ -d "/home/external_databases/phiercc_local/Salmonella" ]; then
+			rm -rf /home/external_databases/phiercc_local/Salmonella/*
+		else
+			mkdir -p /home/external_databases/phiercc_local/Salmonella
+		fi
+		cd /home/external_databases/phiercc_local/Salmonella
+		wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Salmonella/profile_complete_linkage.HierCC.gz
+		wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Salmonella/profile_complete_linkage.HierCC.index
+		wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Salmonella/profile_single_linkage.HierCC.gz
+		wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Salmonella/profile_single_linkage.HierCC.index
+	elif [ ${genus} == "all" ]; then
+		if [ -d "/home/external_databases/phiercc_local/Salmonella" ]; then
+                        rm -rf /home/external_databases/phiercc_local/Salmonella/*
+                else
+                        mkdir -p /home/external_databases/phiercc_local/Salmonella
+                fi
+
+		cd /home/external_databases/phiercc_local/Salmonella
+                wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Salmonella/profile_complete_linkage.HierCC.gz
+                wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Salmonella/profile_complete_linkage.HierCC.index
+                wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Salmonella/profile_single_linkage.HierCC.gz
+                wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Salmonella/profile_single_linkage.HierCC.index
+
+		if [ -d "/home/external_databases/phiercc_local/Escherichia" ]; then
+                        rm -rf /home/external_databases/phiercc_local/Escherichia/*
+                else
+                        mkdir -p /home/external_databases/phiercc_local/Escherichia
+                fi
+                cd /home/external_databases/phiercc_local/Escherichia
+                wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Escherichia/profile_complete_linkage.HierCC.gz
+                wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Escherichia/profile_complete_linkage.HierCC.index
+                wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Escherichia/profile_single_linkage.HierCC.gz
+                wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Escherichia/profile_single_linkage.HierCC.index
+
+		if [ -d "/home/external_databases/phiercc_local/Campylobacter/jejuni" ]; then
+			rm -rf /home/external_databases/phiercc_local/Campylobacter/jejuni/*
+		else
+			mkdir -p /home/external_databases/phiercc_local/Campylobacter/jejuni/
+		fi
+		cd /home/external_databases/phiercc_local/Campylobacter/jejuni/
+		wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Campylobacter/jejuni/profile_complete_linkage.HierCC.gz
+                wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Campylobacter/jejuni/profile_complete_linkage.HierCC.index
+                wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Campylobacter/jejuni/profile_single_linkage.HierCC.gz
+                wget https://github.com/mkadlof/pzh_pipeline_viral/blob/develop/data/bacteria/Campylobacter/jejuni/profile_single_linkage.HierCC.index
+
+	fi
+}
+
 #############
 # Main code *
 #############
@@ -458,6 +535,7 @@ if [ ${db_name} == "all" ];then
 	update_cgmlst ${genus}  >> /dev/null 2>&1
 	update_pubmlst >> /dev/null 2>&1
 	update_enterobase ${genus} >> /dev/null 2>&1
+	update_phiercc ${genus} >> /dev/null 2>&1
 elif [ ${db_name} == "kraken2" ]; then
 	update_kraken2 "$kraken_type" >> /dev/null 2>&1
 elif [ ${db_name} == "pangolin" ]; then
@@ -496,4 +574,6 @@ elif [ ${db_name} == "pubmlst" ]; then
 	update_pubmlst >> /dev/null 2>&1
 elif [ ${db_name} == "enterobase" ]; then
 	update_enterobase ${genus}
+elif [ ${db_name} == "phiercc" ]; then
+	update_phiercc ${genus} >> /dev/null 2>&1
 fi
