@@ -19,28 +19,7 @@ process alphafold {
 
     script:
     """
-    # This function can be used to model multimers with alphafold
-    # It requires two additiona databases pdb_seqres_database_path and uniprot_database_path
-    run_alpfafold_mer() {
-      python /app/alphafold/run_alphafold.py  --fasta_paths="\$1" \
-                                               --data_dir="/db/" \
-                                               --db_preset="reduced_dbs" \
-                                               --output_dir="\$2" \
-                                               --uniref90_database_path="/db/uniref50/uniref50.fasta" \
-                                               --mgnify_database_path="/db/mgnify/mgy_clusters_2022_05.fa" \
-                                               --small_bfd_database_path="/db/small_bfd/bfd-first_non_consensus_sequences.fasta" \
-                                               --template_mmcif_dir="/db/pdb_mmcif/mmcif_files/" \
-                                               --max_template_date="2024-05-14" \
-                                               --obsolete_pdbs_path="/db/pdb_mmcif/obsolete.dat" \
-                                               --use_gpu_relax=true \
-                                               --models_to_relax=best \
-                                               --model_preset=multimer \
-                                               --pdb_seqres_database_path="/db/pdb_seqres/pdb_seqres.txt" \
-                                               --uniprot_database_path=/db/uniprot/uniprot.fasta
-
-    }   
-
-    # Original alphafold function
+    # Original alphafold function, which we dont use
     run_alpfafold() {
       # Zmienna \$1 to plik z fasta
       # Zmienna \$2 to sciezka do katalogu z wynikami
@@ -72,9 +51,9 @@ process alphafold {
                                                --data_dir="/db/" \
                                                --db_preset="reduced_dbs" \
                                                --output_dir="\$2" \
-                                               --uniref90_database_path="/db/uniref_viruses/uniref50_viral.fasta" \
-                                               --mgnify_database_path="/db/uniref_viruses/uniref50_viral.fasta" \
-                                               --small_bfd_database_path="/db/uniref_viruses/uniref50_viral.fasta" \
+                                               --uniref90_database_path="/db/uniref50/uniref50_viral.fasta" \
+                                               --mgnify_database_path="/db/uniref50/uniref50_viral.fasta" \
+                                               --small_bfd_database_path="/db/uniref50/uniref50_viral.fasta" \
                                                --template_mmcif_dir="/db/pdb_mmcif/mmcif_files/" \
                                                --max_template_date="2024-05-14" \
                                                --obsolete_pdbs_path="/db/pdb_mmcif/obsolete.dat" \

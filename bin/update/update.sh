@@ -501,6 +501,20 @@ update_phiercc() {
 	fi
 }
 
+# Uniref50 and Uniref50 for Virual sequences used by alphafold
+## No update mechanism
+update_uniref50() {
+	if [ -d "/home/external_databases/alphafold/uniref_viruses" ]; then
+		rm -rf /home/external_databases/alphafold/uniref50/*
+	else
+		mkdir -p /home/external_databases/alphafold/uniref50/
+	fi
+	
+	wget -O /home/external_databases/alphafold/uniref50/uniref50_viral.fasta "https://rest.uniprot.org/uniref/stream?format=fasta&query=%28%28taxonomy_id%3A10239%29+AND+%28identity%3A0.5%29%29"
+	wget -O /home/external_databases/alphafold/uniref50/uniref50.fasta.gz https://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz
+	gunzip /home/external_databases/alphafold/uniref50/uniref50.fasta.gz
+
+}
 #############
 # Main code *
 #############
@@ -550,6 +564,8 @@ if [ ${db_name} == "all" ];then
 	update_enterobase ${genus} >> /dev/null 2>&1
 	echo "Downloading hiercc data at: $(date +"%H:%M %d-%m-%Y")"
 	update_phiercc ${genus} >> /dev/null 2>&1
+	echo "Downloading uniref50 for viral sequences at: $(date +"%H:%M %d-%m-%Y")"
+	update_uniref50 >> /dev/null 2>&1
 elif [ ${db_name} == "kraken2" ]; then
 	update_kraken2 "$kraken_type" >> /dev/null 2>&1
 elif [ ${db_name} == "pangolin" ]; then
@@ -590,4 +606,6 @@ elif [ ${db_name} == "enterobase" ]; then
 	update_enterobase ${genus}
 elif [ ${db_name} == "phiercc" ]; then
 	update_phiercc ${genus} >> /dev/null 2>&1
+elif [ ${db_name} == "uniref50" ]; then
+	update_uniref50 >> /dev/null 2>&1
 fi
