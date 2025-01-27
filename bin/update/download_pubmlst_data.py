@@ -65,7 +65,7 @@ for profile in profiles['profiles']:
         level_str = f'd{level_number}'            
         hiercc_dict[str(profile_data['cgST'])][level_str] = level_data['group']['group']
     i+=1
-    if i % 100 == 0:
+    if i % 1000 == 0:
         print(f'Analyzing profile {profile_data["cgST"]}')
 
     #if i == 150:

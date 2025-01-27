@@ -169,7 +169,7 @@ update_cge() {
 	cd /home/external_databases
 	git clone https://bitbucket.org/genomicepidemiology/${db}/
 	cd ${db}
-	python3 INSTALL.py /home/kma/kma_index non_interactive
+	python3 INSTALL.py /home/kma/kma_index non_interactive >> log 2>&1
 }
 
 #VFDB
@@ -182,7 +182,7 @@ update_vfdb() {
                 mkdir /home/external_databases/vfdb/
         fi
         cd /home/external_databases/vfdb
-        python3 /home/update/download_vfdb.py
+        python3 /home/update/download_vfdb.py  >> log 2>&1
 }
 
 # MLST data
@@ -201,7 +201,7 @@ update_mlst_campylo() {
 	fi
 	
 	cd ${directory}
-	python3 /home/update/download_mlst_campylobacter.py "${spec}" "${db}"
+	python3 /home/update/download_mlst_campylobacter.py "${spec}" "${db}" >> log 2>&1
 }
 
 update_mlst() {
@@ -241,7 +241,7 @@ update_mlst() {
                         mkdir -p /home/external_databases/mlst/Salmonella
                 fi
 		cd /home/external_databases/mlst/Salmonella
-		python3 /home/update/download_mlst_salmonella.py
+		python3 /home/update/download_mlst_salmonella.py >> log 2>&1
 	elif [ ${genus} == "Escherichia" ]; then
 		if [ -d "/home/external_databases/mlst/Escherichia" ]; then
                         rm -f /home/external_databases/mlst/Escherichia/*
@@ -249,7 +249,7 @@ update_mlst() {
                         mkdir -p /home/external_databases/mlst/Escherichia
                 fi
                 cd /home/external_databases/mlst/Escherichia
-                python3 /home/update/download_mlst_escherichia.py
+                python3 /home/update/download_mlst_escherichia.py >> log 2>&1
 	elif [ ${genus} == "all" ]; then
                 if [ -d "/home/external_databases/mlst/Salmonella" ]; then
                         rm -f /home/external_databases/mlst/Salmonella/*
@@ -257,7 +257,7 @@ update_mlst() {
                         mkdir -p /home/external_databases/mlst/Salmonella
                 fi
                 cd /home/external_databases/mlst/Salmonella
-                python3 /home/update/download_mlst_salmonella.py
+                python3 /home/update/download_mlst_salmonella.py >> log 2>&1
 
 		if [ -d "/home/external_databases/mlst/Escherichia" ]; then
                         rm -f /home/external_databases/mlst/Escherichia/*
@@ -265,7 +265,7 @@ update_mlst() {
                         mkdir -p /home/external_databases/mlst/Escherichia
                 fi
                 cd /home/external_databases/mlst/Escherichia
-                python3 /home/update/download_mlst_escherichia.py
+                python3 /home/update/download_mlst_escherichia.py >> log 2>&1
 
 		if [ ! -d "/home/external_databases/mlst/Campylobacter" ]; then
                         mkdir -p /home/external_databases/mlst/Campylobacter
@@ -311,7 +311,7 @@ update_cgmlst() {
                         mkdir -p /home/external_databases/cgmlst/Campylobacter/jejuni/
                 fi
 		cd /home/external_databases/cgmlst/Campylobacter/jejuni/
-		python3 /home/update/download_cgmlst_pubmlst.py
+		python3 /home/update/download_cgmlst_pubmlst.py >> log 2>&1
 	elif [ ${genus} == "Salmonella" ]; then
                 if [ -d "/home/external_databases/cgmlst/Salmonella" ]; then
                         rm -f /home/external_databases/cgmlst/Salmonella/*
@@ -322,7 +322,7 @@ update_cgmlst() {
 		DATABASE="senterica"
 		scheme_name="cgMLST_v2"
 		scheme_dir="Salmonella.cgMLSTv2"
-		python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}"
+		python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}" >> log 2>&1
         elif [ ${genus} == "Escherichia" ]; then
                 if [ -d "/home/external_databases/cgmlst/Escherichia" ]; then
                         rm -f /home/external_databases/cgmlst/Escherichia/*
@@ -333,7 +333,7 @@ update_cgmlst() {
 		DATABASE="ecoli"
 		scheme_name="cgMLST" 
 		scheme_dir="Escherichia.cgMLSTv1"
-		python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}"
+		python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}" >> log 2>&1
         elif [ ${genus} == "all" ]; then
 		echo "Downloading data for Escherichia"	
 		if [ -d "/home/external_databases/cgmlst/Escherichia" ]; then
@@ -345,7 +345,7 @@ update_cgmlst() {
                 DATABASE="ecoli"
                 scheme_name="cgMLST"
                 scheme_dir="Escherichia.cgMLSTv1"
-                python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}"
+                python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}" >> log 2>&1
 		
 		echo "Downloading data for Salmonella"
 		if [ -d "/home/external_databases/cgmlst/Salmonella" ]; then
@@ -357,7 +357,7 @@ update_cgmlst() {
                 DATABASE="senterica"
                 scheme_name="cgMLST_v2"
                 scheme_dir="Salmonella.cgMLSTv2"
-                python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}"
+                python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}" >> log 2>&1
 
 		echo "Downloading data for Campylobacter"
 		if [ -d "/home/external_databases/cgmlst/Campylobacter/jejuni" ]; then
@@ -366,7 +366,7 @@ update_cgmlst() {
                         mkdir -p /home/external_databases/cgmlst/Campylobacter/jejuni/
                 fi
                 cd /home/external_databases/cgmlst/Campylobacter/jejuni/
-                python3 /home/update/download_cgmlst_pubmlst.py
+                python3 /home/update/download_cgmlst_pubmlst.py >> log 2>&1
 	fi
 }
 
@@ -382,7 +382,7 @@ update_enterobase() {
 		cd /home/external_databases/enterobase/Escherichia
 		DATABASE="ecoli" 
 		CGNAME="cgMLST" 
-		python3 /home/update/download_enterobase_data.py "${DATABASE}" "${CGNAME}"
+		python3 /home/update/download_enterobase_data.py "${DATABASE}" "${CGNAME}" >> log 2>&1
         elif [ ${genus} == "Salmonella" ]; then
 		if [ ! -d "/home/external_databases/enterobase/Salmonella" ]; then
                         mkdir -p /home/external_databases/enterobase/Salmonella
@@ -390,7 +390,7 @@ update_enterobase() {
                 cd /home/external_databases/enterobase/Salmonella
 		DATABASE="senterica" 
 		CGNAME="cgMLST_v2" 
-		python3 /home/update/download_enterobase_data.py "${DATABASE}" "${CGNAME}"
+		python3 /home/update/download_enterobase_data.py "${DATABASE}" "${CGNAME}" >> log 2>&1
 	elif [[ ${genus} == "all" || ${genus} == "Campylobacter" ]]; then
 		if [ ! -d "/home/external_databases/enterobase/Escherichia" ]; then
                         mkdir -p /home/external_databases/enterobase/Escherichia
@@ -398,7 +398,7 @@ update_enterobase() {
                 cd /home/external_databases/enterobase/Escherichia
                 DATABASE="ecoli"
                 CGNAME="cgMLST"
-                python3 /home/update/download_enterobase_data.py "${DATABASE}" "${CGNAME}"
+                python3 /home/update/download_enterobase_data.py "${DATABASE}" "${CGNAME}" >> log 2>&1
 
 		if [ ! -d "/home/external_databases/enterobase/Salmonella" ]; then
                         mkdir -p /home/external_databases/enterobase/Salmonella
@@ -406,7 +406,7 @@ update_enterobase() {
                 cd /home/external_databases/enterobase/Salmonella
                 DATABASE="senterica"
                 CGNAME="cgMLST_v2"
-                python3 /home/update/download_enterobase_data.py "${DATABASE}" "${CGNAME}"
+                python3 /home/update/download_enterobase_data.py "${DATABASE}" "${CGNAME}" >> log 2>&1
 	fi
 
 }
@@ -419,7 +419,7 @@ update_pubmlst() {
 		mkdir -p /home/external_databases/pubmlst/Campylobacter/jejuni
 	fi
 	cd /home/external_databases/pubmlst/Campylobacter/jejuni
-	python3 /home/update/download_pubmlst_data.py
+	python3 /home/update/download_pubmlst_data.py >> log 2>&1
 
 }
 
@@ -510,25 +510,45 @@ db_name=$1
 kraken_type=$2
 genus=$3
 if [ ${db_name} == "all" ];then
-        update_kraken2 "$kraken_type" >> /dev/null 2>&1
+        echo "Downloading data for kraken2 at: $(date +"%H:%M %d-%m-%Y")"
+	update_kraken2 "$kraken_type" >> /dev/null 2>&1
+	echo "Downloading data for pangolin at: $(date +"%H:%M %d-%m-%Y")"
         update_pangolin >> /dev/null 2>&1
+	echo "Downloading data for freyja at: $(date +"%H:%M %d-%m-%Y")"
         update_freyja >> /dev/null 2>&1
+	echo "Downloading data for nextclade at: $(date +"%H:%M %d-%m-%Y")"
         update_nextclade >> /dev/null 2>&1
+	echo "Downloading data for AMRfinder_plus at: $(date +"%H:%M %d-%m-%Y")"
 	update_amrfinder >> /dev/null 2>&1
+	echo "Downloading data for kmerfinder at: $(date +"%H:%M %d-%m-%Y")"
 	update_kmerfinder >> /dev/null 2>&1
+	echo "Downloading data for metaphlan at: $(date +"%H:%M %d-%m-%Y")"
 	update_metaphlan >> /dev/null 2>&1
+	echo "Downloading data for pointfinder at: $(date +"%H:%M %d-%m-%Y")"
 	update_cge pointfinder_db >> /dev/null 2>&1
+	echo "Downloading data for disinfinder at: $(date +"%H:%M %d-%m-%Y")"
 	update_cge disinfinder_db >> /dev/null 2>&1
+	echo "Downloading data for mlst_db at: $(date +"%H:%M %d-%m-%Y")"
 	update_cge mlst_db >> /dev/null 2>&1
+	echo "Downloading data for plasmidfinder at: $(date +"%H:%M %d-%m-%Y")"
 	update_cge plasmidfinder_db >> /dev/null 2>&1
+	echo "Downloading data for resfinder at: $(date +"%H:%M %d-%m-%Y")"
 	update_cge resfinder_db >> /dev/null 2>&1
+	echo "Downloading data for spifinder at: $(date +"%H:%M %d-%m-%Y")"
 	update_cge spifinder_db >> /dev/null 2>&1
+	echo "Downloading data for virulencefinder at: $(date +"%H:%M %d-%m-%Y")"
 	update_cge virulencefinder_db >> /dev/null 2>&1
+	echo "Downloading data for vfcb at: $(date +"%H:%M %d-%m-%Y")"
 	update_vfdb >> /dev/null 2>&1
+	echo "Downloading MLST data at: $(date +"%H:%M %d-%m-%Y")"
 	update_mlst ${genus}  >> /dev/null 2>&1
+	echo "Downloading cgMLST data at: $(date +"%H:%M %d-%m-%Y")"
 	update_cgmlst ${genus}  >> /dev/null 2>&1
+	echo "Downloading pubmlst data at: $(date +"%H:%M %d-%m-%Y")"
 	update_pubmlst >> /dev/null 2>&1
+	echo "Downloading enterobase data at: $(date +"%H:%M %d-%m-%Y")"
 	update_enterobase ${genus} >> /dev/null 2>&1
+	echo "Downloading hiercc data at: $(date +"%H:%M %d-%m-%Y")"
 	update_phiercc ${genus} >> /dev/null 2>&1
 elif [ ${db_name} == "kraken2" ]; then
 	update_kraken2 "$kraken_type" >> /dev/null 2>&1
