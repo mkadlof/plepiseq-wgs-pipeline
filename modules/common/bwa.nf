@@ -38,7 +38,7 @@ process bwa {
         echo -e "{\\"status\\":\\"\${QC_exit}\\", \
                   \\"error_message\\": \\"\${ERR_MSG}\\"}" >> mapping.json
       else
-        bwa mem -t ${params.threads} -T 30 ${ref_genome_with_index[final_index]} ${reads[0]} ${reads[1]} | \
+        bwa mem -t ${params.threads} -T ${params.min_mapq} ${ref_genome_with_index[final_index]} ${reads[0]} ${reads[1]} | \
         samtools view -@ ${params.threads} -Sb -f 3 -F 2048 - | \
         samtools sort -@ ${params.threads} -o mapped_reads.bam -
         samtools index mapped_reads.bam

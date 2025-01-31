@@ -289,8 +289,7 @@ include { coinfection_genome_masking_illumina } from "${modules}/sarscov2/coinfe
 include { coinfection_genome_masking_nanopore } from "${modules}/sarscov2/coinfection_ivar.nf"
 
 include { coinfection_varscan as coinfection_varscan_sars } from "${modules}/sarscov2/coinfection_varscan.nf"
-include { coinfection_analysis_illumina as coinfection_analysis_illumina_sars } from "${modules}/sarscov2/coinfection_analysis.nf"
-include { coinfection_analysis_nanopore as coinfection_analysis_nanopore_sars } from "${modules}/sarscov2/coinfection_analysis.nf"
+include { coinfection_analysis as coinfection_analysis_sars } from "${modules}/sarscov2/coinfection_analysis.nf"
 // // // RSV
 // // // // Common
 include { freyja_rsv } from "${modules}/rsv/freyja_rsv.nf"
@@ -357,7 +356,7 @@ workflow{
         coinfection_ivar_sars_out = coinfection_genome_masking_illumina(bwa_out.to_coinfection)
         freyja_out =  freyja_sars(coinfection_ivar_sars_out.to_freyja)
         coinfection_varscan_out = coinfection_varscan_sars(coinfection_ivar_sars_out.to_custom_analysis)
-        coinfection_analysis_sars_out = coinfection_analysis_illumina_sars(coinfection_varscan_out)
+        coinfection_analysis_sars_out = coinfection_analysis_sars(coinfection_varscan_out)
         coinfection_json = freyja_out.json.join(coinfection_analysis_sars_out.json)
     } else if (params.species  == 'Influenza') {
         freyja_out =  freyja_infl(detect_subtype_out.to_freyja)
@@ -431,7 +430,7 @@ workflow{
             coinfection_genome_masking_out = coinfection_genome_masking_nanopore(minimap2_1_out.bam_and_genome_and_primers)
             freyja_out =  freyja_sars(coinfection_genome_masking_out.to_freyja)
             coinfection_varscan_out = coinfection_varscan_sars(coinfection_genome_masking_out.to_custom_analysis)
-            coinfection_analysis_sars_out = coinfection_analysis_nanopore_sars(coinfection_varscan_out)
+            coinfection_analysis_sars_out = coinfection_analysis_sars(coinfection_varscan_out)
             coinfection_json = freyja_out.json.join(coinfection_analysis_sars_out.json)
         } else if (params.species  == 'Influenza') {
             freyja_out =  freyja_infl(detect_subtype_out.to_freyja)

@@ -200,8 +200,8 @@ for isolate in all_isolates['isolates']:
     except:
         print(f'Error when downloadind data for isolate {isolate}')
     
-    if isolate_info['provenance']['id'] % 100 == 0:
-        print(f'Analyzing isolate {isolate_info["provenance"]["id"]}')
+    #if isolate_info['provenance']['id'] % 100 == 0:
+    #    print(f'Analyzing isolate {isolate_info["provenance"]["id"]}')
 
     #if isolate_info['provenance']['id'] == 150:
     #    break
