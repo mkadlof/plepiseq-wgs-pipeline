@@ -76,6 +76,12 @@ def download_from_s3(bucket_name: str, file_name: str, local_path: str):
         real_path = os.path.dirname(local_path)
         os.system(f"tar -zxf {local_path} -C {real_path}")
         print(f"File downloaded successfully.")
+        # Save md5 sum of tar.gz file to a file and remove the tar.gz file
+        suma_md5=calculate_md5(f"{local_path}")
+        with open("current_md5.txt", "w") as f:
+            f.write(f"{suma_md5}\n")
+        os.system(f"rm {local_path}")
+
     except Exception as e:
         print(f"Error while downloading file: {e}")
         exit(1)
@@ -116,11 +122,7 @@ def check_updates(bucket_name: str, file_name: str, local_path: str):
                 novel_md5 = line[0]
                 break
 
-    for plik in os.listdir(local_path):
-        if "tar.gz" in plik:
-            old_md5 = calculate_md5(f'{local_path}/{plik}')
-            break
-
+    old_md5=open("current_md5.txt").readlines()[0].rstrip()
     # Remove EVERYTHING from directory where kraken2 database will be saved
     os.system(f'rm {local_path}/{typ}.md5')
     # compare md5 sums of files return True if md5 sums are different and one need to perform update

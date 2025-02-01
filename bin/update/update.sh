@@ -515,6 +515,10 @@ update_uniref50() {
 	gunzip /home/external_databases/alphafold/uniref50/uniref50.fasta.gz
 
 }
+
+update_uniprot() {
+https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz
+}
 #############
 # Main code *
 #############

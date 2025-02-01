@@ -506,7 +506,7 @@ COPY data/common/snpeff /opt/snpEff
 WORKDIR /home
 
 # updater container
-FROM python:3.11.8-slim-bookworm AS updater
+FROM python:3.8-slim-bookworm AS updater
 ARG CERT_FILE
 
 LABEL maintainer="Michal Lazniewski <mlazniewski@pzh.gov.pl>"
