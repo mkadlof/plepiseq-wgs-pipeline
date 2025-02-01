@@ -285,8 +285,8 @@ include { alphafold } from "${modules}/common/alphafold.nf"
 // // // SARS-CoV-2
 // // // // Common
 include { freyja_sars } from "${modules}/sarscov2/freyja.nf"
-include { coinfection_genome_masking_illumina } from "${modules}/sarscov2/coinfection_ivar.nf"
-include { coinfection_genome_masking_nanopore } from "${modules}/sarscov2/coinfection_ivar.nf"
+include { coinfection_genome_masking_illumina } from "${modules}/sarscov2/coinfection_genome_masking.nf"
+include { coinfection_genome_masking_nanopore } from "${modules}/sarscov2/coinfection_genome_masking.nf"
 
 include { coinfection_varscan as coinfection_varscan_sars } from "${modules}/sarscov2/coinfection_varscan.nf"
 include { coinfection_analysis as coinfection_analysis_sars } from "${modules}/sarscov2/coinfection_analysis.nf"
