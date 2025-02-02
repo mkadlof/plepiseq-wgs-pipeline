@@ -23,8 +23,8 @@ process coinfection_genome_masking_illumina {
     else
       ivar trim -i ${mapped_reads} \
                 -b ${primers} \
-                -m ${params.length} \
-                -q ${params.quality_initial} \
+                -m 80 \
+                -q 30 \
                 -e \
                 -p for_contamination
 
@@ -32,7 +32,7 @@ process coinfection_genome_masking_illumina {
       samtools index for_contamination_sorted.bam
       samtools mpileup --max-depth 10000 \
                    --fasta-ref  ${ref_genome_with_index[final_index]} \
-                   --min-BQ ${params.quality_snp} \
+                   --min-BQ 30 \
                    for_contamination_sorted.bam >> for_contamination.mpileup
     fi
     """
@@ -62,7 +62,7 @@ process coinfection_genome_masking_nanopore {
       touch for_contamination.mpileup
     else
       
-    samtools ampliconclip --filter-len 1 --both-ends -b ${primers} --tolerance ${params.bed_offset} -o for_contaminations_presorted.bam -O bam ${bam}
+    samtools ampliconclip --filter-len 1 --both-ends -b ${primers} --tolerance 10 -o for_contaminations_presorted.bam -O bam ${bam}
     samtools sort  -@ ${task.cpus} -o for_contamination_sorted.bam for_contaminations_presorted.bam
     samtools index for_contamination_sorted.bam
     samtools mpileup  -B -f ${ref_genome_with_index[final_index]} -Q 1 for_contamination_sorted.bam >> for_contamination.mpileup

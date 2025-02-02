@@ -2,6 +2,7 @@ import requests
 import subprocess
 import sys
 import time
+import os
 
 def execute_command(polecenie: str):
     """
