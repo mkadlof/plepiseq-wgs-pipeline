@@ -37,10 +37,19 @@ for scheme in scheme_table.json()['schemes']:
 # extract profile
 print(f'Downloading profiles')
 profile = requests.get(scheme_link + '/profiles_csv')
-with open('profiles.list','w') as f:
+with open('profiles.list', 'w') as f:
+    i = 0
     for line in profile.iter_lines():
-        line = "\t".join(list(map(lambda x: x.decode('utf-8', errors='replace'), line.split())))
+        # Last column is header has an additional entry "LINcode" that should not be included
+        if i == 0:
+            line = list(map(lambda x: x.decode('utf-8', errors='replace'), line.split()))[:-1]
+        else:
+            line = list(map(lambda x: x.decode('utf-8', errors='replace'), line.split()))
+        # replace "N" with 0, like in enterobase 
+        line = ["0" if x == "N" else x for x in line]
+        line = "\t".join(line)
         f.write(line + "\n")
+        i = 1
 
 #download and index fasta for each locus
 
