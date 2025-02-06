@@ -7,13 +7,14 @@ import os
 import subprocess
 import time
 from Bio import SeqIO
-import numpy as np
 import sys
+from multiprocessing import Pool
 
-API_TOKEN=open('/home/update/enterobase_api.txt').readlines()[0].rstrip()
-DATABASE=sys.argv[1] # ecoli, yersinia, mcatarrhalis API 2.0
-scheme_name=sys.argv[2] # according to API 2.0 
-scheme_dir=sys.argv[3] # take a look inside https://enterobase.warwick.ac.uk//schemes/ for names of specific schemes
+API_TOKEN = open('enterobase_api.txt').readlines()[0].rstrip()
+DATABASE = sys.argv[1]  # ecoli, yersinia, mcatarrhalis API 2.0
+scheme_name = sys.argv[2]  # according to API 2.0
+scheme_dir = sys.argv[3]  # take a look inside https://enterobase.warwick.ac.uk//schemes/ for names of specific schemes
+cpus = int(sys.argv[4])  # Liczba CPUs uzywanych prz tworzeniu bazy dla blasta
 
 
 def __create_request(request_str):
@@ -21,6 +22,7 @@ def __create_request(request_str):
     headers = {"Authorization": "Basic {0}".format(base64string.decode())}
     request = urllib.request.Request(request_str, None, headers)
     return request
+
 
 def execute_command(polecenie: str):
     """
@@ -30,6 +32,14 @@ def execute_command(polecenie: str):
     """
     wykonanie = subprocess.Popen(polecenie, shell=True, stdout=subprocess.PIPE)
     wykonanie.communicate()
+    return True
+
+
+def run_blast(lista_loci, start, end):
+    # index the file
+    for locus in lista_loci[start:end]:
+        execute_command(f"gunzip {locus}.fasta.gz")
+        execute_command(f"makeblastdb -in {locus}.fasta -dbtype nucl")
     return True
 
 def get_feader(file_path):
@@ -45,26 +55,17 @@ def get_feader(file_path):
 
     return dictionary
 
-if os.path.exists('slownik_wszystkich_alleli.npy'):
-    # slownik_wszystkich_alleli.npy trzyma informacje jakie allele i ich wersje sa w bazie struktura to {"NAZWA_ALLELU':[1,2,3,4,5]; "NAZWA_KOLEJNEGO_ALLELU: [1,2] }
-    # idea jest taka jesli jest ten slownik tzn ze pobrano juz chociaz raz allele wiec sa tez pliki fasta
-    # potem poprzez interfase w /api/v2.0/{database}/{scheme}/alleles 
-    # pobieramy liste wszystkich alleli , sprawdzamy jakei sa wersje allelu i nowe sekwencje appendujemy do plikow fasta ( a potem indeksujemy makeblastdb, po usunieciu starcych indeksow)
-    pass
-    # Update  jest jednak bez sensu bo sprowadza sie do odpytania bazy sprawdzenia co jest nowe i sciagniecia sekwencji
-    # Kiedy mozna po prostu sciagnac sekwencje 
-
-    # Nie ma slownika_alleli pobieramy wszystkie allele "na pale" z odpowiedniej bazy z https://enterobase.warwick.ac.uk/schemes/
-    # tworzymy tez slownik i zapisujemy jako slownik_wszystkich_alleli.npy
-
 address = f'https://enterobase.warwick.ac.uk/api/v2.0/{DATABASE}/{scheme_name}/loci?limit=10000&scheme={scheme_name}&offset=0'
-slownik_alleli = {}
+lista_alleli = []
 try:
     response = urlopen(__create_request(address))
     data = json.load(response)
+    i = 0
     for locus in data['loci']:
-        time.sleep(2)
-        print(locus['locus'])
+        if i % 100 == 0:
+            time.sleep(1)
+        #print(locus['locus'])
+        i += 1
         locus_link = f"https://enterobase.warwick.ac.uk//schemes/{scheme_dir}/{locus['locus']}.fasta.gz"
             # download the locus_address
         response_locus = urlopen(locus_link)
@@ -73,10 +74,10 @@ try:
         
         with open(f"{locus['locus']}.fasta.gz", 'wb') as output_profile:
             output_profile.write(response_locus.read())
-        # index the file
-        execute_command(f"gunzip {locus['locus']}.fasta.gz")
-        execute_command(f"makeblastdb -in {locus['locus']}.fasta -dbtype nucl")
-        slownik_alleli.update(get_feader(f"{locus['locus']}.fasta"))
+        lista_alleli.append(f"{locus['locus']}")
+        #slownik_alleli.update(get_feader(f"{locus['locus']}.fasta"))
+
+
     # donload the profile file
     _ = [os.remove(x) for x in os.listdir('.') if 'profiles.list' in x]
     profile_link = f"https://enterobase.warwick.ac.uk//schemes/{scheme_dir}/profiles.list.gz"
@@ -87,7 +88,29 @@ try:
 except HTTPError as Response_error:
     print(f"{Response_error.code} {Response_error.reason}. URL: {Response_error.geturl()}\\n Reason: {Response_error.read()}")
 
-np.save('slownik_wszystkich_alleli.npy', slownik_alleli, allow_pickle=True, fix_imports=True)
+#np.save('slownik_wszystkich_alleli.npy', slownik_alleli, allow_pickle=True, fix_imports=True)
+
+# indeks data with makeblastdb, more cpus the better
+pool = Pool(cpus)
+
+lista_indeksow = []
+start = 0
+step = len(lista_alleli) // cpus
+
+for i in range(cpus):
+    end = start + step
+    if i == (cpus - 1) or end > len(lista_alleli):
+        # if this is a last cpu or yoy passed the last element of a list, use as end len(lista_alleli)
+        end = len(lista_alleli)
+    lista_indeksow.append([start, end])
+    start = end
+
+jobs = []
+for start, end in lista_indeksow:
+    jobs.append(pool.apply_async(run_blast, (lista_alleli, start, end)))
+pool.close()
+pool.join()
+
 if not os.path.exists('local'):
     os.mkdir('local')
 
