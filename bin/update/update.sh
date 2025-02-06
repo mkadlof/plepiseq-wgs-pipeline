@@ -434,11 +434,12 @@ update_phiercc() {
 		else
 			mkdir -p /home/external_databases/phiercc_local/Campylobacter/jejuni/
 		fi
-		cd /home/external_databases/phiercc_local/Campylobacter/jejuni/	
-		wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Campylobacter/jejuni/profile_complete_linkage.HierCC.gz
-		wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Campylobacter/jejuni/profile_complete_linkage.HierCC.index
-		wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Campylobacter/jejuni/profile_single_linkage.HierCC.gz
-		wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Campylobacter/jejuni/profile_single_linkage.HierCC.index
+		cd /home/external_databases/phiercc_local/Campylobacter/jejuni/
+                
+		wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Campylobacter/profile_complete_linkage.HierCC.gz
+		wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Campylobacter/profile_complete_linkage.HierCC.index
+		wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Campylobacter/profile_single_linkage.HierCC.gz
+		wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Campylobacter/profile_single_linkage.HierCC.index
 
 	elif [ ${genus} == "Escherichia" ]; then
 		if [ -d "/home/external_databases/phiercc_local/Escherichia" ]; then
@@ -447,10 +448,11 @@ update_phiercc() {
 			mkdir -p /home/external_databases/phiercc_local/Escherichia
 		fi
 		cd /home/external_databases/phiercc_local/Escherichia
-		wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Escherichia/profile_complete_linkage.HierCC.gz
-		wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Escherichia/profile_complete_linkage.HierCC.index
-		wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Escherichia/profile_single_linkage.HierCC.gz
-		wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Escherichia/profile_single_linkage.HierCC.index
+		
+		wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Escherichia/profile_single_linkage.HierCC.gz
+		wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Escherichia/profile_single_linkage.HierCC.index
+		wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Escherichia/profile_complete_linkage.HierCC.gz
+		wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Escherichia/profile_complete_linkage.HierCC.index
 
 	elif [ ${genus} == "Salmonella" ]; then
 		if [ -d "/home/external_databases/phiercc_local/Salmonella" ]; then
@@ -459,10 +461,12 @@ update_phiercc() {
 			mkdir -p /home/external_databases/phiercc_local/Salmonella
 		fi
 		cd /home/external_databases/phiercc_local/Salmonella
-		wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Salmonella/profile_complete_linkage.HierCC.gz
-		wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Salmonella/profile_complete_linkage.HierCC.index
-		wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Salmonella/profile_single_linkage.HierCC.gz
-		wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Salmonella/profile_single_linkage.HierCC.index
+		wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Salmonella/profile_complete_linkage.HierCC.gz
+		wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Salmonella/profile_complete_linkage.HierCC.index
+		wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Salmonella/profile_single_linkage.HierCC.gz
+		wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Salmonella/profile_single_linkage.HierCC.index
+	
+	
 	elif [ ${genus} == "all" ]; then
 		if [ -d "/home/external_databases/phiercc_local/Salmonella" ]; then
                         rm -rf /home/external_databases/phiercc_local/Salmonella/*
@@ -471,10 +475,11 @@ update_phiercc() {
                 fi
 
 		cd /home/external_databases/phiercc_local/Salmonella
-                wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Salmonella/profile_complete_linkage.HierCC.gz
-                wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Salmonella/profile_complete_linkage.HierCC.index
-                wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Salmonella/profile_single_linkage.HierCC.gz
-                wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Salmonella/profile_single_linkage.HierCC.index
+
+		wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Salmonella/profile_complete_linkage.HierCC.gz
+                wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Salmonella/profile_complete_linkage.HierCC.index
+                wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Salmonella/profile_single_linkage.HierCC.gz
+                wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Salmonella/profile_single_linkage.HierCC.index
 
 		if [ -d "/home/external_databases/phiercc_local/Escherichia" ]; then
                         rm -rf /home/external_databases/phiercc_local/Escherichia/*
@@ -482,10 +487,11 @@ update_phiercc() {
                         mkdir -p /home/external_databases/phiercc_local/Escherichia
                 fi
                 cd /home/external_databases/phiercc_local/Escherichia
-                wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Escherichia/profile_complete_linkage.HierCC.gz
-                wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Escherichia/profile_complete_linkage.HierCC.index
-                wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Escherichia/profile_single_linkage.HierCC.gz
-                wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Escherichia/profile_single_linkage.HierCC.index
+
+		wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Escherichia/profile_single_linkage.HierCC.gz
+                wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Escherichia/profile_single_linkage.HierCC.index
+                wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Escherichia/profile_complete_linkage.HierCC.gz
+                wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Escherichia/profile_complete_linkage.HierCC.index
 
 		if [ -d "/home/external_databases/phiercc_local/Campylobacter/jejuni" ]; then
 			rm -rf /home/external_databases/phiercc_local/Campylobacter/jejuni/*
@@ -494,10 +500,10 @@ update_phiercc() {
 		fi
 		cd /home/external_databases/phiercc_local/Campylobacter/jejuni/
 
-		wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Campylobacter/jejuni/profile_complete_linkage.HierCC.gz
-                wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Campylobacter/jejuni/profile_complete_linkage.HierCC.index
-                wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Campylobacter/jejuni/profile_single_linkage.HierCC.gz
-                wget https://github.com/mkadlof/pzh_pipeline_viral/raw/refs/heads/develop/data/bacteria/Campylobacter/jejuni/profile_single_linkage.HierCC.index
+		wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Campylobacter/profile_complete_linkage.HierCC.gz
+                wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Campylobacter/profile_complete_linkage.HierCC.index
+                wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Campylobacter/profile_single_linkage.HierCC.gz
+                wget https://github.com/michallaz/phiercc_pzh_mod/raw/refs/heads/main/plepiseq_data/Campylobacter/profile_single_linkage.HierCC.index
 
 	fi
 }
