@@ -122,8 +122,11 @@ def check_updates(bucket_name: str, file_name: str, local_path: str):
             if "tar.gz" in line[-1]:
                 novel_md5 = line[0]
                 break
-
-    old_md5=open(f"{local_path}/current_md5.txt").readlines()[0].rstrip()
+    try:
+        old_md5=open(f"{local_path}/current_md5.txt").readlines()[0].rstrip()
+    except FileNotFoundError:
+        # No current_md5.txt file, force update 
+        return True
     # Remove EVERYTHING from directory where kraken2 database will be saved
     os.system(f'rm {local_path}/{typ}.md5')
     # compare md5 sums of files return True if md5 sums are different and one need to perform update
