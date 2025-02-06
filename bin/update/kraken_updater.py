@@ -77,8 +77,8 @@ def download_from_s3(bucket_name: str, file_name: str, local_path: str):
         os.system(f"tar -zxf {local_path} -C {real_path}")
         print(f"File downloaded successfully.")
         # Save md5 sum of tar.gz file to a file and remove the tar.gz file
-        suma_md5=calculate_md5(f"{local_path}")
-        with open("current_md5.txt", "w") as f:
+        suma_md5 = calculate_md5(f"{local_path}")
+        with open(f"{real_path}/current_md5.txt", "w") as f:
             f.write(f"{suma_md5}\n")
         os.system(f"rm {local_path}")
 
@@ -110,8 +110,9 @@ def check_updates(bucket_name: str, file_name: str, local_path: str):
     _ , typ, date = real_name.split('_')
     date = date.split('.')[0]
 
-    local_path = os.path.dirname(local_path)
+    # local_path = os.path.dirname(local_path)
     new_file_name = f"kraken/{typ}_{date}/{typ}.md5"
+    print(f"Downloading md5 {new_file_name} to {local_path}/{typ}.md5")
     s3.download_file(bucket_name, new_file_name, f'{local_path}/{typ}.md5')
 
     with open(f"{local_path}/{typ}.md5") as f:
@@ -122,7 +123,7 @@ def check_updates(bucket_name: str, file_name: str, local_path: str):
                 novel_md5 = line[0]
                 break
 
-    old_md5=open("current_md5.txt").readlines()[0].rstrip()
+    old_md5=open(f"{local_path}/current_md5.txt").readlines()[0].rstrip()
     # Remove EVERYTHING from directory where kraken2 database will be saved
     os.system(f'rm {local_path}/{typ}.md5')
     # compare md5 sums of files return True if md5 sums are different and one need to perform update
@@ -142,6 +143,10 @@ def main():
                         help="Database name (if unsure, use 'standard')")
     args = parser.parse_args()
 
+    if os.path.dirname(args.local_path) == "" or os.path.dirname(args.local_path) == "/":
+        print("Please provide full path as a first argument")
+        exit(1)
+
     # Bucket name on Amazon S3
     bucket_name = "genome-idx"
 
@@ -154,34 +159,34 @@ def main():
     # Get the list of available databases
     databases = list_available_databases(bucket_name, prefix)
     target_db = find_latest_database(databases, db_name_regexp)
+    if not target_db:
+        print("Database was not found.")
+        exit(1)
 
     if not os.path.exists(args.local_path):
         print(f" Provided directory {args.local_path} does not exists. Sorry you must create it yourself")
         exit(1)
 
 
-    if target_db:
+    # check if output directory contains two files current_md5.txt and database200mers.kmer_distrib
+    # if yes, mostl likely we are trying to do an update
+
+    if (not os.path.exists(f"{args.local_path}/current_md5.txt") and
+            not os.path.exists(f"{args.local_path}/database200mers.kmer_distrib")):
         local_path = os.path.join(args.local_path, target_db.split("/")[-1])
-        #  local_path is a full path to a file that will be downloaded from AWS (so .tar.gz)
-        # Check if this file already exists
-        if not os.path.exists(local_path):
+        download_from_s3(bucket_name, target_db, local_path)
+    else:
+        print(f'Directory you provided {args.local_path} is not empty. Checking if new version of database is available')
+        if check_updates(bucket_name, target_db, args.local_path):
+            print('New version of database f{target_db} found, downloading new data')
+            os.system(f'rm {args.local_path}/*')
+            #  perform regular download
+            local_path = os.path.join(args.local_path, target_db.split("/")[-1])
             download_from_s3(bucket_name, target_db, local_path)
         else:
-            print('Directory you provided is not empty. Checking if database can  be updated')
-            if check_updates(bucket_name, target_db, local_path):
-                print('New version of  database found, downloading new data')
-                #  usuwam wszystko z katalogu gdzie bedzie baza
-                real_local_path = os.path.dirname(local_path)
-                os.system(f'rm {real_local_path}/*')
-                #  perform regular download
-                download_from_s3(bucket_name, target_db, local_path)
-            else:
-                print(
-                    f"In direcotry: {local_path} latest version of database {target_db} is already present. Exiting")
-                exit(1)
-    else:
-        print("Database was not found.")
-        exit(1)
+            print(
+                f"In direcotry: {args.local_path} latest version of database {target_db} is already present. Exiting")
+            exit(1)
 
 
 if __name__ == "__main__":
