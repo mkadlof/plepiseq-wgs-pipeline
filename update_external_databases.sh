@@ -35,7 +35,7 @@ function show_help() {
     echo "  --image_name    Full name of the docker image (with tag) used for updates"
     echo "                  Nazwa obrazu docker uzywanego przez program do pobierania/aktualizacji baz"
     echo "Optional arguments:"
-    echo "  --cpus   Number of threads"
+    echo "  --cpus          Number of threads"
     echo "                  Liczba procesorow (domyslna wartosc: 1)"
     echo "  --kraken_type   Type of Kraken database (valid if database is set to kraken2). See pipelines documentations section 5.4.3) If not provided 'standard' database is downloaded"
     echo "                  Nazwa predefiniowanej bazy wykorzystywanej przez program kraken. W przypadku gdy nie podano tego argumentu pobierana jest baza 'standard' "
