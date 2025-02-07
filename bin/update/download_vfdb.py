@@ -88,7 +88,7 @@ def extract_info_from_header(naglowek, bis = 0):
 
 if __name__ == '__main__':
 
-    cpus = sys.argv[1]
+    cpus = int(sys.argv[1])
     if os.path.exists('VFDB_setB_nt.fa'):
         # found some previous data remove everything before we do main script
         _ = [shutil.rmtree(dir_path) for dir_path in os.listdir('.') if dir_path not in ['prep_VFDB.py', 'README'] and os.path.isdir(dir_path)]
