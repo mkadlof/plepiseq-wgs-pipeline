@@ -538,7 +538,8 @@ update_alphafold() {
 db_name=$1
 kraken_type=$2
 genus=$3
-cpus=$
+cpus=$4
+
 if [ ${db_name} == "all" ];then
         echo "Downloading data for kraken2 at: $(date +"%H:%M %d-%m-%Y")"
 	update_kraken2 "$kraken_type" >> /dev/null 2>&1
