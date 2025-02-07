@@ -56,7 +56,7 @@ def get_feader(file_path):
     return dictionary
 
 address = f'https://enterobase.warwick.ac.uk/api/v2.0/{DATABASE}/{scheme_name}/loci?limit=10000&scheme={scheme_name}&offset=0'
-lista_alleli = []
+lista_loci = []
 try:
     response = urlopen(__create_request(address))
     data = json.load(response)
@@ -74,7 +74,7 @@ try:
         
         with open(f"{locus['locus']}.fasta.gz", 'wb') as output_profile:
             output_profile.write(response_locus.read())
-        lista_alleli.append(f"{locus['locus']}")
+        lista_loci.append(f"{locus['locus']}")
         #slownik_alleli.update(get_feader(f"{locus['locus']}.fasta"))
 
 
@@ -95,19 +95,19 @@ pool = Pool(cpus)
 
 lista_indeksow = []
 start = 0
-step = len(lista_alleli) // cpus
+step = len(lista_loci) // cpus
 
 for i in range(cpus):
     end = start + step
-    if i == (cpus - 1) or end > len(lista_alleli):
-        # if this is a last cpu or yoy passed the last element of a list, use as end len(lista_alleli)
-        end = len(lista_alleli)
+    if i == (cpus - 1) or end > len(lista_loci):
+        # if this is a last cpu or yoy passed the last element of a list, use as end len(lista_loci)
+        end = len(lista_loci)
     lista_indeksow.append([start, end])
     start = end
 
 jobs = []
 for start, end in lista_indeksow:
-    jobs.append(pool.apply_async(run_blast, (lista_alleli, start, end)))
+    jobs.append(pool.apply_async(run_blast, (lista_loci, start, end)))
 pool.close()
 pool.join()
 

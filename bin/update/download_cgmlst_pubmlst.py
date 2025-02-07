@@ -3,6 +3,7 @@ import subprocess
 import sys
 import time
 import os
+from multiprocessing import Pool
 
 def execute_command(polecenie: str):
     """
@@ -17,9 +18,16 @@ def execute_command(polecenie: str):
     except:
         return False
 
+def run_blast(lista_loci, start, end):
+    # index the file
+    for locus in lista_loci[start:end]:
+        execute_command(f"makeblastdb -in {locus}.fasta -dbtype nucl")
+    return True
+
 
 SPEC="pubmlst_campylobacter_seqdef"
 DATABASE='C. jejuni / C. coli cgMLST v2'
+cpus = int(sys.argv[1])
 
 # check if makeblastd is in path
 
@@ -55,17 +63,39 @@ with open('profiles.list', 'w') as f:
 
 loci = requests.get(scheme_link + '/loci')
 
+lista_loci = []
+
+i = 0
 for locus in loci.json()['loci']:
+    if i % 100 == 0:
+        time.sleep(1)
     locus_name = locus.split('/')[-1]
     print(f'Downloading data for locus: {locus_name}')
+    lista_loci.append(locus_name)
     fasta_file = requests.get(locus + '/alleles_fasta')
     with open(f'{locus_name}.fasta', 'w') as f:
         f.write(fasta_file.text)
-    execute_command(f"makeblastdb -in {locus_name}.fasta -dbtype nucl")
-    time.sleep(1)
+    i += 1
 
-# profilec ftom ch have "Ns" instead of negative values
-execute_command("sed -i  s'/N/-1/'g profiles.list ")
+pool = Pool(cpus)
+
+lista_indeksow = []
+start = 0
+step = len(lista_loci) // cpus
+
+for i in range(cpus):
+    end = start + step
+    if i == (cpus - 1) or end > len(lista_loci):
+        # if this is a last cpu or yoy passed the last element of a list, use as end len(lista_loci)
+        end = len(lista_loci)
+    lista_indeksow.append([start, end])
+    start = end
+
+jobs = []
+for start, end in lista_indeksow:
+    jobs.append(pool.apply_async(run_blast, (lista_loci, start, end)))
+pool.close()
+pool.join()
 
 if not os.path.exists('local'):
     os.mkdir('local')
