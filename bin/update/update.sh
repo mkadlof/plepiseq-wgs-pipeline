@@ -299,7 +299,7 @@ update_mlst() {
 
 # cgMLST related data
 ## like MLST data come from different sources
-## for campylobacter only jejuni has cgMLST has all variables are hardcoded within a scipt
+## for campylobacter only jejuni has cgMLST and all vrequired ariables are hardcoded within a scipt
 
 update_cgmlst() {
 	local genus=$1
@@ -311,7 +311,7 @@ update_cgmlst() {
                         mkdir -p /home/external_databases/cgmlst/Campylobacter/jejuni/
                 fi
 		cd /home/external_databases/cgmlst/Campylobacter/jejuni/
-		python3 /home/update/download_cgmlst_pubmlst.py >> log 2>&1
+		python3 /home/update/download_cgmlst_pubmlst.py ${cpus} >> log 2>&1
 	elif [ ${genus} == "Salmonella" ]; then
                 if [ -d "/home/external_databases/cgmlst/Salmonella" ]; then
                         rm -f /home/external_databases/cgmlst/Salmonella/*
@@ -335,7 +335,7 @@ update_cgmlst() {
 		scheme_dir="Escherichia.cgMLSTv1"
 		python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}" ${cpus} >> log 2>&1
         elif [ ${genus} == "all" ]; then
-		echo "Downloading data for Escherichia"	
+		echo i"Downloading data for Escherichia at: $(date +"%H:%M %d-%m-%Y")" >> log
 		if [ -d "/home/external_databases/cgmlst/Escherichia" ]; then
                         rm -f /home/external_databases/cgmlst/Escherichia/*
                 else
@@ -347,7 +347,7 @@ update_cgmlst() {
                 scheme_dir="Escherichia.cgMLSTv1"
                 python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}" ${cpus} >> log 2>&1
 		
-		echo "Downloading data for Salmonella"
+		echo "Downloading data for Salmonella at: $(date +"%H:%M %d-%m-%Y")" >> log
 		if [ -d "/home/external_databases/cgmlst/Salmonella" ]; then
                         rm -f /home/external_databases/cgmlst/Salmonella/*
                 else
@@ -359,14 +359,14 @@ update_cgmlst() {
                 scheme_dir="Salmonella.cgMLSTv2"
                 python3 /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}" ${cpus} >> log 2>&1
 
-		echo "Downloading data for Campylobacter"
+		echo "Downloading data for Campylobacter at: $(date +"%H:%M %d-%m-%Y")" >> log
 		if [ -d "/home/external_databases/cgmlst/Campylobacter/jejuni" ]; then
                         rm -f /home/external_databases/cgmlst/Campylobacter/jejuni/*
                 else
                         mkdir -p /home/external_databases/cgmlst/Campylobacter/jejuni/
                 fi
                 cd /home/external_databases/cgmlst/Campylobacter/jejuni/
-                python3 /home/update/download_cgmlst_pubmlst.py >> log 2>&1
+                python3 /home/update/download_cgmlst_pubmlst.py ${cpus} >> log 2>&1
 	fi
 }
 
