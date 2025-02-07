@@ -86,8 +86,12 @@ all_isolates = requests.get(f'https://rest.pubmlst.org/db/{SPEC2}/isolates', par
 
 print(f'Downloading data for {all_isolates_number} isolates available since {previous_update}')
 
+i = 0
 for isolate in all_isolates['isolates']:
     try:
+        if i % 1000 == 0:
+            print(f"Dowloading data for isolate {i}")
+        i += 1
         isolate_info = requests.get(isolate).json()
         isolate_key = str(isolate_info['provenance']['id'])
 
