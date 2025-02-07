@@ -159,7 +159,7 @@ if __name__ == '__main__':
                     f.write(f'{id}\n{seq}\n')
 
     # running makeblastdb on all fasta files
-    lista_plikow = glob.glob('**/*.fa', recursive=True, include_hidden=True)
+    lista_plikow = glob.glob('**/*.fa', recursive=True)
     
     pool = Pool(cpus)
 
