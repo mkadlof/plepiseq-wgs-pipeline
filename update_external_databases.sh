@@ -18,11 +18,11 @@ kraken_type="standard" #  name of the kraken2 subdatabase, only valid if perform
 genus="all" #  name of the genus for which database is updated, only valid if mlsr or cgmlst databases are updated
 output=""  #  top-level directory with databases, each database will be a subdirectory of it, hierarchy of databases in that directory is PREDEFINED
 image_name="pzh_pipeline_viral_updater:latest" #  name of the image within which all updates are performed
-
+cpus=1
 
 # Function to display help message
 function show_help() {
-    echo "Usage: $0 --database <string> --output <path> --image_name <string> [--kraken-type <type> --genus <Salmonella|Escherichia|Campylobacter|all>]"
+    echo "Usage: $0 --database <string> --output <path> --image_name <string> [--cpus <int> --kraken-type <type> --genus <Salmonella|Escherichia|Campylobacter|all>]"
     echo
     echo "Options:"
     echo "  --database      Name of the database to download or update"
@@ -35,6 +35,8 @@ function show_help() {
     echo "  --image_name    Full name of the docker image (with tag) used for updates"
     echo "                  Nazwa obrazu docker uzywanego przez program do pobierania/aktualizacji baz"
     echo "Optional arguments:"
+    echo "  --cpus   Number of threads"
+    echo "                  Liczba procesorow (domyslna wartosc: 1)"
     echo "  --kraken_type   Type of Kraken database (valid if database is set to kraken2). See pipelines documentations section 5.4.3) If not provided 'standard' database is downloaded"
     echo "                  Nazwa predefiniowanej bazy wykorzystywanej przez program kraken. W przypadku gdy nie podano tego argumentu pobierana jest baza 'standard' "
     echo "  --genus         Name of a genus (valid only for mlst, cgmlst, and enterobase databases). If not provided database is downloaded for all three genuses"
@@ -42,7 +44,7 @@ function show_help() {
     echo "                  Salmonella Escherichia Campylobacter all"
 }
 
-OPTIONS=$(getopt -o h --long database:,output:,image_name:,kraken_type:,genus:,help -- "$@")
+OPTIONS=$(getopt -o h --long database:,output:,cpus:,image_name:,kraken_type:,genus:,help -- "$@")
 
 eval set -- "$OPTIONS"
 
@@ -71,6 +73,10 @@ while true; do
             kraken_type="$2"
             shift 2
             ;;
+        --cpus)
+            cpus="$2"
+            shift 2
+            ;;        
         --genus)
             genus="$2"
             shift 2
@@ -163,6 +169,11 @@ if [[ "$database" == "mlst"  ||  "$database" == "cgmlst" || "$database" == "ente
        fi
 fi
 
+## Check if user did provide betwee 0 to nproc of cpus
+if [[ "$cpus" -le 0 || "$cpus" -gt "$(nproc)" ]]; then
+       echo "Number of cpus cannot be lower than 1 and cannot exceed $(nproc)"
+       exit 1
+fi       
 
 # Output the parsed arguments
 echo "Database: $database"
@@ -176,4 +187,4 @@ echo "Downloading all databases may take several hours"
 docker run --rm \
        --volume "${output}:/home/external_databases:rw" \
        --user $(id -u):$(id -g) \
-       ${image_name} ${database} ${kraken_type} ${genus}
+       ${image_name} ${database} ${kraken_type} ${genus} ${cpus}

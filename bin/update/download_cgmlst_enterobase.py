@@ -10,7 +10,7 @@ from Bio import SeqIO
 import sys
 from multiprocessing import Pool
 
-API_TOKEN = open('enterobase_api.txt').readlines()[0].rstrip()
+API_TOKEN = open('/home/update/enterobase_api.txt').readlines()[0].rstrip()
 DATABASE = sys.argv[1]  # ecoli, yersinia, mcatarrhalis API 2.0
 scheme_name = sys.argv[2]  # according to API 2.0
 scheme_dir = sys.argv[3]  # take a look inside https://enterobase.warwick.ac.uk//schemes/ for names of specific schemes

@@ -174,15 +174,15 @@ update_cge() {
 
 #VFDB
 ## No update
-### For now the python script has HARDCODED usage of 96 CPUs !!!
 update_vfdb() {
+	local cpus=$1
         if [ -d "/home/external_databases/vfdb" ]; then
                 rm -rf /home/external_databases/vfdb/*
         else
                 mkdir /home/external_databases/vfdb/
         fi
         cd /home/external_databases/vfdb
-        python3 /home/update/download_vfdb.py  >> log 2>&1
+        python3 /home/update/download_vfdb.py ${cpus} >> log 2>&1
 }
 
 # MLST data
@@ -303,7 +303,7 @@ update_mlst() {
 
 update_cgmlst() {
 	local genus=$1
-	local cpus=50 # use that many workers used only for Salmonella/Escherichia data
+	local cpus=$2 
 	if [ ${genus} == "Campylobacter" ]; then
 		if [ -d "/home/external_databases/cgmlst/Campylobacter/jejuni" ]; then
                         rm -f /home/external_databases/cgmlst/Campylobacter/jejuni/*
@@ -538,6 +538,7 @@ update_alphafold() {
 db_name=$1
 kraken_type=$2
 genus=$3
+cpus=$
 if [ ${db_name} == "all" ];then
         echo "Downloading data for kraken2 at: $(date +"%H:%M %d-%m-%Y")"
 	update_kraken2 "$kraken_type" >> /dev/null 2>&1
@@ -568,11 +569,11 @@ if [ ${db_name} == "all" ];then
 	echo "Downloading data for virulencefinder at: $(date +"%H:%M %d-%m-%Y")"
 	update_cge virulencefinder_db >> /dev/null 2>&1
 	echo "Downloading data for vfcb at: $(date +"%H:%M %d-%m-%Y")"
-	update_vfdb >> /dev/null 2>&1
+	update_vfdb ${cpus} >> /dev/null 2>&1
 	echo "Downloading MLST data at: $(date +"%H:%M %d-%m-%Y")"
 	update_mlst ${genus}  >> /dev/null 2>&1
 	echo "Downloading cgMLST data at: $(date +"%H:%M %d-%m-%Y")"
-	update_cgmlst ${genus}  >> /dev/null 2>&1
+	update_cgmlst ${genus} ${cpus} >> /dev/null 2>&1
 	echo "Downloading pubmlst data at: $(date +"%H:%M %d-%m-%Y")"
 	update_pubmlst >> /dev/null 2>&1
 	echo "Downloading enterobase data at: $(date +"%H:%M %d-%m-%Y")"
@@ -610,11 +611,11 @@ elif [ ${db_name} == "spifinder" ]; then
 elif [ ${db_name} == "virulencefinder" ]; then
         update_cge virulencefinder_db >> /dev/null 2>&1
 elif [ ${db_name} == "vfdb" ]; then
-	update_vfdb  >> /dev/null 2>&1 
+	update_vfdb ${cpus} >> /dev/null 2>&1 
 elif [ ${db_name} == "mlst" ]; then
         update_mlst ${genus} >> /dev/null 2>&1 
 elif [ ${db_name} == "cgmlst" ]; then
-	update_cgmlst ${genus} >> /dev/null 2>&1
+	update_cgmlst ${genus} ${cpus} >> /dev/null 2>&1
 elif [ ${db_name} == "pubmlst" ]; then
 	update_pubmlst >> /dev/null 2>&1
 elif [ ${db_name} == "enterobase" ]; then

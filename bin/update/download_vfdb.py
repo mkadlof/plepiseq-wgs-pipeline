@@ -9,6 +9,8 @@ import re
 import sys
 import os
 import subprocess
+from multiprocessing import Pool
+import glob
 
 def execute_command(polecenie: str):
     """
@@ -22,6 +24,12 @@ def execute_command(polecenie: str):
         return True
     except:
         return False
+
+def run_blast(lista_plikow, start, end):
+    # index the file
+    for plik in lista_plikow[start:end]:
+        execute_command(f"makeblastdb -in {plik} -dbtype nucl")
+    return True
 
 # najpierw pobieramy naglowki
 def read_fasta(fasta):
@@ -80,6 +88,7 @@ def extract_info_from_header(naglowek, bis = 0):
 
 if __name__ == '__main__':
 
+    cpus = sys.argv[1]
     if os.path.exists('VFDB_setB_nt.fa'):
         # found some previous data remove everything before we do main script
         _ = [shutil.rmtree(dir_path) for dir_path in os.listdir('.') if dir_path not in ['prep_VFDB.py', 'README'] and os.path.isdir(dir_path)]
@@ -149,7 +158,27 @@ if __name__ == '__main__':
                 for id,seq in slownik_VFDB[dir][geny].items():
                     f.write(f'{id}\n{seq}\n')
 
-    # running makeblastdb to index ale the file
-    print('Running makeblastdb')
+    # running makeblastdb on all fasta files
+    lista_plikow = glob.glob('**/*.fa', recursive=True, include_hidden=True)
+    
+    pool = Pool(cpus)
+
+    lista_indeksow = []
+    start = 0
+    step = len(lista_plikow) // cpus
+
+    for i in range(cpus):
+        end = start + step
+        if i == (cpus - 1) or end > len(lista_plikow):
+            # if this is a last cpu or yoy passed the last element of a list, use as end len(lista_loci)
+            end = len(lista_plikow)
+        lista_indeksow.append([start, end])
+        start = end
+
+    jobs = []
+    for start, end in lista_indeksow:
+        jobs.append(pool.apply_async(run_blast, (lista_plikow, start, end)))
+    pool.close()
+    pool.join()
 
     #execute_command('find . -name "*fa" | xargs -I {} --max-procs=96  bash -c "makeblastdb -in {} -dbtype nucl"')
