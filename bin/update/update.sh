@@ -415,11 +415,12 @@ update_enterobase() {
 ## There is an update mechanism
 
 update_pubmlst() {
+	local cpus=${1}
 	if [ ! -d "/home/external_databases/pubmlst/Campylobacter/jejuni" ]; then
 		mkdir -p /home/external_databases/pubmlst/Campylobacter/jejuni
 	fi
 	cd /home/external_databases/pubmlst/Campylobacter/jejuni
-	python3 -u /home/update/download_pubmlst_data.py >> log 2>&1
+	python3 -u /home/update/download_pubmlst_data.py ${cpus} >> log 2>&1
 
 }
 
@@ -576,7 +577,7 @@ if [ ${db_name} == "all" ];then
 	echo "Downloading cgMLST data at: $(date +"%H:%M %d-%m-%Y")"
 	update_cgmlst ${genus} ${cpus} >> /dev/null 2>&1
 	echo "Downloading pubmlst data at: $(date +"%H:%M %d-%m-%Y")"
-	update_pubmlst >> /dev/null 2>&1
+	update_pubmlst ${cpus} >> /dev/null 2>&1
 	echo "Downloading enterobase data at: $(date +"%H:%M %d-%m-%Y")"
 	update_enterobase ${genus} >> /dev/null 2>&1
 	echo "Downloading hiercc data at: $(date +"%H:%M %d-%m-%Y")"
@@ -618,7 +619,7 @@ elif [ ${db_name} == "mlst" ]; then
 elif [ ${db_name} == "cgmlst" ]; then
 	update_cgmlst ${genus} ${cpus} >> /dev/null 2>&1
 elif [ ${db_name} == "pubmlst" ]; then
-	update_pubmlst >> /dev/null 2>&1
+	update_pubmlst ${cpus} >> /dev/null 2>&1
 elif [ ${db_name} == "enterobase" ]; then
 	update_enterobase ${genus}
 elif [ ${db_name} == "phiercc" ]; then
