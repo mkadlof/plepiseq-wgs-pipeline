@@ -15,7 +15,7 @@
 # localization of the main file with the pipeline and databases required to execute this pipeline
 ## Existing directories, for testing purpose can be change. but for production invariable
 projectDir="/home/michall/git/pzh_pipeline_viral/"
-external_databases_path="/mnt/raid/michall/external_databases"
+external_databases_path="/mnt/raid/external_databases"
 results_dir="./results"
 
 # docker images required to execute this pipeline
