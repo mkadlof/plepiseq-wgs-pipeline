@@ -1,4 +1,5 @@
 import requests
+
 import subprocess
 import sys
 import time
@@ -20,17 +21,30 @@ def execute_command(polecenie: str):
     except:
         return False
 
+def download_pubmlst_profiles(profile_links, start, end, worker_id = -1):
+    i = 0
+    local_dict = {}
+    for profile in profile_links[start:end]:
+        profile_data = requests.get(profile).json()
+        local_dict[str(profile_data['cgST'])] = {}
+        for level, level_data in profile_data['classification_schemes'].items():
+            level_number = level.split('_')[-1]
+            level_str = f'd{level_number}'
+            local_dict[str(profile_data['cgST'])][level_str] = level_data['group']['group']
+        if i % 1000 == 0:
+            print(f"Analyzing profile {profile_data['cgST']} in worker {worker_id} " 
+                  f"on {time.strftime('%Y-%m-%d %H:%M', time.gmtime())}")
 
-def download_pubmlst_entries(list_of_isolates, start, end, worker_id=-1):
-    if worker_id > 0:
-        # save missing data only when worker_id is above 0
-        missing_link = open(f"missing_isolates_{worker_id}.txt", "w", buffering=1)
+        i += 1
+    return local_dict
+def download_pubmlst_entries(list_of_isolates, start, end, DATABASE,  DATABASE2, worker_id=-1):
+    missing_link = open(f"missing_isolates_{worker_id}.txt", "w", buffering=1)
     local_dict = {}
     i = 0
     for isolate in list_of_isolates[start:end]:
         if i % 1000 == 0:
             print(f"Processing link no. {i} in worker {worker_id} "
-                  f"on {time.strftime("%Y-%m-%d %H:%M", time.gmtime())}")
+                  f"on {time.strftime('%Y-%m-%d %H:%M', time.gmtime())}")
             time.sleep(4)
         i += 1
         try:
@@ -77,7 +91,7 @@ def download_pubmlst_entries(list_of_isolates, start, end, worker_id=-1):
                             # isolate can have a scheme but without assigne ST/cgST value
                             if 'ST' in scheme['fields'].keys():
                                 MLST_data = 1
-                                isolates_dict[isolate_key]['sts'].append(
+                                local_dict[isolate_key]['sts'].append(
                                     {'scheme_name': DATABASE2, 'st_id': scheme['fields']['ST']})
 
                     elif scheme['description'] == DATABASE:
@@ -92,12 +106,12 @@ def download_pubmlst_entries(list_of_isolates, start, end, worker_id=-1):
                                 if isinstance(scheme['fields']['cgST'], int) or isinstance(scheme['fields']['cgST'],
                                                                                            str):
                                     cgMLST_data = 1
-                                    isolates_dict[isolate_key]['sts'].append(
+                                    local_dict[isolate_key]['sts'].append(
                                         {'scheme_name': DATABASE, 'st_id': scheme['fields']['cgST']})
                                     level_0 = scheme['fields']['cgST']
                                 elif isinstance(scheme['fields']['cgST'], list):
                                     cgMLST_data = 1
-                                    isolates_dict[isolate_key]['sts'].append(
+                                    local_dict[isolate_key]['sts'].append(
                                         {'scheme_name': DATABASE, 'st_id': scheme['fields']['cgST'][0]})
                                     level_0 = scheme['fields']['cgST'][0]
 
@@ -117,7 +131,7 @@ def download_pubmlst_entries(list_of_isolates, start, end, worker_id=-1):
                                 # just in case some keys are missing from pubmlst
                                 if 'Cjc_cgc2_5' in scheme['classification_schemes'].keys():
                                     level_5 = scheme['classification_schemes']['Cjc_cgc2_5']['groups'][0]['group']
-                                if 'jc_cgc2_10' in scheme['classification_schemes'].keys():
+                                if 'Cjc_cgc2_10' in scheme['classification_schemes'].keys():
                                     level_10 = scheme['classification_schemes']['Cjc_cgc2_10']['groups'][0]['group']
                                 if 'Cjc_cgc2_25' in scheme['classification_schemes'].keys():
                                     level_25 = scheme['classification_schemes']['Cjc_cgc2_25']['groups'][0]['group']
@@ -132,6 +146,7 @@ def download_pubmlst_entries(list_of_isolates, start, end, worker_id=-1):
                                                                      'd100': level_100, 'd200': level_200}
                                 hierCC_data = 1
                             except:
+                                # hierCC_data will be 0 and below we put "unk" as values
                                 pass
             else:
                 pass
@@ -151,11 +166,9 @@ def download_pubmlst_entries(list_of_isolates, start, end, worker_id=-1):
                                                      'd50': 'unk', 'd100': 'unk', 'd200': 'unk'}
 
         except:
-            if worker_id > 0:
-                missing_link.write(f"{isolate}\n")
+            missing_link.write(f"{isolate}\n")
             print(f'Error when downloading data for isolate {isolate} for worker {worker_id}')
-    if worker_id > 0:
-        missing_link.close()
+    missing_link.close()
     return local_dict
 
 
@@ -174,7 +187,7 @@ cpus = int(sys.argv[1])
 if cpus > 4:
     cpus = 4
 
-#  we need to identify find scheme link (there are many like MLST , cgMLST, rMLST ...)
+#  we need to  find schema link (there are many schemas like MLST , cgMLST, rMLST ...)
 #  cgMLST have assosiciated scheme_classification data (phiercc equivalent from enterobase)
 scheme_link = ''
 scheme_table = requests.get('https://rest.pubmlst.org/db/' f'{SPEC}' + '/schemes')
@@ -202,21 +215,40 @@ record_list = profiles.json()['records']
 print(f'Downloading {record_list} profiles available since {previous_update}')
 
 profiles = requests.get(scheme_link + '/profiles', {'page_size': record_list}).json()
-i = 0
-for profile in profiles['profiles']:
-    profile_data = requests.get(profile).json()
-    hiercc_dict[str(profile_data['cgST'])] = {}
-    for level, level_data in profile_data['classification_schemes'].items():
-        level_number = level.split('_')[-1]
-        level_str = f'd{level_number}'            
-        hiercc_dict[str(profile_data['cgST'])][level_str] = level_data['group']['group']
-    i += 1
-    if i % 1000 == 0:
-        print(f'Analyzing profile {profile_data["cgST"]}')
+
+pool = Pool(cpus)
+lista_indeksow = []
+start = 0
+step = len(profiles['profiles']) // cpus
+
+for i in range(cpus):
+    end = start + step
+    if i == (cpus - 1) or end > len(profiles['profiles']):
+        # if this is a last cpu, or one has passed the last element of a list, use length.
+        end = len(profiles['profiles'])
+    lista_indeksow.append([start, end])
+    start = end
+
+# if there are less than 20 profiles, we use a single cpu
+if len(profiles['profiles']) < 20:
+    lista_indeksow = [[0, len(profiles['profiles'])]]
+
+jobs = []
+worker_id = 1  # we use that only for logging
+for start, end in lista_indeksow:
+    jobs.append(pool.apply_async(download_pubmlst_profiles, (profiles['profiles'], start, end, worker_id)))
+    worker_id += 1
+pool.close()
+
+# update dict with workers results
+for job in jobs:
+    hiercc_dict = {**hiercc_dict, **job.get()}
+pool.join()
 
 np.save('sts_table.npy', hiercc_dict, allow_pickle=True, fix_imports=True)
 # Get/Update strain data
 
+# Repeat the same code for straindata
 if os.path.exists('straindata_table.npy'):
     isolates_dict = np.load('straindata_table.npy', allow_pickle=True).item()
 else:
@@ -250,7 +282,7 @@ if len(all_isolates['isolates']) < 20:
 jobs = []
 worker_id = 1
 for start, end in lista_indeksow:
-    jobs.append(pool.apply_async(download_pubmlst_entries, (all_isolates['isolates'], start, end, worker_id)))
+    jobs.append(pool.apply_async(download_pubmlst_entries, (all_isolates['isolates'], start, end, DATABASE, DATABASE2, worker_id)))
     worker_id += 1
 pool.close()
 
@@ -271,7 +303,12 @@ for plik in lista_plikow:
 
 print(f"Second attempt to download {len(lista_linkow)} entries")
 if len(lista_linkow) > 0:
-    additional_data = download_pubmlst_entries(lista_linkow, 0, len(lista_linkow))
+    additional_data = download_pubmlst_entries(list_of_isolates = lista_linkow,
+                                               start=0,
+                                               end=len(lista_linkow),
+                                               DATABASE=DATABASE,
+                                               DATABASE2=DATABASE2,
+                                               worker_id=-1)
     isolates_dict = {**isolates_dict, **additional_data}
 
 np.save('straindata_table.npy', isolates_dict, allow_pickle=True, fix_imports=True)
