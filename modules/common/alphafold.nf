@@ -155,7 +155,7 @@ process alphafold {
           # neither protein was analyzed dummy output 
           touch ${sampleId}.pdb
           ERR_MSG="Sequence of protein F or G was too short to produce a valid PDB file"
-          echo -e "{\\"status\\":\\"nie\\",
+          echo -e "{\\"status\\":\\"blad\\",
                      \\"error_message\\": \\"\${ERR_MSG}\\"}" > alphafold.json       
 
       else
@@ -196,7 +196,7 @@ process alphafold {
           # neither protein was analyzed dummy output
           touch ${sampleId}.pdb
           ERR_MSG="Sequence of protein NA or HA was too short to produce a valid PDB file"
-          echo -e "{\\"status\\":\\"nie\\",
+          echo -e "{\\"status\\":\\"blad\\",
                      \\"error_message\\": \\"\${ERR_MSG}\\"}" > alphafold.json
       else
           echo -e "{\\"status\\":\\"tak\\",
@@ -229,7 +229,7 @@ process alphafold {
          if [ -z "\${pdb_path_1}" ]; then
              touch ${sampleId}.pdb
              ERR_MSG="Sequence of the Spike protein was too short"
-             echo -e "{\\"status\\":\\"error\\",
+             echo -e "{\\"status\\":\\"blad\\",
                        \\"error_message\\": \\"\${ERR_MSG}\\"}" >> alphafold.json
          else
              echo -e "{\\"status\\":\\"tak\\",
