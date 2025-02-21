@@ -127,7 +127,7 @@ process alphafold {
       cat nextalign_gene_F.translation.fasta | tr -d "-" | tr -d "X" | tr -d "*" >> tmp
       mv tmp nextalign_gene_F.translation.fasta
       target_fasta_F="nextalign_gene_F.translation.fasta"
-      F_length=`\$(check_fasta_length "\${target_fasta_F}"`
+      F_length=\$(check_fasta_length "\${target_fasta_F}")
  
       if [ \${F_length} -gt 10 ]; then
           run_custom_alpfafold "\${target_fasta_F}" wynik
@@ -139,7 +139,7 @@ process alphafold {
       cat nextalign_gene_G.translation.fasta | tr -d "-" | tr -d "X" | tr -d "*" >> tmp
       mv tmp nextalign_gene_G.translation.fasta
       target_fasta_G="nextalign_gene_G.translation.fasta"
-      G_length=`\$(check_fasta_length "\${target_fasta_G}"`
+      G_length=\$(check_fasta_length "\${target_fasta_G}")
       if [  \${G_length} -gt 10 ]; then
           run_custom_alpfafold "\${target_fasta_G}" wynik
           cp wynik/`basename \${target_fasta_G} ".fasta"`/ranked_0.pdb ${sampleId}_G.pdb
@@ -169,7 +169,7 @@ process alphafold {
       cat nextalign_gene_HA.translation.fasta | tr -d "-" | tr -d "X" | tr -d "*" >> tmp
       mv tmp nextalign_gene_HA.translation.fasta
       target_fasta_HA="nextalign_gene_HA.translation.fasta"
-      HA_length=`\$(check_fasta_length "\${target_fasta_HA}"`
+      HA_length=\$(check_fasta_length "\${target_fasta_HA}")
 
       if [ \${HA_length} -gt 10 ]; then
           run_custom_alpfafold "\${target_fasta_HA}" wynik
@@ -180,7 +180,7 @@ process alphafold {
       cat nextalign_gene_NA.translation.fasta | tr -d "-" | tr -d "X" | tr -d "*" >> tmp
       mv tmp nextalign_gene_NA.translation.fasta
       target_fasta_NA="nextalign_gene_NA.translation.fasta"
-      NA_length=`\$(check_fasta_length "\${target_fasta_NA}"`
+      NA_length=\$(check_fasta_length "\${target_fasta_NA}")
       if [ \${NA_length} -gt 10 ]; then
           run_custom_alpfafold "\${target_fasta_NA}" wynik
           cp wynik/`basename \${target_fasta_NA} ".fasta"`/ranked_0.pdb ${sampleId}_NA.pdb
@@ -211,7 +211,7 @@ process alphafold {
          cat nextalign_gene_S.translation.fasta | tr -d "-" | tr -d "X" | tr -d "*" >> tmp
          mv tmp nextalign_gene_S.translation.fasta
          target_fasta_S="nextalign_gene_S.translation.fasta"
-         S_length=`\$(check_fasta_length "\${target_fasta_S}"`
+         S_length=\$(check_fasta_length "\${target_fasta_S}")
          if [ \${S_length} -gt 10 ]; then
              run_custom_alpfafold "\${target_fasta_S}" wynik
              cp wynik/`basename \${target_fasta_S} ".fasta"`/ranked_0.pdb ${sampleId}_spike.pdb
