@@ -115,6 +115,10 @@ process alphafold {
     # directory for alphafold output
     mkdir wynik
 
+    # declare variables 
+    pdb_path_1=""
+    pdb_path_2=""
+
     if [ ${QC_status} == "nie" ]; then
       # failed QC 
       touch ${sampleId}.pdb
