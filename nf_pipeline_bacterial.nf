@@ -3219,7 +3219,7 @@ process get_species_nanopore {
   output:
   tuple val(x), env(FINALE_SPECIES), env(FINAL_GENUS), env(QC_status_contaminations), emit: species_and_qcstatus
   path('predicted_genus_and_species.txt'), emit: to_pubdir
-  tuple val(x), path('contaminations.json'), ('Genus_species.json'), emit: json
+  tuple val(x), path('contaminations.json'), path('Genus_species.json'), emit: json
   tuple val(x), env(QC_status_contaminations), emit: qcstatus_only
   tuple val(x), env(FINAL_GENUS), emit:genus_only
   script:

@@ -249,7 +249,6 @@ fi
 [[ -z "${kmerfinder_coverage}" ]] && kmerfinder_coverage=20
 [[ -z "${main_species_coverage}" ]] && main_species_coverage=20
 [[ -z "${min_genome_length}" ]] && min_genome_length=0.75
-[[ -z "${unique_loci}" ]] && unique_loci=5
 [[ -z "${L50}" ]] && L50=30000
 [[ -z "${final_coverage}" ]] && final_coverage=20
 
@@ -259,12 +258,14 @@ if [[ "$machine" == "Illumina" ]]; then
 	[[ -z "${min_median_quality}" ]] && min_median_quality=10
 	[[ -z "${unique_loci}" ]] && unique_loci=5
 	[[ -z "${contig_number}" ]] && contig_number=1000
+	[[ -z "${unique_loci}" ]] && unique_loci=5
 elif [[ "$machine" == "Nanopore" ]]; then
         [[ -z "${quality}" ]] && quality=2
         [[ -z "${min_number_of_reads}" ]] && min_number_of_reads=10000
         [[ -z "${min_median_quality}" ]] && min_median_quality=5
         [[ -z "${contig_number}" ]] && contig_number=100
 	[[ -z "${model_medaka}" ]] && model_medaka="r941_min_hac_g507"
+	[[ -z "${unique_loci}" ]] && unique_loci=0
 else
     echo "Error: Unsupported sequencinf platform: $machine. Supported values are: Nanopore, Illumina."
     exit 1
