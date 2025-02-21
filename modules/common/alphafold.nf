@@ -164,6 +164,7 @@ process alphafold {
                                                   \\"pdb_file\\":\\"\${pdb_path_2}\\"
                                                  }
                                                  ]}" >> alphafold.json
+      fi
 
     elif [ ${params.species} == "Influenza" ]; then
       cat nextalign_gene_HA.translation.fasta | tr -d "-" | tr -d "X" | tr -d "*" >> tmp
@@ -204,7 +205,7 @@ process alphafold {
                                                    }
                                                    ]}" >> alphafold.json
 
- 
+      fi
     elif [ ${params.species} == "SARS-CoV-2" ]; then
        if [ -e "nextalign_gene_S.translation.fasta" ]; then
        
