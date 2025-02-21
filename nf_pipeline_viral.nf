@@ -16,6 +16,10 @@ if ( params.external_databases_path  == '' ) {
   System.exit(0)
 }
 
+if ( !workflow.profile || ( workflow.profile != "slurm" && workflow.profile != "local") ) {
+   println("Nextflow run must be executed with -profile option. The specified profile must be either \"local\" or \"slurm\".")
+   System.exit(1)
+}
 // //  All docker images used by this pipeline
 params.main_image = "" // main image wit most tools
 params.manta_image = "" // Manta container with python2
@@ -278,6 +282,7 @@ include { pangolin } from "${modules}/common/pangolin.nf"
 // // // // Common
 include { nextalign } from "${modules}/common/nextalign.nf"
 include { alphafold } from "${modules}/common/alphafold.nf"
+include { alphafold_slurm } from "${modules}/common/alphafold_slurm.nf"
 // // End of Section // //
 
 
@@ -510,8 +515,12 @@ workflow{
   // modeller_out = modeller(nextalign_out.to_modeller)
   delayed_alphafold = nextalign_out.to_modeller.map {it -> sleep(20000); it} // Delay each element in channel by 20s
 
-  alphafold_out = alphafold(delayed_alphafold) 
- 
+  // Alphafold under local and slurm executors 
+  if ( workflow.profile == "slurm" ) {
+      alphafold_out = alphafold_slurm(delayed_alphafold)
+  else if ( workflow.profile == "local" ) {
+      alphafold_out = alphafold(delayed_alphafold)
+  }
   
   if ( params.species  == 'SARS-CoV-2' || params.species  == 'RSV' ) {
       nextclade_out = nextclade_noninfluenza(final_genome_out.fasta_refgenome_and_qc)
