@@ -52,8 +52,8 @@ process filtering_nanopore {
       QC_exit="nie"
     else
       MASKING_CAP=`echo "${params.mask} + 10" | bc -l` #  do jakiej maksymalnej warotosci podbijac coverage w regionach w ktorych brakowalo oczekiwanych jedno-amplikonowych odczytow
-      ALIGNMENT_LENGTH_MAX=1.1 # Ten parametr mowi ze odczyt moze miec 110% slugosci jego alignmentu z sekwencja referencyjna
-      ALIGNMENT_LENGTH_MIN=0.8 # Ten parametr mowi ze dlugosc regionu mapujacego sie na genom musi stanowic co najmniej 80% dlugosci odczytu 
+      ALIGNMENT_LENGTH_MAX=1.2 # Ten parametr mowi ze odczyt moze miec 120% dlugosci jego alignmentu z sekwencja referencna
+      ALIGNMENT_LENGTH_MIN=0.49 # Ten parametr mowi ze dlugosc regionu mapujacego sie na genom musi stanowic co najmniej 49% dlugosci odczytu 
       # Oba parametry pozwalaja nam odfiltrowac odczyty niepewne na podstawie jaka ich czesc mapuje sie na referencje
       # Odrzucamy zarowno odczyty bardzo dlugie, ktore mapuja sie tylko fragmentarczynie na referencje
       # Jak i takie ktore niezaleznie od swoeje dlugosci maja slabe mapowania 
