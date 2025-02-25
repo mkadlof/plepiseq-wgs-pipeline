@@ -2935,8 +2935,8 @@ process run_flye {
   tag "Predicting scaffold with flye for sample $x"
   // publishDir "pipeline_wyniki/${x}", mode: 'copy', pattern: "*"
   cpus { params.threads > 15 ? 15 : params.threads }
-  memory "50 GB"
-  time "40m"
+  memory "60 GB"
+  time "1h 20m"
   // in --deterministic the process is slow because in uses 1 cpu for some task 
   // maxForks 10 
   input:
