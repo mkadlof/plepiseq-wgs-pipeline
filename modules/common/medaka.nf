@@ -40,7 +40,7 @@ process medaka_second_round {
     container  = params.medaka_image
     cpus params.threads
     input:
-    tuple val(sampleId), path('trimmed.bam'), path('trimmed.bam.bai'), val(QC_status), path('genome.fasta')
+    tuple val(sampleId), path('trimmed.bam'), path('trimmed.bam.bai'), val(QC_status), path('genome.fasta'), path('pre_trimmed.bam'), path('pre_trimmed.bam.bai')
     output:
     tuple val(sampleId), path('medaka_annotated_filtered.vcf.gz'), path('medaka_annotated_filtered.vcf.gz.tbi'), path('medaka_annotated.vcf.gz'), path('medaka_annotated.vcf.gz.tbi'), path('genome.fasta'), val(QC_status), emit: vcf
 
@@ -101,7 +101,7 @@ process medaka_second_round {
       # merging sub vcf-s
       bcftools concat -a "\${ALL_VCF[@]}" | bcftools sort >> medaka_initial.vcf
     
-      medaka tools annotate medaka_initial.vcf genome.fasta trimmed.bam medaka_annotated.vcf
+      medaka tools annotate medaka_initial.vcf genome.fasta pre_trimmed.bam medaka_annotated.vcf
       bgzip medaka_annotated.vcf; tabix medaka_annotated.vcf.gz
 
       QUAL=`echo ${params.second_round_pval} | awk '{print int(10*-log(\$1)/log(10))}'` 

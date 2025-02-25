@@ -472,25 +472,42 @@ workflow{
 
         dehumanization_out = dehumanization_nanopore(minimap2_2_out.bam_and_qc.join(reads, by:0))
        
+
         if ( params.species  == 'SARS-CoV-2' ||  params.species  == 'RSV') {
           filtering_2_out = filtering_one_segment_nanopore_2(minimap2_2_out.bam_and_genome_and_primers)
           normal_masking_2_out = masking_nanopore_strict_2(filtering_2_out.to_normal_masking, params.bed_offset, 0)
           overshot_masking_2_out = masking_nanopore_overshot_2(filtering_2_out.to_overshot_masking, params.bed_offset + params.extra_bed_offset, 0)
           merging_2_out = merging_nanopore_2(normal_masking_2_out.bam_and_genome.join(overshot_masking_2_out.bam_only))
-          to_medaka_2 = merging_2_out.to_medaka
+          
+          // Original to_medaka channel without ekstra bams
+          to_varscan_2 = merging_2_out.to_medaka
+
+          // for SARS/RSV merging_nanopore_2 has to_medaka_2 emit 
+          // that includes two additional bams used two calculate coverage
+          to_medaka_2 = merging_2_out.to_medaka_2
+          
+
         } else if (params.species  == 'Influenza') {
           filtering_2_out = filtering_influenza_nanopore_2(minimap2_2_out.bam_and_genome_and_primers)
           normal_masking_2_out = masking_nanopore_strict_2(filtering_2_out.to_normal_masking, params.bed_offset, 0)
-          to_medaka_2 = normal_masking_2_out.bam_and_genome
+          
+          // Original channel without two ekstra bams
+          to_varscan_2 = normal_masking_2_out.bam_and_genome
+
+          // append to the channel unmasked bams to mimick SARS/RSV 
+          to_medaka_2 = to_varscan_2.join(filtering_2_out.only_bam)
+          
+
         }
 
-        wgsMetrics_out = picard_wgsMetrics(to_medaka_2.join(filtering_2_out.json))
+        wgsMetrics_out = picard_wgsMetrics(to_varscan_2.join(filtering_2_out.json))
         medaka_2_out = medaka_2(to_medaka_2)
-        varScan_2_out = varScan_2(to_medaka_2)
+        varScan_2_out = varScan_2(to_varscan_2)
 
         medaka_varscan_integration_2_out = medaka_varscan_integration_second_round(medaka_2_out.vcf.join(varScan_2_out.pre_vcf))
         novel_genome_2_out = make_genome_from_vcf_2(medaka_varscan_integration_2_out.vcf)
-        lowCov_out = lowCov(to_medaka_2)
+        lowCov_out = lowCov(to_varscan_2)
+
         to_final_genome = lowCov_out.fasta.join(novel_genome_2_out.fasta_and_QC)
         to_final_genome = to_final_genome.join(medaka_varscan_integration_2_out.reference_genome)
         prefinal_genome_out = consensus_nanopore(to_final_genome)  

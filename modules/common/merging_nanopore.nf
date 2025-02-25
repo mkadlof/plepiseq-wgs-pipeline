@@ -9,16 +9,21 @@ process merging_nanopore {
 
     output:
     tuple val(sampleId), path('merged.bam'), path('merged.bam.bai'), val(QC_status), path(genome),  emit: to_medaka
+    tuple val(sampleId), path('merged.bam'), path('merged.bam.bai'), val(QC_status), path(genome),  path('merged_2.bam'), path('merged_2.bam.bai'), emit: to_medaka_2
 
     script:
     """
     if [ ${QC_status} == "nie" ]; then
       touch merged.bam
       touch merged.bam.bai
+      touch merged_2.bam
+      touch merged_2.bam.bai
     else
       samtools merge -o merged_initial.bam trimmed_first.bam trimmed_second.bam
       samtools sort -@ ${task.cpus} -o merged.bam merged_initial.bam
       samtools index merged.bam
+      cp merged.bam merged_2.bam
+      samtools index merged_2.bam
     fi
     """
 }

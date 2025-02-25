@@ -42,6 +42,7 @@ process filtering_nanopore {
 
     output:
     tuple val(sampleId), path('to_classical_masking.bam'), path('to_classical_masking.bam.bai'), path("ref_genome.fasta"), path("primers.bed"), val(QC_status), emit: to_normal_masking
+    tuple val(sampleId), path('to_classical_masking.bam'), path('to_classical_masking.bam.bai'), emit: only_bam
     tuple val(sampleId), path('Primer_usage.txt'), emit: json
     script:
     """
