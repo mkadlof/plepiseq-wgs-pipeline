@@ -55,7 +55,8 @@ process medaka_second_round {
 
       cat genome.fasta | awk '{if (substr(\$0, 1, 1)==">") { new_name=\$0; gsub("\\\\.", "_", new_name); gsub("/", "_", new_name);  filename=("reference_"substr(new_name,2) ".fasta"); print \$0 >> filename } else {print toupper(\$0)  >> filename}}'
 
-      MEDAKA_MODEL=`echo ${params.medaka_model} | sed s'/_variant//'g` # remove _variant form base medaka model
+      # MEDAKA_MODEL=`echo ${params.medaka_model} | sed s'/_variant//'g` # remove _variant form base medaka model
+      MEDAKA_MODEL=`echo ${params.medaka_model}` # Wersja do testow z uzywaniem tego samego modelu
       WSZYSTKIE_CHR=()
       # LONG_CHR lista segmentow ktorych dlugosc wynosi ponad 1000
       # Dla nich wartosc --chunk_len i --chunk_ovlp jest mnozona * 2
