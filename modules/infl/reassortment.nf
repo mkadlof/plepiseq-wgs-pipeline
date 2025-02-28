@@ -157,7 +157,7 @@ process reassortment {
             # from "best" subtype and avarage coverage predicted for segment from "best" subtype is at least 150% 
             # of minimum coverage
             
-            if awk "BEGIN {exit !(\${SEGMENT_alignment_score} < 0.9 && \${RATIO} < 0.6 && \${SEGMENT_best_counts} >= (${params.min_cov} * 1.5))}"; then
+            if awk "BEGIN {exit !(\${SEGMENT_alignment_score} < 0.9 && \${RATIO} < 0.6 && \${SEGMENT_best_counts} >= (${params.min_cov} * 1.1))}"; then
               # echo "Reassortment detected for the segment \${segment}: \${REF_GENOME_ID} -> \${SEGMENT_best}\tAverage coverage is \${SEGMENT_best_counts}"
 
               cat regular_\${SEGMENT_best}_chr?_\${segment}.fasta >> hybrid_genome.fasta
