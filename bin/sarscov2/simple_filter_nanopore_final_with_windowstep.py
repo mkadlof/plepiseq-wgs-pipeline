@@ -832,7 +832,7 @@ if __name__ == '__main__':
     mapq = int(sys.argv[6])
     extra_bed_offset = int(sys.argv[7])
     cap_smieci=int(sys.argv[8])  # cap na smieci czyli ready nie obejmujace dwoch primerow
-    windos_size = int(sys.argv[8])
+    windos_size = int(sys.argv[9])
     statystyki = open('Statystyki.txt', 'w')
 
     #1 Slownik z ampikonami i uzyciami amplkionow
