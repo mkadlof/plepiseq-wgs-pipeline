@@ -106,7 +106,7 @@ process medaka_second_round {
 
       QUAL=`echo ${params.second_round_pval} | awk '{print int(10*-log(\$1)/log(10))}'` 
 
-      bcftools filter -O z -o medaka_annotated_filtered.vcf.gz -i "GQ > \${QUAL} && DP >= ${params.min_cov}" medaka_annotated.vcf.gz
+      bcftools filter -O z -o medaka_annotated_filtered.vcf.gz -i "GQ >= \${QUAL} && DP >= ${params.min_cov}" medaka_annotated.vcf.gz
       tabix medaka_annotated_filtered.vcf.gz
 
     fi
