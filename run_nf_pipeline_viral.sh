@@ -488,7 +488,7 @@ elif [[ "$machine" == "Nanopore" ]]; then
         [[ -z "${mask}" ]] && mask=50
         [[ -z "${quality_snp}" ]] && quality_snp=5
         [[ -z "${pval}" ]] && pval=0.05
-	[[ -z "${first_round_pval}" ]] && first_round_pval=0.25
+	[[ -z "${first_round_pval}" ]] && first_round_pval=0.05
 	[[ -z "${second_round_pval}" ]] && second_round_pval=0.05
         [[ -z "${lower_ambig}" ]] && lower_ambig=0.45
         [[ -z "${upper_ambig}" ]] && upper_ambig=0.55

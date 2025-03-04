@@ -42,6 +42,7 @@ process filtering_nanopore {
 
     output:
     tuple val(sampleId), path('to_classical_masking.bam'), path('to_classical_masking.bam.bai'), path("ref_genome.fasta"), path("primers.bed"), val(QC_status), emit: to_normal_masking
+    tuple val(sampleId), path('to_classical_masking.bam'), path('to_classical_masking.bam.bai'), emit: only_bam
     tuple val(sampleId), path('Primer_usage.txt'), emit: json
     script:
     """
@@ -52,7 +53,7 @@ process filtering_nanopore {
       QC_exit="nie"
     else
       MASKING_CAP=`echo "${params.mask} + 10" | bc -l` #  do jakiej maksymalnej warotosci podbijac coverage w regionach w ktorych brakowalo oczekiwanych jedno-amplikonowych odczytow
-      ALIGNMENT_LENGTH_MAX=1.2 # Ten parametr mowi ze odczyt moze miec 120% slugosci jego alignmentu z sekwencja referencyjna
+      ALIGNMENT_LENGTH_MAX=1.2 # Ten parametr mowi ze odczyt moze miec 120% dlugosci jego alignmentu z sekwencja referencna
       ALIGNMENT_LENGTH_MIN=0.49 # Ten parametr mowi ze dlugosc regionu mapujacego sie na genom musi stanowic co najmniej 49% dlugosci odczytu 
       # Oba parametry pozwalaja nam odfiltrowac odczyty niepewne na podstawie jaka ich czesc mapuje sie na referencje
       # Odrzucamy zarowno odczyty bardzo dlugie, ktore mapuja sie tylko fragmentarczynie na referencje
