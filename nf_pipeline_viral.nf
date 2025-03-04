@@ -323,7 +323,7 @@ include { json_aggregator_influenza_nanopore } from "${modules}/common/json_aggr
 
 
 // Main workflow
-workflow{
+workflow {
 
   if(params.machine == 'Illumina') {
     Channel
@@ -535,7 +535,7 @@ workflow{
   // Alphafold under local and slurm executors 
   if ( workflow.profile == "slurm" ) {
       alphafold_out = alphafold_slurm(delayed_alphafold)
-  else if ( workflow.profile == "local" ) {
+  } else if ( workflow.profile == "local" ) {
       alphafold_out = alphafold(delayed_alphafold)
   }
   
