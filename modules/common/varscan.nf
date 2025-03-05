@@ -18,7 +18,7 @@ process varScan {
       touch detected_variants_varscan.txt
     else
       # in case of SARS overlaping amplicons can have coverage twice params.max_depth so we adjust samtools accordingly
-      MAX_DEPTH=`echo ${params.max_depth} | awk '{print int(\$0 * 1)}'` 
+      MAX_DEPTH=`echo ${params.max_depth} | awk '{print int(\$0 * 1.1)}'` 
       samtools mpileup -B --max-depth \${MAX_DEPTH} \
                           --fasta-ref ${ref_genome} \
                           --min-BQ ${params.quality_snp} \
