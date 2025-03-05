@@ -3694,8 +3694,9 @@ run_sistr_out = run_sistr(final_assembly_with_species)
 
 // Alphafold
 if ( workflow.profile == "slurm" ) {
-    alphafold_out = run_alphafold_slurm(delayed_alphafold)
+    alphafold_out = run_alphafold_slurm(prokka_out)
 } else if ( workflow.profile == "local" ) {
+    delayed_alphafold = prokka_out.map {it -> sleep(20000); it}
     alphafold_out = run_alphafold(delayed_alphafold)
 }
 
