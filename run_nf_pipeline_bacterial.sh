@@ -228,7 +228,7 @@ done
 
 
 # Validate if all required parameters are set by a user
-if [[ -z "$machine" || -z "$reads" || ]]; then
+if [[ -z "$machine" || -z "$reads" ]]; then
     echo "Error: Missing required parameters."
     usage
     exit 1
