@@ -95,7 +95,7 @@ show_all_parameters() {
 # Parse command-line options using GNU getopt
 OPTS=$(getopt -o h --long projectDir:,profile:,external_databases_path:,results_dir:,main_image:,prokka_image:,alphafold_image:,threads:,machine:,reads:,genus:,quality:,min_number_of_reads:,min_median_quality:,main_genus_value:,kmerfinder_coverage:,main_species_coverage:,min_genome_length:,unique_loci:,contig_number:,L50:,final_coverage:,min_coverage_ratio:,min_coverage_value:,model_medaka:,all,help -- "$@")
 
-eval set -- "$OPTIONS"
+eval set -- "$OPTS"
 
 if [[ $# -eq 1 ]]; then
     echo "No parameters provided"
