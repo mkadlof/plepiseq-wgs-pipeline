@@ -3695,7 +3695,7 @@ run_sistr_out = run_sistr(final_assembly_with_species)
 // Alphafold
 if ( workflow.profile == "slurm" ) {
     alphafold_out = run_alphafold_slurm(delayed_alphafold)
-else if ( workflow.profile == "local" ) {
+} else if ( workflow.profile == "local" ) {
     alphafold_out = run_alphafold(delayed_alphafold)
 }
 
