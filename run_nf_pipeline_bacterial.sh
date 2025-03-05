@@ -285,7 +285,7 @@ fi
 # TO DO
 
 echo "Running the bacterial pipeline..."
-nextflow run ${projectDir}/nf_pipeline_bacteria.nf \
+nextflow run ${projectDir}/nf_pipeline_bacterial.nf \
 	     --genus ${genus} \
 	     --reads "${reads}" \
 	     --machine ${machine} \
