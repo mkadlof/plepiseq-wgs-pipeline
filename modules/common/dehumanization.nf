@@ -58,6 +58,7 @@ process dehumanization_nanopore {
     input:
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), val(QC_status), path(reads)
     cpus 1
+    memory "20 GB"
     output:
     tuple val(sampleId), path("*nohuman.fastq.gz"), emit: to_pubdir
     tuple val(sampleId), path('dehumanized.json'), emit: json
