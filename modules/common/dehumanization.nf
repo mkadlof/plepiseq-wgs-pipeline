@@ -2,6 +2,7 @@ process dehumanization_illumina  {
     tag "dehumanization:${sampleId}"
     publishDir "${params.results_dir}/${sampleId}", mode: 'copy', pattern: "${sampleId}*nohuman.fastq.gz"
     container  = params.main_image
+    memory "20 GB"
     cpus 1
     input:
     tuple val(sampleId), path('mapped_reads.bam'), path('mapped_reads.bam.bai'), val(QC_status), path(reads)
