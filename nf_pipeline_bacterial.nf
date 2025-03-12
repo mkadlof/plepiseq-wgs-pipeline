@@ -75,11 +75,11 @@ process run_fastqc_illumina {
     ERROR_MSG=""
   fi
    
-  DANE_FORWARD=(`python /opt/docker/EToKi/externals/run_fastqc_and_generate_json.py -i ${reads[0]} -m 8096 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e pre-filtering -p "pipeline_wyniki/${x}/QC" -o forward.json`)
+  DANE_FORWARD=(`python /opt/docker/EToKi/externals/run_fastqc_and_generate_json.py -i ${reads[0]} -m 8096 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e pre-filtering -p "${params.results_dir}/${x}/QC" -o forward.json`)
   STATUS_FORWARD_ALL="\${DANE_FORWARD[0]}"
   BASES_FORWARD="\${DANE_FORWARD[1]}"
 
-  DANE_REVERSE=(`python /opt/docker/EToKi/externals/run_fastqc_and_generate_json.py -i ${reads[1]} -m 8096 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e pre-filtering -p "pipeline_wyniki/${x}/QC" -o reverse.json`)
+  DANE_REVERSE=(`python /opt/docker/EToKi/externals/run_fastqc_and_generate_json.py -i ${reads[1]} -m 8096 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e pre-filtering -p "${params.results_dir}/${x}/QC" -o reverse.json`)
   STATUS_REVERSE_ALL="\${DANE_REVERSE[0]}"
   BASES_REVERSE="\${DANE_REVERSE[1]}"
  
@@ -120,7 +120,7 @@ process run_fastqc_nanopore {
     ERROR_MSG=""
   fi
  
-  DANE_FORWARD=(`python /opt/docker/EToKi/externals/run_fastqc_and_generate_json.py -i ${reads} -m 8096 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e pre-filtering -p "pipeline_wyniki/${x}/QC" -o forward.json`)
+  DANE_FORWARD=(`python /opt/docker/EToKi/externals/run_fastqc_and_generate_json.py -i ${reads} -m 8096 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e pre-filtering -p "${params.results_dir}/${x}/QC" -o forward.json`)
   STATUS_FORWARD="\${DANE_FORWARD[0]}"
   TOTAL_BASES="\${DANE_FORWARD[1]}"
 
@@ -2010,7 +2010,7 @@ with open('parsed_phiercc_enterobase.txt') as f1, open('enterobase.json', 'w') a
 
     to_dump = {"hiercc_clustering_external_data" : list_withphiercc_to_dump,
                "external_historical_data" : [{"level" : phiercc_level_userdefined,
-                                            "data_file" : "pipeline_wyniki/${x}/enterobase_historical_data.txt"}]}
+                                            "data_file" : "${params.results_dir}/${x}/enterobase_historical_data.txt"}]}
     f2.write(json.dumps(to_dump))
 """
 }
@@ -2159,7 +2159,7 @@ with open('parsed_phiercc_pubmlst.txt') as f1, open('pubmlst.json', 'w') as f2:
 
     to_dump = {"hiercc_clustering_external_data" : list_withphiercc_to_dump,
                "external_historical_data" : [{"level" : phiercc_level_userdefined,
-               "data_file" : "pipeline_wyniki/${x}/pubmlst_historical_data.txt"}]}
+               "data_file" : "${params.results_dir}/${x}/pubmlst_historical_data.txt"}]}
     f2.write(json.dumps(to_dump))
 """
 }
@@ -2769,7 +2769,7 @@ else:
     records = SeqIO.parse(fasta_file, "fasta")
     for record in records:
         tmp_list.append({"segment_name" : record.id,
-                         "segment_file" : "pipeline_wyniki/${x}/fastas/" + f"{record.id}.fasta"})
+                         "segment_file" : "${params.results_dir}/${x}/fastas/" + f"{record.id}.fasta"})
         with open(f"{record.id}.fasta", "w") as f:
             f.write(f">{record.id}\\n{str(record.seq)}")
 
