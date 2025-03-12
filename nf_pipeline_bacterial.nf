@@ -2346,7 +2346,7 @@ process run_alphafold {
         run_alpfafold_mer gyrase_complex.fasta wyniki
         protein_name="Gyrase"
         cp wyniki/gyrase_complex/relaxed_model_1_multimer_v3_pred_*pdb ${x}_gyrase_complex.pdb
-        pdb_path="${params.results_dir}/${x}/{x}_gyrase_complex.pdb"
+        pdb_path="${params.results_dir}/${x}/${x}_gyrase_complex.pdb"
         echo -e "{\\"status\\":\\"tak\\",
                   \\"protein_structure_data\\":[{\\"protein_name\\":\\"\${protein_name}\\",
                                                  \\"pdb_file\\":\\"\${pdb_path}\\"
@@ -2441,7 +2441,7 @@ process run_alphafold_slurm {
         run_alpfafold_mer gyrase_complex.fasta wyniki
         protein_name="Gyrase"
         cp wyniki/gyrase_complex/relaxed_model_1_multimer_v3_pred_*pdb ${x}_gyrase_complex.pdb
-        pdb_path="${params.results_dir}/${x}/{x}_gyrase_complex.pdb"
+        pdb_path="${params.results_dir}/${x}/${x}_gyrase_complex.pdb"
         echo -e "{\\"status\\":\\"tak\\",
                   \\"protein_structure_data\\":[{\\"protein_name\\":\\"\${protein_name}\\",
                                                  \\"pdb_file\\":\\"\${pdb_path}\\"
