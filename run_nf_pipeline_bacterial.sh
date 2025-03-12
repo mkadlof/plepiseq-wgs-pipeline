@@ -309,6 +309,5 @@ nextflow run ${projectDir}/nf_pipeline_bacterial.nf \
 	     --L50 ${L50} \
 	     --final_coverage ${final_coverage} \
 	     --model_medaka ${model_medaka} \
-	     -with-trace \
-	     -resume \
-	     -profile ${profile}
+	     -profile ${profile} \
+	     -with-trace
