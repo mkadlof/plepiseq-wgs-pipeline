@@ -63,10 +63,8 @@ if __name__ == '__main__':
         target = aln[target_name]
         ref = aln[ref_name]
         for i in range(len(ref)):
-            if target[i] == '-' and ref[i].lower() == 'n':
+            if target[i].upper() == 'X':
                 sekwencja_with_n += '-'
-            elif target[i] == '-' and ref[i].lower() != 'n':
-                sekwencja_with_n += ref[i].upper()
             else:
                 sekwencja_with_n += ref[i].upper()
         sekwencja_with_n = ''.join([element for element in sekwencja_with_n if element != '-'])

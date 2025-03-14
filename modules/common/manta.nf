@@ -95,7 +95,7 @@ process introduce_SV_with_manta {
 
             if [ \${ILE_SV} -gt 0 ]; then
               # MAnta produced at least one  valid SV we must integrate them into input fasta
-              cat reference_\${segment_clean}.fasta | bcftools consensus -s - manta_results_\${segment_clean}.vcf.gz  > output_manta_\${segment_clean}.fa
+              cat reference_\${segment_clean}.fasta | bcftools consensus --mark-del X -s - manta_results_\${segment_clean}.vcf.gz  > output_manta_\${segment_clean}.fa
               # add _manta do fasta header for manta
               HEADER=`head -1 output_manta_\${segment_clean}.fa`
               sed -i s"|\${HEADER}|\${HEADER}_manta|"g output_manta_\${segment_clean}.fa
