@@ -38,7 +38,7 @@ process snpEff_nanopore {
 	
 	# For influenza 5' and 3' end are sometimes not properly aligned with N-containing sample sequence
 	# So even in reference we mask 12 terminal nt. This is a TEMPORAL workaround
-        cat sequences.fa | grep ">" | awk '{print substr($0,2), 0, 12}' | tr " " "\t" >> bed.bed
+        cat sequences.fa | grep ">" | awk '{print substr(\$0,2), 0, 12}' | tr " " "\t" >> bed.bed
         bedtools maskfasta -fi sequences.fa -bed bed.bed -fo tmp.fasta
 	mv tmp.fasta sequences.fa
         
