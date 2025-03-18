@@ -35,6 +35,13 @@ process snpEff_nanopore {
         cp genes.gtf /opt/snpEff/data/hybrid/
         java -jar /opt/snpEff/snpEff.jar build -noCheckCds -noCheckProtein -gtf22 -v hybrid
         snp_eff="hybrid"
+	
+	# For influenza 5' and 3' end are sometimes not properly aligned with N-containing sample sequence
+	# So even in reference we mask 12 terminal nt. This is a TEMPORAL workaround
+        cat sequences.fa | grep ">" | awk '{print substr($0,2), 0, 12}' | tr " " "\t" >> bed.bed
+        bedtools maskfasta -fi sequences.fa -bed bed.bed -fo tmp.fasta
+	mv tmp.fasta sequences.fa
+        
       fi
 
         java -jar /opt/snpEff/snpEff.jar ann -noStats \${snp_eff} ${consensus_vcf_gz} > detected_variants_consensus_annotated.vcf
