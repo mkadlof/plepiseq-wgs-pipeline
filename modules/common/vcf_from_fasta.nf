@@ -22,6 +22,14 @@ process vcf_from_fasta {
       touch genes.gtf
     else
 
+      if  [ ${params.species} == "Influenza" ]; then
+        #  For influenza 5' and 3' end are sometimes not properly aligned with N-containing sample sequence
+        #  So even in reference we mask 12 terminal nt. This is a TEMPORAL workaround
+        cat sequences.fa | grep ">" | awk '{print substr(\$0,2), 0, 12}' | tr " " "\t" >> bed.bed
+        bedtools maskfasta -fi sequences.fa -bed bed.bed -fo tmp.fasta
+        mv tmp.fasta sequences.fa
+      fi
+
       GENOME_FASTA="sequences.fa"
  
       cat \${GENOME_FASTA} | awk '{if (substr(\$0, 1, 1)==">") { new_name=\$0; gsub("\\\\.", "_", new_name); gsub("/", "_", new_name);  filename=("reference_"substr(new_name,2) ".fasta"); print \$0 >> filename } else {print toupper(\$0)  >> filename}}'
