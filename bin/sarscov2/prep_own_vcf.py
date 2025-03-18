@@ -14,7 +14,38 @@ from typing import Dict
 import numpy as np
 import vcf
 from iranges import IRanges
+from minineedle import needle, core
+import miniseq
 
+def align_fasta_nw(fasta1_file: str, *args, **kwargs) -> Dict:
+    fasta1_file = [os.path.abspath(fasta1_file)]
+    stan1 = os.path.isfile(fasta1_file[0])
+    if not stan1:
+        raise Exception('Nie podano poprawnej sciezki do pliku!')
+    if len(args) > 0:
+        fasta1_file.extend([os.path.abspath(x) for x in args])
+        stan2 = np.all([os.path.isfile(plik) for plik in fasta1_file])
+        if not stan2:
+            raise Exception('Podane dodatkowe pliki nie istnieja')
+
+    with open('tmp.fasta', 'w') as f:
+        for plik in fasta1_file:
+            with open(plik, 'r') as f1:
+                for line in f1:
+                    f.write(line)
+
+    slownik_alignmentu = {}
+    fasta = miniseq.FASTA(filename="tmp.fasta")
+    seq1, seq2 = fasta[0], fasta[1]
+    alignment1: needle.NeedlemanWunsch[str] = needle.NeedlemanWunsch(seq1, seq2)
+    alignment1.align()
+    al1, al2 = alignment1.get_aligned_sequences(core.AlignmentFormat.str)
+    slownik_alignmentu[f'>{seq1.get_identifier()}'] = al1
+    slownik_alignmentu[f'>{seq2.get_identifier()}'] = al2
+
+    os.remove('tmp.fasta')
+
+    return slownik_alignmentu
 
 def align_fasta_muscle(fasta1_file: str, *args, **kwargs) -> Dict:
     """
@@ -34,7 +65,7 @@ def align_fasta_muscle(fasta1_file: str, *args, **kwargs) -> Dict:
         raise Exception('Nie podano poprawnej sciezki do pliku!')
     if len(args) > 0:
         fasta1_file.extend([os.path.abspath(x) for x in args])
-        stan2 = np.alltrue([os.path.isfile(plik) for plik in fasta1_file])
+        stan2 = np.all([os.path.isfile(plik) for plik in fasta1_file])
         if not stan2:
             raise Exception('Podane dodatkowe pliki nie istnieja')
 
@@ -202,8 +233,10 @@ if __name__ == '__main__':
     vcf_template = sys.argv[4]
     vcf_output = sys.argv[5]
 
-    # uliniawianie sekwencji referencyjnej i "konsensusowej"
-    slownik_alignmentu = align_fasta_muscle(sekwencja_referencji, sekwencja_targetu)
+    #  uliniawianie sekwencji referencyjnej i "konsensusowej"
+    #  slownik_alignmentu = align_fasta_muscle(sekwencja_referencji, sekwencja_targetu)
+
+    slownik_alignmentu = align_fasta_nw(sekwencja_referencji, sekwencja_targetu)
 
     nazwa_referencji = open(sekwencja_referencji).readlines()[0].strip()
     nazwa_targetu = open(sekwencja_targetu).readlines()[0].strip()
