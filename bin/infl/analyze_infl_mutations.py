@@ -603,6 +603,7 @@ def main_program(status, output_json, input_fasta, subtype, sample_name, data_pa
                 zanamivir_json = prepare_json_for_drug(drug_name="Zanamivir",
                                                        drug_status=status_zana,
                                                        mutation_slownik_mutacji_ref=slownik_mutacji_NA_opornosc_zana,
+                                                       ref_N2_lookup_local=ref_N2_lookup,
                                                        ref_target_lookup_local=ref_target_lookup)
 
                 peramivir_json = prepare_json_for_drug(drug_name="Peramivir",
@@ -662,14 +663,31 @@ def main_program(status, output_json, input_fasta, subtype, sample_name, data_pa
                                                            drug_status=status_balo,
                                                            mutation_slownik_mutacji_ref=lista_mutacji_PA_opornosc_balo,
                                                            ref_target_lookup_local=ref_target_lookup)
+        else:
+            error_msg_PA = "Available only for H1N1, H3N2, Yamagata, and Victoria subtype"
 
-        if len(error_msg_NA) > 0 and len(error_msg_PA) > 0:
-            # dla obu bialek tego sample'a byl jaks blad
+        resistance_data_to_json = []
+        if len(error_msg_NA) > 0 and  len(error_msg_PA) > 0:
             json_output = {"resistance_status": "blad",
                            "resistance_error_message": f'{error_msg_NA}\t{error_msg_PA}'}
+        elif len(error_msg_NA) > 0 and len(error_msg_PA) == 0:
+            if len(list(baloxavir_json.keys())) > 0:
+                resistance_data_to_json.append(baloxavir_json)
+                json_output = {"resistance_status": "tak",
+                               "resistance_data": resistance_data_to_json}
+            else:
+                json_output = {"resistance_status": "blad",
+                               "resistance_error_message": f'TBD'}
+        elif len(error_msg_PA) > 0 and len(error_msg_NA) == 0:
+
+            resistance_data_to_json.append(oseltamivir_json)
+            resistance_data_to_json.append(zanamivir_json)
+            resistance_data_to_json.append(peramivir_json)
+            resistance_data_to_json.append(laninamivir_json)
+            json_output = {"resistance_status": "tak",
+                           "resistance_data": resistance_data_to_json}
         else:
 
-            resistance_data_to_json = []
             resistance_data_to_json.append(oseltamivir_json)
             resistance_data_to_json.append(zanamivir_json)
             resistance_data_to_json.append(peramivir_json)
@@ -679,11 +697,10 @@ def main_program(status, output_json, input_fasta, subtype, sample_name, data_pa
 
             json_output = {"resistance_status": "tak",
                            "resistance_data": resistance_data_to_json}
+
         with open(output_json, 'w') as f1:
             f1.write(json.dumps(json_output, indent=4))
         return True
-
-
 
 
 if __name__ == '__main__':
