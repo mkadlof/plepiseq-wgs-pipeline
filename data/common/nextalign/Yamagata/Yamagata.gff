@@ -7,4 +7,4 @@ chr6_NA	.	gene	53	1453	.	+	.	gene_name=NA; gene_id=NA
 chr7_MP	.	gene	25	771	.	+	.	gene_name=MP; gene_id=MP
 chr8_NS	.	gene	44	889	.	+	.	gene_name=NS; gene_id=NS
 chr7_MP	.	exon	771	1100	.	+	.	exon_name=M2_1
-chrX_M2	.	gene	1       330	.	+	.	gene_name=M2
+chrX_M2	.	gene	1	330	.	+	.	gene_name=M2
