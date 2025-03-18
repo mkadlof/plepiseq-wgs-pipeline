@@ -103,6 +103,11 @@ process reassortment {
 
         SEGMENT_best_counts=`cat subtype_mean_coverage_each_segment.txt | sort -rnk\${SEGMENT_POS_COUNTS} | head -1 | cut -f\${SEGMENT_POS_COUNTS}`
         FOUND_SUBTYPES_COUNTS+=(\${SEGMENT_best_counts})
+	
+	# In case a given segment has only 0 as a score "id" becomes the best segment
+        if [ \${SEGMENT_best} == "id" ]; then
+            SEGMENT_best="\${REF_GENOME_ID}"
+        fi
 
         if [ \${SEGMENT_best} == \${REF_GENOME_ID} ]; then
             # I am not doing anything, subtype which segment obtained highest mapping scor

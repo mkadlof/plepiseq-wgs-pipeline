@@ -94,7 +94,7 @@ except:
     artic_vcf_reader = vcf.Reader(filename=spare)
     for record in artic_vcf_reader:
         CallDataTuple = vcf.model.make_calldata_tuple(['GT', 'GQ'])
-        record.samples=[vcf.model._Call(sample='SAMPLE', site=record.genotype('SAMPLE').site, data=CallDataTuple('100','100'))]
+        record.samples=[vcf.model._Call(sample='SAMPLE', site=record.genotype('SAMPLE').site, data=CallDataTuple('1','100'))]
         record.INFO['DP'] = 100
         break
 
