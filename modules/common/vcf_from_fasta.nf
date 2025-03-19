@@ -47,7 +47,7 @@ process vcf_from_fasta {
       done
       # na koniec concatujmey wszystkie vcf-y
      
-      bcftools concat \${LISTA_VCF[@]}| bcftools sort --output-type z > ${sampleId}_final.vcf.gz
+      bcftools concat -a \${LISTA_VCF[@]}| bcftools sort --output-type z > ${sampleId}_final.vcf.gz
       tabix ${sampleId}_final.vcf.gz
    fi
    """

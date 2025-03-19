@@ -50,9 +50,9 @@ process freeBayes {
       bgzip --force detected_variants_freebayes_fix_ambig.vcf
       tabix detected_variants_freebayes_fix_ambig.vcf.gz
 
-      bcftools concat detected_variants_freebayes_fix_high.vcf.gz \
-                      detected_variants_freebayes_fix_ambig.vcf.gz | \
-                      bcftools sort --output-type z > detected_variants_freebayes_final.vcf.gz
+      bcftools concat -a detected_variants_freebayes_fix_high.vcf.gz \
+                         detected_variants_freebayes_fix_ambig.vcf.gz | \
+                         bcftools sort --output-type z > detected_variants_freebayes_final.vcf.gz
     
        tabix detected_variants_freebayes_final.vcf.gz
 
