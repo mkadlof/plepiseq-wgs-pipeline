@@ -185,7 +185,7 @@ process kraken2_nanopore {
             json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s blad -m "\${ERR_MSG}" -o contaminations.json
 
         else
-            FINAL_GENUS="${EXPECTED_GENUS}"
+            FINAL_GENUS="\${EXPECTED_GENUS}"
             QC_status_contaminations="tak"
             json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s tak -o contaminations.json
 
