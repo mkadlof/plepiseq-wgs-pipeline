@@ -45,15 +45,12 @@ params.results_dir = ""
 // // All species-relevant variables, for now only expected genus for kraken2. Furthermore if a user provides a wrong species the pipeline will not execute
 
 if ( params.species  == 'SARS-CoV-2' ) {
-genus="Betacoronavirus"
 params.max_number_for_SV = 200000 
 } else if (params.species  == 'Influenza') {
-genus="Alphainfluenzavirus"
 params.variant = "UNK"
 params.max_number_for_SV = 10000
 // Betainfluenzavirus for B/ kraken2 for now only undestands one genus
 } else if (params.species  == 'RSV') {
-genus="Orthopneumovirus"
 params.max_number_for_SV = 100000
 } else {
   println("Incorrect species, avalable options are : SARS-CoV-2, RSV or Influenza")
@@ -337,7 +334,7 @@ workflow {
 
     // Running kraken2 prediction
     reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
-    kraken2_out = kraken2_illumina(reads_and_qc, genus)
+    kraken2_out = kraken2_illumina(reads_and_qc)
     trimmomatic_out = trimmomatic(reads.join(kraken2_out.qcstatus_only, by:0))
     fastqc_filtered_out = fastqc_2(trimmomatic_out.proper_reads_and_qc, "post-filtering")
     final_reads_and_final_qc = trimmomatic_out.proper_reads.join(fastqc_filtered_out.qcstatus, by:0)
@@ -413,7 +410,7 @@ workflow {
         fastqc_initial_out = run_fastqc_nanopore_1(reads, "pre-filtering")
 
         reads_and_qc = reads.join(fastqc_initial_out.qcstatus)
-        kraken2_out = kraken2_nanopore(reads_and_qc, genus)
+        kraken2_out = kraken2_nanopore(reads_and_qc)
         final_reads_and_final_qc = reads.join(kraken2_out.qcstatus_only, by:0)
         
 
