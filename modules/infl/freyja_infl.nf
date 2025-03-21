@@ -49,7 +49,7 @@ process freyja_infl {
            samtools index mapped_reads.bam
          fi
 
-	 MEAN_DEPTHS=`samtools depth -aa mapped_reads.bam | awk '{sum+=\$3} END { print sum/NR}'` 
+	 MEAN_DEPTHS=`samtools depth -aa mapped_reads.bam | awk '{sum+=\$3} END { print int(sum/NR)}'` 
          # We call variants with freyja
          if [ \${MEAN_DEPTHS} -gt 20 ]; then
            freyja variants mapped_reads.bam --minq ${params.freyja_minq} --variants variants_files/test.variants.tsv --depths depth_files/test.depth --ref reference.fasta
