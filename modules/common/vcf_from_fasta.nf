@@ -2,7 +2,7 @@ process vcf_from_fasta {
     tag "vcf_from_fasta:${sampleId}"
     container  = params.main_image
     cpus 1
-    memory "20 GB"
+    memory "50 GB"
     // publishDir "${params.results_dir}/${sampleId}/consensus_vcf", mode: 'copy', pattern: "*vcf*"
 
     input:
