@@ -15,7 +15,6 @@ process kraken2_illumina {
 
     input:
     tuple val(sampleId), path(reads), val(QC_STATUS)
-    val(EXPECTED_GENUS)
 
     output:
     tuple val(sampleId), path('contaminations.json'), emit: json
@@ -57,21 +56,40 @@ process kraken2_illumina {
         echo -e "${sampleId}\t\${SPEC1}\${SPEC1_ILE}%\t\${SPEC2}\${SPEC2_ILE}%" >> Summary_kraken_species.txt
         # Extract number of reads associated with expected genus to check if the number of reads is greater than params
         # and return failed QC if sample does not meet this criterion
-        GENUS_EXPECTED_ILE=`cat report_kraken2.txt | grep -w G |  grep "${EXPECTED_GENUS}" | tr -s " " | cut -f1 | tr -d " " | awk '{print int(\$1)}'`
+       
+	GENUS_EXPECTED_ILE=0 
+        if [ ${params.species} == "RSV" ]; then
+                EXPECTED_GENUS="Orthopneumovirus"
+		GENUS_EXPECTED_ILE=`cat report_kraken2.txt | grep -w G |  grep "\${EXPECTED_GENUS}" | tr -s " " | cut -f1 | tr -d " " | awk '{print int(\$1)}'`
+        elif [ ${params.species} == "SARS-CoV-2" ]; then
+                EXPECTED_GENUS="Betacoronavirus"
+		GENUS_EXPECTED_ILE=`cat report_kraken2.txt | grep -w G |  grep "\${EXPECTED_GENUS}" | tr -s " " | cut -f1 | tr -d " " | awk '{print int(\$1)}'`
+        elif [ ${params.species} == "Influenza" ]; then
+                EXPECTED_GENUS_1="Alphainfluenzavirus"
+                EXPECTED_GENUS_2="Betainfluenzavirus"
+		GENUS1_EXPECTED_ILE=0
+		GENUS2_EXPECTED_ILE=0
 
-        if [ -z \${GENUS_EXPECTED_ILE} ]; then
-          GENUS_EXPECTED_ILE=0
+                GENUS1_EXPECTED_ILE=`cat report_kraken2.txt | grep -w G |  grep "\${EXPECTED_GENUS_1}" | tr -s " " | cut -f1 | tr -d " " | awk '{print int(\$1)}'`
+		GENUS2_EXPECTED_ILE=`cat report_kraken2.txt | grep -w G |  grep "\${EXPECTED_GENUS_2}" | tr -s " " | cut -f1 | tr -d " " | awk '{print int(\$1)}'`
+		if [ \${GENUS1_EXPECTED_ILE} -ge \${GENUS2_EXPECTED_ILE} ]; then
+			GENUS_EXPECTED_ILE="\${GENUS1_EXPECTED_ILE}"
+			EXPECTED_GENUS="\${EXPECTED_GENUS_1}"
+		else
+			GENUS_EXPECTED_ILE="\${GENUS2_EXPECTED_ILE}"
+			EXPECTED_GENUS="\${EXPECTED_GENUS_2}"
+		fi
         fi
 
         # This section introducec criteria to switch from "tak" to "nie" in this module
         # all downstream modules will not execute and produce dummy values
         if [ \${GENUS_EXPECTED_ILE} -lt ${params.expected_genus_value} ]; then
             QC_status_contaminations="nie"
-            FINAL_GENUS="${EXPECTED_GENUS}"
+            FINAL_GENUS="unk"
             ERR_MSG="Number of reads associated with the expected genus is below threshold set to: ${params.expected_genus_value} %"
             json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s blad -m "\${ERR_MSG}" -o contaminations.json
         else
-            FINAL_GENUS="unknown"
+            FINAL_GENUS="\${EXPECTED_GENUS}"
             QC_status_contaminations="tak"
             json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s tak -o contaminations.json
         fi
@@ -92,7 +110,6 @@ process kraken2_nanopore {
     // publishDir "${params.results_dir}/${sampleId}/json_output", mode: 'copy', pattern: "contaminations.json"
     input:
     tuple val(sampleId), path(reads), val(QC_STATUS)
-    val(EXPECTED_GENUS)
 
     output:
     tuple val(sampleId), path('contaminations.json'), emit: json
@@ -135,11 +152,30 @@ process kraken2_nanopore {
         echo -e "${sampleId}\t\${SPEC1}\${SPEC1_ILE}%\t\${SPEC2}\${SPEC2_ILE}%" >> Summary_kraken_species.txt
         # Extract number of reads associated with expected genus to check if the number of reads is greater than params
         # and return failed QC if sample does not meet this criterion
-        GENUS_EXPECTED_ILE=`cat report_kraken2.txt | grep -w G |  grep "${EXPECTED_GENUS}" | tr -s " " | cut -f1 | tr -d " " | awk '{print int(\$1)}'`
+        
+	GENUS_EXPECTED_ILE=0
+        if [ ${params.species} == "RSV" ]; then
+                EXPECTED_GENUS="Orthopneumovirus"
+                GENUS_EXPECTED_ILE=`cat report_kraken2.txt | grep -w G |  grep "\${EXPECTED_GENUS}" | tr -s " " | cut -f1 | tr -d " " | awk '{print int(\$1)}'`
+        elif [ ${params.species} == "SARS-CoV-2" ]; then
+                EXPECTED_GENUS="Betacoronavirus"
+                GENUS_EXPECTED_ILE=`cat report_kraken2.txt | grep -w G |  grep "\${EXPECTED_GENUS}" | tr -s " " | cut -f1 | tr -d " " | awk '{print int(\$1)}'`
+        elif [ ${params.species} == "Influenza" ]; then
+                EXPECTED_GENUS_1="Alphainfluenzavirus"
+                EXPECTED_GENUS_2="Betainfluenzavirus"
+		GENUS1_EXPECTED_ILE=0
+		GENUS2_EXPECTED_ILE=0
+                GENUS1_EXPECTED_ILE=`cat report_kraken2.txt | grep -w G |  grep "\${EXPECTED_GENUS_1}" | tr -s " " | cut -f1 | tr -d " " | awk '{print int(\$1)}'`
+                GENUS2_EXPECTED_ILE=`cat report_kraken2.txt | grep -w G |  grep "\${EXPECTED_GENUS_2}" | tr -s " " | cut -f1 | tr -d " " | awk '{print int(\$1)}'`
+                if [ \${GENUS1_EXPECTED_ILE} -ge \${GENUS2_EXPECTED_ILE} ]; then
+                        GENUS_EXPECTED_ILE="\${GENUS1_EXPECTED_ILE}"
+                        EXPECTED_GENUS="\${EXPECTED_GENUS_1}"
+                else
+                        GENUS_EXPECTED_ILE="\${GENUS2_EXPECTED_ILE}"
+                        EXPECTED_GENUS="\${EXPECTED_GENUS_2}"
+                fi
+        fi
 
-        if [ -z \${GENUS_EXPECTED_ILE} ]; then
-          GENUS_EXPECTED_ILE=0
-        fi 
         # This section introducec criteria to switch from "tak" to "nie" in this module
         # all downstream modules will not execute and produce dummy values
         if [ \${GENUS_EXPECTED_ILE} -lt ${params.expected_genus_value} ]; then
