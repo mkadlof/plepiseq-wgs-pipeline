@@ -50,11 +50,25 @@ process freeBayes {
       bgzip --force detected_variants_freebayes_fix_ambig.vcf
       tabix detected_variants_freebayes_fix_ambig.vcf.gz
 
-      bcftools concat -a detected_variants_freebayes_fix_high.vcf.gz \
-                         detected_variants_freebayes_fix_ambig.vcf.gz | \
-                         bcftools sort --output-type z > detected_variants_freebayes_final.vcf.gz
-    
-       tabix detected_variants_freebayes_final.vcf.gz
+      # Concat files if they BOTH contain some output
+      FIX_HIGH_LEN=`bcftools view  --no-header detected_variants_freebayes_fix_high.vcf.gz | wc -l`
+      FIX_AMBIG_LEN=`bcftools view  --no-header detected_variants_freebayes_fix_ambig.vcf.gz | wc -l`
+
+      if [[ \${FIX_HIGH_LEN} -gt 0 && \${FIX_AMBIG_LEN} -gt 0 ]]; then
+           bcftools concat -a detected_variants_freebayes_fix_high.vcf.gz \
+                              detected_variants_freebayes_fix_ambig.vcf.gz | \
+                              bcftools sort --output-type z > detected_variants_freebayes_final.vcf.gz
+
+      elif [[ \${FIX_HIGH_LEN} -gt 0 && \${FIX_AMBIG_LEN} -eq 0 ]]; then
+           cp detected_variants_freebayes_fix_high.vcf.gz detected_variants_freebayes_final.vcf.gz
+      elif [[ \${FIX_HIGH_LEN} -eq 0 && \${FIX_AMBIG_LEN} -gt 0 ]]; then
+           cp detected_variants_freebayes_fix_ambig.vcf.gz detected_variants_freebayes_final.vcf.gz
+      else
+           # both files are empty
+           cp detected_variants_freebayes_fix_high.vcf.gz detected_variants_freebayes_final.vcf.gz
+      fi
+
+      tabix detected_variants_freebayes_final.vcf.gz
 
       cat ${ref_genome} | \
           bcftools consensus --mark-del X --samples - \
