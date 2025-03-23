@@ -225,7 +225,6 @@ process reassortment {
       cp /home/data/infl/primers/pairs.tsv .
       QC_exit="tak"
 
-      # ${SEGMENT_alignment_score} < 0.9 && \${RATIO} < 0.6 && \${SEGMENT_best_counts} >= (${params.min_cov} * 1.1
       #json section
       influenza_reassortment_parser.py --status "tak" \
                                         --output reassortment.json \
