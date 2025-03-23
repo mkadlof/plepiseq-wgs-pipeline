@@ -57,7 +57,7 @@ process reassortment {
 
       RATIO_value=0.6 # ratio between mapping scores of a segment selected based on HA/NA and segment from subtype with the higest score must
                       # be lower than 0.6 
-      COVERAGE_value=`echo ${params.min_cov} | awk 'print \${0} * 1.1'` # The mean coverage for segment must be at least 1.1 * min_cov for 
+      COVERAGE_value=`echo ${params.min_cov} | awk 'print \$0 * 1.1'` # The mean coverage for segment must be at least 1.1 * min_cov for 
                                                                         # a segment to be considered as a candidate for a reassortment
                                                                         # avoid reasortment with poor mappings as candidates
 
