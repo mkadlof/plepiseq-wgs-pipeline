@@ -34,7 +34,7 @@ process reassortment {
             fi
         done
     }
-    # REF_GENOME_ID is defined here again, 'cause I am lazy
+    #sREF_GENOME_ID is defined here again, 'cause I am lazy
     if [ ${QC_status} == "nie" ]; then
       touch hybrid_primers.bed
       touch hybrid_genome.fasta
@@ -50,7 +50,18 @@ process reassortment {
                                         --error "\${ERR_MSG}" \
                                         --output reassortment.json
 
-    else 
+    else
+      #  Criteria to change reference reference sequence for a segment from one selected based on HA and NA mappings
+      SEGMENT_alignment_score_value=0.9 # The alignment scores ratio obtained by aligning with NW the sequences od "reference" 
+                                        # and "best" segments and aligning reference sequnce to itself must be lower than that
+
+      RATIO_value=0.6 # ratio between mapping scores of a segment selected based on HA/NA and segment from subtype with the higest score must
+                      # be lower than 0.6 
+      COVERAGE_value=`echo ${params.min_cov} | awk 'print \${0} * 1.1'` # The mean coverage for segment must be at least 1.1 * min_cov for 
+                                                                        # a segment to be considered as a candidate for a reassortment
+                                                                        # avoid reasortment with poor mappings as candidates
+
+ 
       REF_GENOME_ID="${REF_GENOME_ID_entry}"
 
       ALL_GENOMES=(`ls /home/data/infl/genomes`)
@@ -101,14 +112,21 @@ process reassortment {
         # what is the score for this segment if taking a segemnt from  mapped HA/NA?
         SEGMENT_expected_score=`cat subtype_scores_each_segment.txt | grep \${REF_GENOME_ID} | cut -f \${SEGMENT_POS}`
 
+	# what is the mean coverage of a segment with best value 
         SEGMENT_best_counts=`cat subtype_mean_coverage_each_segment.txt | sort -rnk\${SEGMENT_POS_COUNTS} | head -1 | cut -f\${SEGMENT_POS_COUNTS}`
         FOUND_SUBTYPES_COUNTS+=(\${SEGMENT_best_counts})
 	
-	# In case a given segment has only 0 as a score "id" becomes the best segment
+	# In case mapping scores are only 0 for all the tested subtypes
+        # "id" is returned. This is not a valid name for a subtype so
+        # "reference" subtype is selected
+
         if [ \${SEGMENT_best} == "id" ]; then
             SEGMENT_best="\${REF_GENOME_ID}"
         fi
 
+
+	#  Now there are two possibilities subtype with best score is identical to one selected by mapping only to HA/NA
+	#  or an alternative reference subtype is selected for a given segment  
         if [ \${SEGMENT_best} == \${REF_GENOME_ID} ]; then
             # I am not doing anything, subtype which segment obtained highest mapping scor
             # is identical to subtype determined using HA/NA segments only
@@ -134,8 +152,8 @@ process reassortment {
             # remove intermediate files
             rm regular_\${REF_GENOME_ID}_chr*
         else
-            # subtype for which analyzed segment had the highest mapping score
-            # is different from subtype determined based on the HA/NA combination
+            # segment has a higher mapping score to a segment from a subtype
+            # that different from the subtype determined based on the HA/NA mapping
 
             FOUND_SUBTYPES_REASSORTMENT+=(\${SEGMENT_best})
             RATIO=`echo "\${SEGMENT_expected_score} / \${SEGMENT_best_score}" | bc -l`
@@ -162,7 +180,7 @@ process reassortment {
             # from "best" subtype and avarage coverage predicted for segment from "best" subtype is at least 150% 
             # of minimum coverage
             
-            if awk "BEGIN {exit !(\${SEGMENT_alignment_score} < 0.9 && \${RATIO} < 0.6 && \${SEGMENT_best_counts} >= (${params.min_cov} * 1.1))}"; then
+            if awk "BEGIN {exit !(\${SEGMENT_alignment_score} < \${SEGMENT_alignment_score_value} && \${RATIO} < \${RATIO_value} && \${SEGMENT_best_counts} >= \${COVERAGE_value} )}"; then
               # echo "Reassortment detected for the segment \${segment}: \${REF_GENOME_ID} -> \${SEGMENT_best}\tAverage coverage is \${SEGMENT_best_counts}"
 
               cat regular_\${SEGMENT_best}_chr?_\${segment}.fasta >> hybrid_genome.fasta
@@ -207,12 +225,17 @@ process reassortment {
       cp /home/data/infl/primers/pairs.tsv .
       QC_exit="tak"
 
+      # ${SEGMENT_alignment_score} < 0.9 && \${RATIO} < 0.6 && \${SEGMENT_best_counts} >= (${params.min_cov} * 1.1
       #json section
       influenza_reassortment_parser.py --status "tak" \
                                         --output reassortment.json \
                                         --input_file intermediate.txt \
                                         --subtype \${REF_GENOME_ID} \
-                                        --mapping /home/data/infl/strains_name.txt
+                                        --mapping /home/data/infl/strains_name.txt \
+                                        --alignment_ratio \${SEGMENT_alignment_score_value} \
+                                        --mapping_ratio \${RATIO_value} \
+                                        --min_coverage \${COVERAGE_value}
+                                        
    fi #koniec if-a na QC
    """
 }

@@ -6,12 +6,16 @@ produce a valid json (the viral_genom_data group of fileds)
 """
 
 import sys
+
+from typing import Tuple
 import click
 import json
 import re
 import numpy as np
 
-def parse_mapping_file(plik):
+
+
+def parse_mapping_file(plik: str) -> dict[str,dict]:
     """
     Skrypt do konwersji pliku z informacja jaki szczep i jego id jest referencja dla danego podtypu i kladu
     Plik ma postac macierzy gdzie 1sz wiersz to naglowek
@@ -45,9 +49,20 @@ def parse_mapping_file(plik):
 
     return slownik_wynikow
 
-def parse_intermediate(plik, mapowania):
+def parse_intermediate(plik:str,
+                       mapowania:dict,
+                       reference_subtype:str,
+                       alignment_ratio:float,
+                       mapping_ratio:float,
+                       min_coverage:float) -> Tuple[dict, str, str]:
     segment_dict = {}
     list_of_refernces = []
+
+    # first line in intermediate is segment name
+    # second line is best score subtype
+    # third is mapping score ratio
+    # fourth is alignment scores ration
+    # fifth is coverage
 
     i = 0 # We only need to look at lines 0 and 1
     with open(plik) as f:
@@ -65,13 +80,27 @@ def parse_intermediate(plik, mapowania):
                     if re.findall('H5N\\d', segment_clean):
                         segment_clean="H5Nx" # We do not considere a reassortment between H5Nx as valid ones
                     list_of_refernces.append(segment_clean)
+                if i == 2:
+                    segment_dict[str(j)].append(float(segment))
+                if i == 3:
+                    segment_dict[str(j)].append(float(segment))
+                if i == 4:
+                    segment_dict[str(j)].append(float(segment))
                 j += 1
             i += 1
 
 
     reference_genome_data = []
+
     for element in segment_dict:
-        segment_name, segment_reference = segment_dict[element]
+        segment_name, segment_reference, segment_mapping_score, segment_alignment_score, segment_coverage  = segment_dict[element]
+
+
+        if segment_coverage > min_coverage and segment_mapping_score < mapping_ratio and segment_alignment_score < alignment_ratio:
+            segment_reference = segment_reference
+        else:
+            segment_reference = reference_subtype
+
         reference_genome_data.append({"segment_name": segment_name,
                                       "reference_subtype_name" : segment_reference.split('_')[0],
                                       "reference_strain_name" : f"{mapowania[segment_reference][segment_name][0]}",
@@ -120,15 +149,26 @@ def parse_intermediate(plik, mapowania):
               type=str,  required=False, default="")
 @click.option('-o', '--output', help='[Output] Name of a file with json output',
               type=str,  required=True)
+@click.option('--alignment_ratio', help='[Input]',
+              type=float,  required=True)
+@click.option('--mapping_ratio', help='[Input]',
+              type=float,  required=True)
+@click.option('--min_coverage', help='[Input] Minimum coverage expected to propose alternative references ',
+              type=float,  required=True)
 
-def main_program(status, output, input_file, mapping, subtype, error=""):
+
+def main_program(status, alignment_ratio, mapping_ratio, min_coverage, output, input_file, mapping, subtype, error=""):
     if status != "tak":
         json_output = {"reference_genome_prediction_status": status,
                        "reference_genome_prediction_error_message": error}
     else:
         mapowania_genom_segment = parse_mapping_file(mapping)
         reference_genome_prediction_data, reasortment_result, typ = parse_intermediate(plik=input_file,
-                                                                                       mapowania=mapowania_genom_segment)
+                                                                                       mapowania=mapowania_genom_segment,
+                                                                                       reference_subtype=subtype,
+                                                                                       min_coverage=min_coverage,
+                                                                                       mapping_ratio=mapping_ratio,
+                                                                                       alignment_ratio=alignment_ratio)
         json_output = {
             "reference_genome_prediction_status": status,
             "reasortment_result": reasortment_result,
