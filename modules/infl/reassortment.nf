@@ -110,11 +110,16 @@ process reassortment {
         SEGMENT_best_score=`cat subtype_scores_each_segment.txt | sort -rnk\${SEGMENT_POS} | head -1 | cut -f\${SEGMENT_POS}`
 
         # what is the score for this segment if taking a segemnt from  mapped HA/NA?
-        SEGMENT_expected_score=`cat subtype_scores_each_segment.txt | grep \${REF_GENOME_ID} | cut -f \${SEGMENT_POS}`
+        SEGMENT_expected_score=`cat subtype_scores_each_segment.txt | grep -w \${REF_GENOME_ID} | cut -f \${SEGMENT_POS}`
 
 	# what is the mean coverage of a segment with best value 
         SEGMENT_best_counts=`cat subtype_mean_coverage_each_segment.txt | sort -rnk\${SEGMENT_POS_COUNTS} | head -1 | cut -f\${SEGMENT_POS_COUNTS}`
-        FOUND_SUBTYPES_COUNTS+=(\${SEGMENT_best_counts})
+	if [ \${SEGMENT_best_counts} == \${segment} ]; then
+		# in case all subtypes produce coverage 0 we get a wrong value in intermediate file
+		FOUND_SUBTYPES_COUNTS+=(0)
+        else
+        	FOUND_SUBTYPES_COUNTS+=(\${SEGMENT_best_counts})
+	fi
 	
 	# In case mapping scores are only 0 for all the tested subtypes
         # "id" is returned. This is not a valid name for a subtype so
