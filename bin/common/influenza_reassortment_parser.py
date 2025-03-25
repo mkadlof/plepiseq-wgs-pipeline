@@ -75,11 +75,6 @@ def parse_intermediate(plik:str,
                     segment_dict[str(j)] = [segment]
                 if i == 1:
                     segment_dict[str(j)].append(segment)
-                    segment_clean=segment.split('_')[0]
-
-                    if re.findall('H5N\\d', segment_clean):
-                        segment_clean="H5Nx" # We do not considere a reassortment between H5Nx as valid ones
-                    list_of_refernces.append(segment_clean)
                 if i == 2:
                     segment_dict[str(j)].append(float(segment))
                 if i == 3:
@@ -97,9 +92,28 @@ def parse_intermediate(plik:str,
 
 
         if segment_coverage > min_coverage and segment_mapping_score < mapping_ratio and segment_alignment_score < alignment_ratio:
-            segment_reference = segment_reference
+            # segment_reference = segment_reference
+            segment_clean_name = segment_reference.split('_')[0] # Nazwa oczyczona z infommacji o lini wiec zamiast H1N1_3a2a mamy H1N1
+            if re.findall('H5N\\d', segment_clean_name):
+                segment_clean_name = "H5Nx"  # We do not considere a reassortment between H5Nx's as valid
+            elif re.findall('H1N1_swine', segment_reference):
+                segment_clean_name = "H1N1_swine"
+            elif re.findall('H3N2_v', segment_reference):
+                segment_clean_name = "H3N2_swine"
+
+            list_of_refernces.append(segment_clean_name)
         else:
             segment_reference = reference_subtype
+            segment_clean_name = segment_reference.split('_')[0]
+            if re.findall('H5N\\d', segment_clean_name):
+                segment_clean_name = "H5Nx"  # We do not considere a reassortment between H5Nx's as valid
+            elif re.findall('H1N1_swine', segment_reference):
+                segment_clean_name = "H1N1_swine"
+            elif re.findall('H3N2_v', segment_reference):
+                segment_clean_name = "H3N2_swine"
+
+            list_of_refernces.append(segment_clean_name)
+
 
         reference_genome_data.append({"segment_name": segment_name,
                                       "reference_subtype_name" : segment_reference.split('_')[0],
