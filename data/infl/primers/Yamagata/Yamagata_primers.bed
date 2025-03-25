@@ -1,9 +1,9 @@
 chr1_PB2	0	14	chr1_LEFT	1	+
 chr1_PB2	2381	2396	chr1_RIGHT	1	-
 chr2_PB1	0	14	chr2_LEFT	1	+
-chr2_PB1	2381	2396	chr2_RIGHT	1	-
+chr2_PB1	2354	2369	chr2_RIGHT	1	-
 chr3_PA	0	14	chr3_LEFT	1	+
-chr3_PA	2290	2305	chr3_RIGHT	1	-
+chr3_PA	2289	2304	chr3_RIGHT	1	-
 chr4_HA	0	13	chr4_LEFT	1	+
 chr4_HA	1866	1881	chr4_RIGHT	1	-
 chr5_NP	0	14	chr5_LEFT	1	+
