@@ -49,7 +49,7 @@ process consensus_nanopore {
       parse_make_consensus.py --status "nie" --error "\${ERR_MSG}" -o consensus.json
     else
       if [ ${params.species} == "Influenza" ]; then
-        cat ${sample_genome} | grep ">" | awk '{print substr($0,2), 0, 12}' | tr " " "\t" >> bed.bed
+        cat ${sample_genome} | grep ">" | awk '{print substr(\$0,2), 0, 12}' | tr " " "\t" >> bed.bed
         bedtools maskfasta -fi ${sample_genome} -bed bed.bed -fo tmp.fasta
 	mv tmp.fasta ${sample_genome}
       fi
