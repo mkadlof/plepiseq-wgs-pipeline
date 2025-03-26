@@ -19,7 +19,7 @@ process lowCov {
 
       if [ ${params.species} == "Influenza" ]; then
 
-        samtools view -h ${bam} | awk '{if (\$2 != 67 && \$2 != 131 && \$2 != 115  && \$2 != 179 ) {print \$0}}' \ |
+        samtools view -h ${bam} | awk '{if (\$2 != 67 && \$2 != 131 && \$2 != 115  && \$2 != 179 ) {print \$0}}' | \
         samtools sort -@ ${params.threads} -o tmp.bam -
         mv tmp.bam ${bam}
         rm ${bai}
