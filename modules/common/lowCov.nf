@@ -16,6 +16,17 @@ process lowCov {
       touch low_coverage.bed
       touch lowcoverage_masked.fa
     else
+
+      if [ ${params.species} == "Influenza" ]; then
+
+        samtools view -h ${bam} | awk '{if (\$2 != 67 && \$2 != 131 && \$2 != 115  && \$2 != 179 ) {print \$0}}' \ |
+        samtools sort -@ ${params.threads} -o tmp.bam -
+        mv tmp.bam ${bam}
+        rm ${bai}
+        samtools index ${bam}
+
+      fi
+
       position_quality_for_coverage=${params.quality_for_coverage}
       predict_lowcoverage_pysam.py ${bam} \${position_quality_for_coverage} ${params.mask} ${ref_genome}
       for K in `ls *mask.bed`; do cat \${K} | bedtools merge -d 2 | awk 'BEGIN {OFS = "\t"}; {if (\$3-\$2 >= 2) print \$1,\$2,\$3}' >> low_coverage.bed; done

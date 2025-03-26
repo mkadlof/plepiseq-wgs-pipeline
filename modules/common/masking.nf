@@ -14,6 +14,7 @@ process masking {
       touch ivar_trimmed_all.bam
     else
       length=`echo "${params.length} - 40" | bc -l`
+
       ivar trim -i ${bam} \
                -b ${primers} \
                -m \${length} \
