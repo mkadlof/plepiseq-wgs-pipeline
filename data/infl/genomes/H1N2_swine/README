@@ -1,0 +1,20 @@
+genom H1N2 
+EPI_ISL_15348505
+chr1 dodano 3' i 5' konce na podstawiereferencyjnej sekencji H1N1
+primery 0 12 i 2328    2341
+chr2 rowniez uzupelniono 3' i ' konce
+primery 0 12 i 2328 2341
+chr3 uzupelniono 5' i 3' konce poslugiwano sie bardziej sekwencja sample 7 z infl1 z eqa2025 
+primery 0 12 i 2220 2233
+chr4 ponownie uzupelniono 3' i 5 'konce o sekwencje z EQA
+primery 0 12 i  1765 1778 (TAK o 1 krotsza sekwencja niz H1N1)
+chr5 ponownie poprawiono koncowki
+primery 0 12 i 1552 1565
+chr 6 poprawiono koncowki
+primer 0 12 i 1453 1465
+chr 7 standard koncowki
+primer 0 12 i 1014 1027
+chr8 standard
+primer 0 12 i 877 890
+
+poprawiono 6 pozycji ambigous
