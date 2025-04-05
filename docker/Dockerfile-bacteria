@@ -7,6 +7,7 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 RUN apt-get update --fix-missing && apt upgrade -y && \
     apt-get install build-essential pkgconf python3.8 python3-pip default-jre curl unzip wget vim bc htop git gcc zlib1g-dev libbz2-dev libcurl4-gnutls-dev libssl-dev liblzma-dev python3-pycurl screen iqtree mash seqtk -y
 
+
 RUN pip install ete3 numba numpy==1.23.4 biopython==1.73 psutil pysam cgecore packaging tables==3.7.0 h5py xlrd 
 ### xlrd - allows to read excels, need that for VFDB
 ### Not sure why I choose these version of some libraries  
@@ -142,7 +143,8 @@ RUN git clone https://github.com/fenderglass/Flye ;\
 ### Przynajmniej poki autorzy canu nie zauwaza bledu, choc nie wiem czy nie jest to kwestia mojego dockera
 
 
-# RUN git clone --recursive https://github.com/jts/nanopolish.git
+# RUN git clone --recursive https://github.com/jts/nanopolish.git ;\
+805318cef87bd5d67064efa299b5d1cf948367fd
 
 # WORKDIR /data/canu/src
 # RUN make -j 20
@@ -206,6 +208,20 @@ RUN git clone https://github.com/phac-nml/ecoli_serotyping.git ;\
     pip3 install . ;\
     ectyper_init ;\
     cd /opt/docker
+
+# RaXML (fixed version to lataest commit available on 05.04.2025)
+RUN apt update && apt install roary bison flex -y
+RUN git clone --recursive https://github.com/amkozlov/raxml-ng  ;\
+    cd raxml-ng ;\
+    git checkout 805318cef87bd5d67064efa299b5d1cf948367fd ;\
+    mkdir build && cd build ;\
+    cmake .. ;\
+    make -j 4 && make install ;\
+    cd /opt/docker
+
+RUN wget https://github.com/iqtree/iqtree2/releases/download/v2.4.0/iqtree-2.4.0-Linux-intel.tar.gz ;\
+    tar -zxf iqtree-2.4.0-Linux-intel.tar.gz ;\
+    cp iqtree-2.4.0-Linux-intel/bin/* /usr/bin 
 
 ## ECTyper databases, obsolete used by ectyper v.1.0
 
