@@ -1120,7 +1120,7 @@ process run_prokka {
   // opcja --kingdom Bacteria jest defaultem zaklada jaki typ genomu analizujemy
  
   // I assume there is no point checking here what is the organism
-
+  publishDir "${params.results_dir}/${x}/", mode: 'copy', pattern: "${x}_prokka*"
   container  = params.prokka_image
   tag "Predicting genes for sample $x"
   cpus { params.threads > 25 ? 25 : params.threads }
@@ -1129,23 +1129,37 @@ process run_prokka {
   input:
   tuple val(x), path(fasta), val(QC_status), val(SPECIES), val(GENUS), val(QC_status_contaminations)
   output:
-  tuple val(x), path('prokka_out/prokka_out*gff'), path('prokka_out/*faa'), path('prokka_out/*.ffn'), path('prokka_out/*.tsv'), val(SPECIES), val(GENUS), val(QC_status), val(QC_status_contaminations)
+  tuple val(x), path('*.gff'), path('prokka_out/*faa'), path('*.ffn'), path('prokka_out/*.tsv'), val(SPECIES), val(GENUS), val(QC_status), val(QC_status_contaminations), emit: prokka_all
+  tuple val(x), path('prokka.json'), emit: json
   //when:
   //GENUS == 'Salmonella' || GENUS == 'Escherichia' || GENUS == 'Campylobacter'
   script:
   """
   if [[ ${QC_status} == "nie"  || ${QC_status_contaminations} == "nie" ]]; then
     mkdir prokka_out; touch prokka_out/prokka_out_dummy.gff; touch prokka_out/prokka_out_dummy.faa; touch prokka_out/prokka_out_dummy.ffn; touch prokka_out/prokka_out_dummy.tsv
+    ERROR_MSG="Initial QC received by this module was nie"
+    echo -e "{\\"status\\": \\"nie\\", \
+              \\"error_message\\": \\"\${ERROR_MSG}\\"}"  >> prokka.json
     # json z informacja o bledzie jakosci
   else
     if [[ ${GENUS} == "Salmonella" || ${GENUS} == "Escherichia" || ${GENUS} == "Campylobacter" ]]; then
-      prokka --metagenome --cpus ${task.cpus} --outdir prokka_out --prefix prokka_out --compliant --kingdom Bacteria $fasta 
+      prokka --metagenome --cpus ${task.cpus} --outdir prokka_out --prefix prokka_out --compliant --kingdom Bacteria $fasta
+      echo -e "{\\"status\\": \\"tak\\", \
+            \\"prokka_gff\\": \\"${params.results_dir}/${x}/${x}_prokka.gff\\", \
+            \\"prokka_ffn\\": \\"${params.results_dir}/${x}/${x}_prokka.ffn\\"}" >> prokka.json
     else
       mkdir prokka_out; touch prokka_out/prokka_out_dummy.gff; prokka_out/prokka_out_dummy.ffa; prokka_out/prokka_out_dummy.ffn; prokka_out/prokka_out_dummy.tsv
       # json z informacja o zlym gatunku
+      ERROR_MSG="Pipeline is intended to work only with preselcted bacterial species"
+      echo -e "{\\"status\\": \\"nie\\", \
+                \\"error_message\\": \\"\${ERROR_MSG}\\"}"  >> prokka.json
 
     fi
   fi
+  # Following files are usefull for phylogenetic analyis 
+  mv prokka_out/prokka_out.gff ${x}_prokka.gff
+  mv prokka_out/prokka_out.ffn ${x}_prokka.ffn
+
   """
 }
 
@@ -2789,7 +2803,7 @@ process merge_all_subjsons_illumina {
   tag "Merging all subjsons for sample $x"
   publishDir "${params.results_dir}/${x}/", mode: 'copy', pattern: "${x}.json"
   input:
-  tuple val(x), path("sistr.json"), path("seqsero.json"), path("spifinder.json"), path("ectyper.json"), path("virulencefinder.json"), path("alphafold.json"), path("vfdb.json"), val(PATOTYP), path("plasmidfinder.json"), path("amrfinder.json"), path("resfinder.json"), path("cgMLST.json"), path("MLST.json"), path("forward.json"), path("reverse.json"), path("contaminations.json"), path('Genus_species.json'), path("initial_MLST.json"), path("genome_file.json"), path("bacterial_genome.json")
+  tuple val(x), path("sistr.json"), path("seqsero.json"), path("spifinder.json"), path("ectyper.json"), path("virulencefinder.json"), path("prokka.json"), path("alphafold.json"), path("vfdb.json"), val(PATOTYP), path("plasmidfinder.json"), path("amrfinder.json"), path("resfinder.json"), path("cgMLST.json"), path("MLST.json"), path("forward.json"), path("reverse.json"), path("contaminations.json"), path('Genus_species.json'), path("initial_MLST.json"), path("genome_file.json"), path("bacterial_genome.json")
   val(ExecutionDir)
   output:
   path("${x}.json")
@@ -2819,7 +2833,8 @@ process merge_all_subjsons_illumina {
                                                           --repo_version "\${VERSION}" \
                                                           --output ${x}.json \
                                                           --executiondir ${ExecutionDir} \
-                                                          --alphafold_file alphafold.json
+                                                          --alphafold_file alphafold.json \
+                                                          --prokka_file prokka.json
   """
 
 }
@@ -3275,7 +3290,7 @@ process merge_all_subjsons_nanopore {
   tag "Merging all subjsons for sample $x"
   publishDir "${params.results_dir}/${x}/", mode: 'copy', pattern: "${x}.json" 
   input:
-  tuple val(x), path("sistr.json"), path("seqsero.json"), path("spifinder.json"), path("ectyper.json"), path("virulencefinder.json"), path("alphafold.json"), path("vfdb.json"), val(PATOTYP), path("plasmidfinder.json"), path("amrfinder.json"), path("resfinder.json"), path("cgMLST.json"), path("MLST.json"), path("forward.json"), path("contaminations.json"), path('Genus_species.json'), path("initial_MLST.json"), path("genome_file.json"), path("bacterial_genome.json")
+  tuple val(x), path("sistr.json"), path("seqsero.json"), path("spifinder.json"), path("ectyper.json"), path("virulencefinder.json"), path("prokka.json"), path("alphafold.json"), path("vfdb.json"), val(PATOTYP), path("plasmidfinder.json"), path("amrfinder.json"), path("resfinder.json"), path("cgMLST.json"), path("MLST.json"), path("forward.json"), path("contaminations.json"), path('Genus_species.json'), path("initial_MLST.json"), path("genome_file.json"), path("bacterial_genome.json")
   val(ExecutionDir)
   output:
   path("${x}.json")
@@ -3305,7 +3320,8 @@ process merge_all_subjsons_nanopore {
                                                           --repo_version "\${VERSION}" \
                                                           --output ${x}.json \
                                                           --executiondir ${ExecutionDir} \
-                                                          --alphafold_file alphafold.json
+                                                          --alphafold_file alphafold.json \
+                                                          --prokka_file prokka.json
   """
 
 
@@ -3621,7 +3637,7 @@ run_plasmidfinder_out = run_plasmidfinder(final_assembly_with_species)
 
 // Virulence
 prokka_out = run_prokka(final_assembly_with_species)
-run_VFDB_out = run_VFDB(prokka_out)
+run_VFDB_out = run_VFDB(prokka_out.prokka_all)
 parse_VFDB_ecoli_out = parse_VFDB_ecoli(run_VFDB_out.ecoli)
 
 run_virulencefinder_out = run_virulencefinder(final_assembly_with_species)
@@ -3633,9 +3649,9 @@ run_sistr_out = run_sistr(final_assembly_with_species)
 
 // Alphafold
 if ( workflow.profile == "slurm" ) {
-    alphafold_out = run_alphafold_slurm(prokka_out)
+    alphafold_out = run_alphafold_slurm(prokka_out.prokka_all)
 } else if ( workflow.profile == "local" ) {
-    delayed_alphafold = prokka_out.map {it -> sleep(20000); it}
+    delayed_alphafold = prokka_out.prokka_all.map {it -> sleep(20000); it}
     alphafold_out = run_alphafold(delayed_alphafold)
 }
 
@@ -3647,6 +3663,7 @@ if ( workflow.profile == "slurm" ) {
   channnel_to_json = channnel_to_json.join(run_spifinder_out.json, by : 0)
   channnel_to_json = channnel_to_json.join(run_ectype_out.json, by : 0)
   channnel_to_json = channnel_to_json.join(run_virulencefinder_out.json, by : 0)
+  channnel_to_json = channnel_to_json.join(prokka_out.json, by : 0)
   channnel_to_json = channnel_to_json.join(alphafold_out.json, by : 0)
   channnel_to_json = channnel_to_json.join(run_VFDB_out.json, by : 0)
   channnel_to_json = channnel_to_json.join(parse_VFDB_ecoli_out.json, by : 0)

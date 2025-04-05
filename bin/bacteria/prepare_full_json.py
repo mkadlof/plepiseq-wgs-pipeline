@@ -56,12 +56,15 @@ import datetime
               type=str,  required=True)
 @click.option('-l', '--repo_version', help='[INPUT] Version of a repository',
               type=str,  required=True)
+@click.option('--prokka_file', help='[INPUT] a path to an input file with json containing'
+                                                  'prokka produced files',
+              type=click.Path(),  required=True)
 @click.option('-z', '--output', help='[Output] Name of a file with json output',
               type=str,  required=True)
 def main_program(sistr_file, seqsero_file, spifinder_file,  ectyper_file,  virulencefinder_file,  alphafold_file, vfdb_file,
                  plasmidfinder_file, amrfinder_file, resfinder_file,  cgmlst_file, mlst_file,  fastqc_forward_file,
                  fastqc_reverse_file, contaminations_file, genus_species_file, initial_mlst_file, genome_file, patotyp,
-                 genome_statistics_file, repo_version, executiondir, output):
+                 genome_statistics_file, repo_version, executiondir, prokka_file, output):
 
     json_output = {}
     json_output["output"] = {}
@@ -72,6 +75,7 @@ def main_program(sistr_file, seqsero_file, spifinder_file,  ectyper_file,  virul
     json_output["output"]["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     json_output["output"]["pipeline_version"] = repo_version
     json_output["output"]["genome_files_data"] = json.load(open(genome_file))
+    
     if fastqc_reverse_file != "skip":
         json_output["output"]["sequencing_summary_data"] = [json.load(open(fastqc_forward_file))[0],
                                                        json.load(open(fastqc_reverse_file))[0]]
@@ -81,6 +85,7 @@ def main_program(sistr_file, seqsero_file, spifinder_file,  ectyper_file,  virul
     json_output["output"]["contamination_data"] = json.load(open(contaminations_file))
     json_output["output"]["initial_mlst_data"] = json.load(open(initial_mlst_file))
     json_output["output"]["bacterial_genome_data"] = json.load(open(genome_statistics_file))
+    json_output["output"]["prokka_data"] = json.load(open(prokka_file))
     json_output["output"]["antigenic_data"] = [json.load(open(sistr_file)),
                                           json.load(open(seqsero_file)),
                                           json.load(open(ectyper_file))]
