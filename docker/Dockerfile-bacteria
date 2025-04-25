@@ -144,7 +144,7 @@ RUN git clone https://github.com/fenderglass/Flye ;\
 
 
 # RUN git clone --recursive https://github.com/jts/nanopolish.git ;\
-805318cef87bd5d67064efa299b5d1cf948367fd
+# 805318cef87bd5d67064efa299b5d1cf948367fd
 
 # WORKDIR /data/canu/src
 # RUN make -j 20
@@ -209,19 +209,20 @@ RUN git clone https://github.com/phac-nml/ecoli_serotyping.git ;\
     ectyper_init ;\
     cd /opt/docker
 
+# Raxml and iqtree will be pushed to a separate dockerfile
 # RaXML (fixed version to lataest commit available on 05.04.2025)
-RUN apt update && apt install roary bison flex -y
-RUN git clone --recursive https://github.com/amkozlov/raxml-ng  ;\
-    cd raxml-ng ;\
-    git checkout 805318cef87bd5d67064efa299b5d1cf948367fd ;\
-    mkdir build && cd build ;\
-    cmake .. ;\
-    make -j 4 && make install ;\
-    cd /opt/docker
+# RUN apt update && apt install roary bison flex -y
+# RUN git clone --recursive https://github.com/amkozlov/raxml-ng  ;\
+#    cd raxml-ng ;\
+#    git checkout 805318cef87bd5d67064efa299b5d1cf948367fd ;\
+#    mkdir build && cd build ;\
+#    cmake .. ;\
+#    make -j 4 && make install ;\
+#    cd /opt/docker
 
-RUN wget https://github.com/iqtree/iqtree2/releases/download/v2.4.0/iqtree-2.4.0-Linux-intel.tar.gz ;\
-    tar -zxf iqtree-2.4.0-Linux-intel.tar.gz ;\
-    cp iqtree-2.4.0-Linux-intel/bin/* /usr/bin 
+#RUN wget https://github.com/iqtree/iqtree2/releases/download/v2.4.0/iqtree-2.4.0-Linux-intel.tar.gz ;\
+#    tar -zxf iqtree-2.4.0-Linux-intel.tar.gz ;\
+#    cp iqtree-2.4.0-Linux-intel/bin/* /usr/bin 
 
 ## ECTyper databases, obsolete used by ectyper v.1.0
 
