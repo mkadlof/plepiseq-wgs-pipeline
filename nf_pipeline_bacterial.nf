@@ -1141,12 +1141,16 @@ process run_prokka {
     echo -e "{\\"status\\": \\"nie\\", \
               \\"error_message\\": \\"\${ERROR_MSG}\\"}"  >> prokka.json
     # json z informacja o bledzie jakosci
+    mv prokka_out/prokka_out_dummy.gff ${x}_prokka.gff
+    mv prokka_out/prokka_out_dummy.ffn ${x}_prokka.ffn
   else
     if [[ ${GENUS} == "Salmonella" || ${GENUS} == "Escherichia" || ${GENUS} == "Campylobacter" ]]; then
       prokka --metagenome --cpus ${task.cpus} --outdir prokka_out --prefix prokka_out --compliant --kingdom Bacteria $fasta
       echo -e "{\\"status\\": \\"tak\\", \
             \\"prokka_gff\\": \\"${params.results_dir}/${x}/${x}_prokka.gff\\", \
             \\"prokka_ffn\\": \\"${params.results_dir}/${x}/${x}_prokka.ffn\\"}" >> prokka.json
+      mv prokka_out/prokka_out.gff ${x}_prokka.gff
+      mv prokka_out/prokka_out.ffn ${x}_prokka.ffn
     else
       mkdir prokka_out; touch prokka_out/prokka_out_dummy.gff; prokka_out/prokka_out_dummy.ffa; prokka_out/prokka_out_dummy.ffn; prokka_out/prokka_out_dummy.tsv
       # json z informacja o zlym gatunku
@@ -1154,11 +1158,10 @@ process run_prokka {
       echo -e "{\\"status\\": \\"nie\\", \
                 \\"error_message\\": \\"\${ERROR_MSG}\\"}"  >> prokka.json
 
+      mv prokka_out/prokka_out_dummy.gff ${x}_prokka.gff
+      mv prokka_out/prokka_out_dummy.ffn ${x}_prokka.ffn
     fi
   fi
-  # Following files are usefull for phylogenetic analyis 
-  mv prokka_out/prokka_out.gff ${x}_prokka.gff
-  mv prokka_out/prokka_out.ffn ${x}_prokka.ffn
 
   """
 }
