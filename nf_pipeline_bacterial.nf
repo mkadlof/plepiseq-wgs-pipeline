@@ -207,7 +207,7 @@ process run_initial_mlst_illumina {
     if [[ "${GENUS}" == *"Salmo"* ]]; then
       python /opt/docker/mlst/mlst.py -i ${read_1} ${read_2} -s senterica -p /db/mlst_db/ -mp kma -t tmp/
     elif [[ "${GENUS}" == *"Escher"* ]]; then
-      python /opt/docker/mlst/mlst.py -i ${read_1} ${read_2} -s ecoli -p /db/mlst_db/ -mp kma -t tmp/
+      python /opt/docker/mlst/mlst.py -i ${read_1} ${read_2} -s ecoli1 -p /db/mlst_db/ -mp kma -t tmp/
     elif [ ${GENUS} == "Campylobacter" ]; then
       # w tej bazie podgatunki campylo okreslane sa typowo z cjejuni, clari itd .. 
       python /opt/docker/mlst/mlst.py -i ${read_1} ${read_2} -s c${SPECIES} -p /db/mlst_db/ -mp kma -t tmp/
