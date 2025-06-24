@@ -1,95 +1,181 @@
+#!/usr/bin/env python3
+"""
+Parse ResFinder / PointFinder tabular outputs and emit a de-duplicated JSON
+summary compatible with the rest of the pzh pipeline.
+"""
 
 import sys
-import click
 import json
+from collections import defaultdict
+import click
 
 
 @click.command()
-@click.option('-i', '--input_file_resfinder', help='[INPUT] a path to an input file with Resfinder results',
-              type=click.Path(), default="ResFinder_results_tab.txt", required=True)
-@click.option('-j', '--input_file_pointfinder', help='[INPUT] a path to an input file with Pointfinder results',
-              type=click.Path(), default="PointFinder_results.txt", required=True)
-@click.option('-s', '--status', help='[INPUT] PREDEFINED status that is transferred to an output json. '
-                                     'If this status was either nie or blad fastqc will not run',
-              type=click.Choice(['tak', 'nie', 'blad'], case_sensitive=False),  required=True)
-@click.option('-r', '--error', help='[INPUT] PREDEFINED error message that is put in json. '
-                                    'Only used when status was set to nie or blad',
-              type=str,  required=False, default="")
-@click.option('-o', '--output', help='[Output] Name of a file with json output',
-              type=str,  required=True)
+@click.option(
+    "-i", "--input_file_resfinder",
+    type=click.Path(exists=True, readable=True),
+    default="ResFinder_results_tab.txt",
+    required=True,
+    help="[INPUT] path to the ResFinder tab file",
+)
+@click.option(
+    "-j", "--input_file_pointfinder",
+    type=click.Path(exists=True, readable=True),
+    default="PointFinder_results.txt",
+    required=True,
+    help="[INPUT] path to the PointFinder tab file",
+)
+@click.option(
+    "-s", "--status",
+    type=click.Choice(["tak", "nie", "blad"], case_sensitive=False),
+    required=True,
+    help="[INPUT] PRE-DEFINED status transferred to the output JSON",
+)
+@click.option(
+    "-r", "--error",
+    type=str,
+    default="",
+    help="[INPUT] Optional error message (used when status ≠ 'tak')",
+)
+@click.option(
+    "-o", "--output",
+    type=click.Path(writable=True),
+    required=True,
+    help="[OUTPUT] filename for the JSON report",
+)
 def main_program(status, input_file_resfinder, input_file_pointfinder, output, error=""):
-    if status != "tak":
-        json_output = {"program_name" : "ResFinder/PointFinder",
-                        "status": status,
-                        "error_message": error}
+    """
+    Main entry point – either emit a stub JSON (status ≠ tak) or parse both
+    files and write the de-duplicated report.
+    """
+    if status.lower() != "tak":
+        json_output = {
+            "program_name": "ResFinder/PointFinder",
+            "status": status,
+            "error_message": error,
+        }
     else:
-        json_output = {"program_name" : "ResFinder/PointFinder",
-                     "status": status}
-        slownik = {}
-        with open(input_file_resfinder) as f:
-            for line in f:
-                line = line.split("\t")
-                line[-1] = line[-1].rstrip()
-                if "Resistance gene" == line[0]:
-                    continue
-                else:
-                    resistance_gene, seq_identity, coverage, contig_name, antibiotic, reference_name = line[0], line[1], line[3], line[5], line[7], line[8]
-                    antibiotic_list = antibiotic.split(",")
-                    for element in antibiotic_list:
-                        if element not in slownik.keys():
-                            slownik[element] = []
-                        slownik[element].append([resistance_gene, contig_name, seq_identity, coverage, reference_name, "gen"])
-        with open(input_file_pointfinder) as f:
-            for line in f:
-                line = line.split("\t")
-                line[-1] = line[-1].rstrip()
-                if "Mutation" == line[0]:
-                    continue
-                else:
-                    mutation,  antibiotic = line[0], line[3]
-                    antibiotic_list = antibiotic.split(",")
-                    gene_name, mutation_name = mutation.split(" ")
-                    for element in antibiotic_list:
-                        if element not in slownik.keys():
-                            slownik[element] = []
-                        slownik[element].append([gene_name, mutation_name, "mutacja_punktowa"])
-        # skladanie wlasciwego jsona
-        json_output["program_data"] = []
-        for antibiotic, czynniki in slownik.items():
-            tmp_dict = {}
-            tmp_dict["antibiotic_name"] = antibiotic
-            tmp_dict["antibiotic_status"] = "oporny"
-            tmp_dict["antibiotic_resistance_data"] = []
-            for czynnik in czynniki:
-                if czynnik[-1] == "gen":
-                    tmp_dict["antibiotic_resistance_data"].append(
-                        {"factor_name" : czynnik[0],
-                         "factor_contig_name" : czynnik[1],
-                         "factor_sequence_similarity_to_reference_value": int(float(czynnik[2])),
-                         "factor_degree_of_overlap_with_reference_value" : int(float(czynnik[3])),
-                         "factor_reference_name" : czynnik[4],
-                         "factor_type_name" : "gen"
-                         }
+        # ------------------------------------------------------------------ #
+        # 1. gather raw data in 'store', using sets to avoid duplicates       #
+        # ------------------------------------------------------------------ #
+        store: dict[str, set[tuple]] = defaultdict(set)
+
+        # ----------- ResFinder genes ------------------------------------- #
+        with open(input_file_resfinder, encoding="utf-8") as fh:
+            for line in fh:
+                cols = line.rstrip("\n").split("\t")
+                if cols[0] == "Resistance gene":
+                    continue  # skip header
+
+                (
+                    resistance_gene,
+                    seq_identity,
+                    _alignment_len,            # unused
+                    coverage,
+                    _pos_ref,                  # unused
+                    contig_name,
+                    _pos_contig,               # unused
+                    antibiotic,
+                    reference_name,
+                ) = cols
+
+                # normalise & deduplicate antibiotic names on the line
+                # in somce cases in antibiotic the same antibiotic can appear multiple times (e.g with extra " ")
+                # we consider such entries as technical issues with Resfinder so we ignore these "duplicates"
+                antibiotic_set = {ab.strip() for ab in antibiotic.split(",") if ab.strip()}
+
+                entry = (
+                    resistance_gene,
+                    contig_name,
+                    int(float(seq_identity)),
+                    int(float(coverage)),
+                    reference_name,
+                    "gen",
+                )
+
+                for ab in antibiotic_set:
+                    store[ab].add(entry)
+
+        # ----------- PointFinder point mutations ------------------------- #
+        with open(input_file_pointfinder, encoding="utf-8") as fh:
+            for line in fh:
+                cols = line.rstrip("\n").split("\t")
+                if cols[0] == "Mutation":
+                    continue  # skip header
+
+                mutation, *_unused, antibiotic = cols[0:4]
+                gene_name, mutation_name = mutation.split(" ", maxsplit=1)
+
+                antibiotic_set = {ab.strip() for ab in antibiotic.split(",") if ab.strip()}
+
+                entry = (
+                    gene_name,
+                    mutation_name,
+                    "mutacja_punktowa",
+                )
+
+                for ab in antibiotic_set:
+                    store[ab].add(entry)
+
+        # ------------------------------------------------------------------ #
+        # 2. build JSON, converting each per-antibiotic *set* back to a list  #
+        # ------------------------------------------------------------------ #
+        json_output = {
+            "program_name": "ResFinder/PointFinder",
+            "status": status,
+            "program_data": [],
+        }
+
+        for antibiotic, factors in sorted(store.items()):
+            antibiotic_dict = {
+                "antibiotic_name": antibiotic,
+                "antibiotic_status": "oporny",
+                "antibiotic_resistance_data": [],
+            }
+
+            for factor in sorted(factors):
+                if factor[-1] == "gen":
+                    (
+                        gene,
+                        contig,
+                        identity,
+                        overlap,
+                        ref_name,
+                        _marker,
+                    ) = factor
+                    antibiotic_dict["antibiotic_resistance_data"].append(
+                        {
+                            "factor_name": gene,
+                            "factor_contig_name": contig,
+                            "factor_sequence_similarity_to_reference_value": identity,
+                            "factor_degree_of_overlap_with_reference_value": overlap,
+                            "factor_reference_name": ref_name,
+                            "factor_type_name": "gen",
+                        }
                     )
-                elif czynnik[-1] == "mutacja_punktowa":
-                    tmp_dict["antibiotic_resistance_data"].append(
-                        {"factor_name": czynnik[0],
-                         "factor_mutation": czynnik[1],
-                         "factor_type_name": "mutacja_punktowa"
-                         }
+                else:  # point mutation
+                    gene, mutation_name, _marker = factor
+                    antibiotic_dict["antibiotic_resistance_data"].append(
+                        {
+                            "factor_name": gene,
+                            "factor_mutation": mutation_name,
+                            "factor_type_name": "mutacja_punktowa",
+                        }
                     )
-            json_output["program_data"].append(tmp_dict)
 
-    with open(output, 'w') as f1:
-        f1.write(json.dumps(json_output, indent = 4))
+            json_output["program_data"].append(antibiotic_dict)
 
-    return True
+    # ---------------------------------------------------------------------- #
+    # 3. write out the finished JSON                                         #
+    # ---------------------------------------------------------------------- #
+    with open(output, "w", encoding="utf-8") as f_out:
+        json.dump(json_output, f_out, indent=4, ensure_ascii=False)
 
-if __name__ == '__main__':
-    # The main program returns 3 variables: "status", number_of_reads in a sample, and median_quality_of_reads
-    # These can be used to determine QC status in tha module
+
+if __name__ == "__main__":
+    # allow the usual '--help' behaviour when no args are passed
     if len(sys.argv) == 1:
-        main_program(['--help'])
+        main_program(["--help"])
     else:
-        main_program(sys.argv[1:])
+        main_program()
 
