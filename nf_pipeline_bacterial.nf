@@ -844,8 +844,9 @@ process run_resfinder {
     mkdir resfinder
     cd resfinder
     touch pheno_table_1.txt
+    touch ResFinder_results_tab.txt 
     touch ResFinder_results_table.txt
-    touch PointFinder_results.txt
+    touch PointFinder_results.txt 
     ERR_MSG="This module was eneterd with failed QC and poduced no valid output" 
     python /opt/docker/EToKi/externals/resfinder_parser.py  -i  ResFinder_results_tab.txt -j PointFinder_results.txt -s "nie" -r "\${ERR_MSG}" -o resfinder.json
     cp resfinder.json ../
@@ -866,6 +867,7 @@ process run_resfinder {
       mkdir resfinder
       cd resfinder
       touch pheno_table_1.txt
+      touch ResFinder_results_tab.txt
       touch ResFinder_results_table.txt
       touch PointFinder_results.txt
       ERR_MSG="This module was eneterd with wrong genus: ${GENUS} and poduced no valid output"
