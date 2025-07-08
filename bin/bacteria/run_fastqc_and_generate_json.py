@@ -12,7 +12,7 @@ import re
 
 
 def run_fastqc(plik, memory, cpu):
-    polecenie = (f'fastqc --format fastq --threads ${cpu} --memory {memory} --extract --outdir . {plik}')
+    polecenie = (f'fastqc --format fastq --threads {cpu} --memory {memory} --extract --outdir . {plik}')
     proces = subprocess.Popen(polecenie, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     proces.wait()
     outs, errs = proces.communicate()
