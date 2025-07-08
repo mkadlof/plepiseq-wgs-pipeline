@@ -51,7 +51,7 @@ process run_fastqc_illumina {
   tag "fastqc for sample ${x}"
   container  = params.main_image
   publishDir "${params.results_dir}/${x}/QC", mode: 'copy'
-  cpus { params.threads > 10 ? 10 : params.threads }
+  cpus { params.threads > 2 ? 2 : params.threads }
   memory "10 GB"
   time "15m"
   input:
@@ -99,7 +99,7 @@ process run_fastqc_nanopore {
   tag "fastqc for sample ${x}"
   container  = params.main_image
   publishDir "${params.results_dir}/${x}/QC", mode: 'copy'
-  cpus { params.threads > 10 ? 10 : params.threads }
+  cpus { params.threads > 2 ? 2 : params.threads }
   memory "10 GB"
   time "15m"
   input:
@@ -116,16 +116,19 @@ process run_fastqc_nanopore {
   if [ ${QC_STATUS} == "nie" ]; then
     ERROR_MSG="Initial QC received by this module was nie"
     touch dummy.csv
+    TOTAL_BASES=0
   else
     ERROR_MSG=""
   fi
  
-  DANE_FORWARD=(`python /opt/docker/EToKi/externals/run_fastqc_and_generate_json.py -i ${reads} -m 8096 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e pre-filtering -p "${params.results_dir}/${x}/QC" -o forward.json`)
+  DANE_FORWARD=(`python /opt/docker/EToKi/externals/run_fastqc_and_generate_json.py -i ${reads} -m 10000 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e pre-filtering -p "${params.results_dir}/${x}/QC" -o forward.json`)
   STATUS_FORWARD="\${DANE_FORWARD[0]}"
   TOTAL_BASES="\${DANE_FORWARD[1]}"
 
   if [ \${STATUS_FORWARD} != "tak" ]; then
     QC_STATUS_EXIT="nie"
+    touch dummy.csv
+    TOTAL_BASES=0
   else
     QC_STATUS_EXIT="tak"
   fi
