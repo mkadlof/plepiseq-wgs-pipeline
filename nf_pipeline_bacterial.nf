@@ -2869,7 +2869,7 @@ process run_initial_mlst_nanopore {
     if [[ "${GENUS}" == *"Salmo"* ]]; then
     python /opt/docker/mlst/mlst.py -i ${reads} -s senterica -p /db/mlst_db/ -mp kma -t tmp/
     elif [[ "${GENUS}" == *"Escher"* ]]; then
-    python /opt/docker/mlst/mlst.py -i ${reads} -s ecoli -p /db//mlst_db/ -mp kma -t tmp/
+    python /opt/docker/mlst/mlst.py -i ${reads} -s ecoli1 -p /db//mlst_db/ -mp kma -t tmp/
     elif [ ${GENUS} == "Campylobacter" ]; then
     # w tej bazie podgatunki campylo okreslane sa typowo z cjejuni, clari itd ..
     python /opt/docker/mlst/mlst.py -i ${reads} -s c${SPECIES} -p /db/mlst_db/ -mp kma -t tmp/
