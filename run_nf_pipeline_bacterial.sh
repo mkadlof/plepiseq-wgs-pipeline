@@ -44,7 +44,7 @@ main_species_coverage=""
 min_genome_length=""
 unique_loci=""
 contig_number=""
-L50=""
+N50=""
 final_coverage=""
 min_coverage_ratio=""
 min_coverage_value=""
@@ -54,6 +54,42 @@ model_medaka=""
 
 # Usage function to display help
 usage() {
+    echo "Usage/Wywolanie: $0 --machine [Nanopore|Illumina] --reads PATH --projectDir PATH --external_databases_path PATH --main_image VALUE --prokka_image --alphafold_image VALUE[options]"
+    echo "Required parameters/Parametry wymagane:"
+    echo "  --machine VALUE                 Sequencing platform: Nanopore or Illumina"
+    echo "                                  Platforma sekwencjonujaca uzyta do analizy. Mozliwe wartosci to Nanopore albo Illumina"
+    echo "  --reads PATH                    Path to sequencing data with naming pattern for sequencing files. Use single quotes for this argument"
+    echo "                                  Scieżka do katalogu z wynikami sekwencjonowania wraz z wzorcem nazewnictwa plików"
+    echo "                                  Format plikow: fastq.gz, Przyklad: '/some/directory/*_R{1,2}.fastq.gz'"
+    echo "  --projectDir PATH               Sciezka do katalogu z pobranym repozytorium"
+    echo "                                  Directory with projects repository"
+    echo "  --external_databases_path PATH  Sciezka do katalogu z pobranymi zewnetrznymi bazami"
+    echo "                                  Directory with all databases used by the program"
+    echo "  --main_image VALUE              Nazwa obrazu w formacie \"name:tag\" z obrazem zawierajacym programy uzywane przez pipeline"
+    echo "                                  Name of the docker image with main program"
+    echo "  --prokka_image VALUE            Nazwa obrazu w formacie \"name:tag\" z obrazem zawierajacym program prokka."
+    echo "                                  Name of the docker image with prokka program"
+    echo "  --alphafold_image VALUE         Nazwa obrazu w formacie \"name:tag\" z obrazem zawierajacym program alphafold"
+    echo "                                  Name of the docker image with alphafold program"
+    echo "Optional parameters:"
+    echo "  --genus VALUE                   Genus of the bacteria that underwent sequencing"
+    echo "                                  Nazwa rodzajowa bakterii podelgajacej sekwencjonowaiu"
+    echo "                                  Akceptowane wartosci to Salmonella Escherichia lub Campylobacter"
+    echo "                                  parametru nie trzeba podawac, program sam wykrywa rodzaj na podstawie odczytow"
+    echo "  --results_dir PATH              Path to directory with program's output (default ./results)"
+    echo "                                  Sciezka do katalogu z wynikami programu"
+    echo "  --threads VALUE                 Thread count (default: $threads)"
+    echo "                                  Maksymalna ilosci CPU uzywana do analizy pojedycznej probki"
+    echo "  --profile VALUE                 Nazwa profile zdefiniowanego w pliku konfiguaracyjnym nextflow z informacja o executor"
+    echo "                                  Name of the profile specified in the nextflow configuration file."
+    echo "                                  Available values: \"local\" and \"slurm\". Default value \"local\"."
+    echo "  --all                           Display hidden parameters for advanced configuration"
+    echo "                                  Wyswietl liste wszystkich parametrow modelu"
+    echo "  -h, --help                      Show this help message"
+}
+
+# Full help
+show_all_parameters() {
     echo "Usage/Wywolanie: $0 --machine [Nanopore|Illumina] --reads PATH --projectDir PATH --external_databases_path PATH --main_image VALUE --prokka_image --alphafold_image VALUE[options]"
     echo "Required parameters/Parametry wymagane:"
     echo "  --machine VALUE                 Sequencing platform: Nanopore or Illumina"
@@ -76,24 +112,55 @@ usage() {
     echo "                                  Nazwa rodzajowa bakterii podelgajacej sekwencjonowaiu"
     echo "                                  Akceptowane wartosci to Salmonella Escherichia lub Campylobacter"
     echo "                                  parametru nie trzeba podawac, program sam wykrywa rodzaj na podstawie odczytow"
+    echo "  --results_dir PATH              Path to directory with program's output (default ./results)"
+    echo "                                  Sciezka do katalogu z wynikami programu"
     echo "  --threads VALUE                 Thread count (default: $threads)"
     echo "                                  Maksymalna ilosci CPU uzywana do analizy pojedycznej probki"
     echo "  --profile VALUE                 Nazwa profile zdefiniowanego w pliku konfiguaracyjnym nextflow z informacja o executor"
     echo "                                  Name of the profile specified in the nextflow configuration file."
     echo "                                  Available values: \"local\" and \"slurm\". Default value \"local\"."
-    echo "  --all                           Display hidden parameters for advanced configuration"
+    echo "  --quality VALUE                 Maximal quality of the base trimmed from 5' and 3' ends (default: 6 for illumina, 2 for nanopore)"
+    echo "                                  Maksymalna jakosc nukleotydow w odczycie usuwanych z 3' i 5' koncow"
+    echo "  --min_number_of_reads VALUE     Minimal number of paired-reads (fo illumina) and reads (for nanopore) required for sample"
+    echo "                                  to be analyzed (default: 50000 for illumina, 10000 for nanopore)"
+    echo "                                  Minimalna liczba odczytow w plikach fastq aby rozpoczac analize probki"
+    echo "  --min_median_quality VALUE      Minimal median quality of bases required required to run the analysis (default: 10 for illumina, 5 for nanopore)"
+    echo "                                  Minimalna mediana jakosci zasad wymagana dla probki."
+    echo "  --main_genus_value VALUE        Minimal percantage of reads classified by kraken2 to main genus in the sample (default: 50)"
+    echo "                                  Minimalny procent odczytow klasyfikowany do glownego rodzaju w probce"
+    echo "  --kmerfinder_coverage VALUE     Minimal coverage claculated for the main species identified in a sample by kmerfinder (default: 20)"
+    echo "                                  Minimalne teoretyczne pokrycie obliczone przez program kmerfinder"
+    echo "  --main_species_coverage VALUE   Minimal theoretical coverage calculated during species identification (default 20)"
+    echo "                                  Minimalne teoretyczne pokrycie liczone w trakcie identyfikacji gatunku"
+    echo "  --min_genome_length VALUE       Minimal length of the final assembly required to process sample as a fraction of expected for identified species assmebly length"
+    echo "                                  (default: 0.75)"
+    echo "                                  Minimalna dlugosc genomu proponowanej probce w stosunku do oczekiwanej dlugosci genomu"
+    echo "  --unique_loci VALUE             Minimal number of unique loci in initial MLST screen. Samples with lower number of unique loci are likely contaminated"
+    echo "                                  and want be analyzed (default: 5 for illumina, 0 for nanopore)"
+    echo "                                  Minimalna ilosc loci, w schemacie MLST, dla ktorych stwierdzono jedna, unikalna wersje allelu. Probki z mniejsza iloscia"
+    echo "                                  unikalnych alleli uznawane sa za zanieczyszczone i nie sa analizowane"
+    echo "  --contig_number VALUE           Maximal number of contigs (after covarage-based filtering) allowed for a sample."
+    echo "                                  Samples with higher number of contigs want be analyzed (default: 1000 for Illumina and 100 for Nanopore data)"
+    echo "                                  Maksymalna ilosc contigow proponowana dla probki."
+    echo "  --N50 VALUE                     Sequence length of the shortest contig at 50% of the total assembly length (default 30000)"
+    echo "                                  Minimalna dlugosc contigu ktory wraz z contig'ami dluzyszmi pozwala zaproponowac genom o dlugosci 50% ostatecznego gneomu"
+    echo "  --min_coverage_ratio VALUE      Minimal coverage for a contig to pass filtering as a fraction of avarage coverage (default 0.1)"
+    echo "                                  Minimalne pokrycie liczone dla contig'u wymagane do przejscia filtrow. Liczone"
+    echo "                                  jako frakcja sredniego pokrycia w probce"
+    echo "  --final_coverage VALUE          Minimal required coverage value calculated using length of the final assembly (default: 20)"
+    echo "                                  Minimalne pokrycie dla probki liczone z wykorzystaniem ostatecznenie zapropnowanej sekwencji enomu"
+    echo "  --min_coverage_value VALUE      Minimal absolute coverage for a contig to pass filtering (default: 20). NOT IMPLEMENTED."
+    echo "                                  Minimalne bezwzgledne pokrycie wymagan dla contigu."
+    echo "  --model_medaka VALUE            Model used by medaka to polish pilon-proposed assebmly (default: r941_min_hac_g507, this model is still recommended even for R10 flow cell)"
+    echo "                                  Model uzywany to identyfikacji SNP/SVs w genomie proponowanym przez program pilon"
+    echo "  --all                           Display this help meassage"
     echo "                                  Wyswietl liste wszystkich parametrow modelu"
     echo "  -h, --help                      Show this help message"
 }
 
-# Full help
-show_all_parameters() {
-    echo "NOT YET IMPLEMENTED"
-}
-
 
 # Parse command-line options using GNU getopt
-OPTS=$(getopt -o h --long projectDir:,profile:,external_databases_path:,results_dir:,main_image:,prokka_image:,alphafold_image:,threads:,machine:,reads:,genus:,quality:,min_number_of_reads:,min_median_quality:,main_genus_value:,kmerfinder_coverage:,main_species_coverage:,min_genome_length:,unique_loci:,contig_number:,L50:,final_coverage:,min_coverage_ratio:,min_coverage_value:,model_medaka:,all,help -- "$@")
+OPTS=$(getopt -o h --long projectDir:,profile:,external_databases_path:,results_dir:,main_image:,prokka_image:,alphafold_image:,threads:,machine:,reads:,genus:,quality:,min_number_of_reads:,min_median_quality:,main_genus_value:,kmerfinder_coverage:,main_species_coverage:,min_genome_length:,unique_loci:,contig_number:,N50:,final_coverage:,min_coverage_ratio:,min_coverage_value:,model_medaka:,all,help -- "$@")
 
 eval set -- "$OPTS"
 
@@ -185,8 +252,8 @@ while true; do
       contig_number="$2"; 
       shift 2 
       ;;
-    --L50 )
-      L50="$2"; 
+    --N50 )
+      N50="$2"; 
       shift 2 
       ;;
     --final_coverage )
@@ -249,7 +316,7 @@ fi
 [[ -z "${kmerfinder_coverage}" ]] && kmerfinder_coverage=20
 [[ -z "${main_species_coverage}" ]] && main_species_coverage=20
 [[ -z "${min_genome_length}" ]] && min_genome_length=0.75
-[[ -z "${L50}" ]] && L50=30000
+[[ -z "${N50}" ]] && N50=30000
 [[ -z "${final_coverage}" ]] && final_coverage=20
 
 if [[ "$machine" == "Illumina" ]]; then
@@ -306,7 +373,7 @@ nextflow run ${projectDir}/nf_pipeline_bacterial.nf \
 	     --min_genome_length ${min_genome_length} \
 	     --unique_loci ${unique_loci} \
 	     --contig_number ${contig_number} \
-	     --L50 ${L50} \
+	     --L50 ${N50} \
 	     --final_coverage ${final_coverage} \
 	     --model_medaka ${model_medaka} \
 	     -profile ${profile} \
