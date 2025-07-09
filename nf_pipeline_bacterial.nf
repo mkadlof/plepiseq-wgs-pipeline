@@ -100,7 +100,7 @@ process run_fastqc_nanopore {
   container  = params.main_image
   publishDir "${params.results_dir}/${x}/QC", mode: 'copy'
   cpus { params.threads > 2 ? 2 : params.threads }
-  memory "10 GB"
+  memory "15 GB"
   time "15m"
   input:
   tuple val(x), path(reads), val(QC_STATUS)
@@ -3074,10 +3074,10 @@ process run_medaka {
     bgzip medaka_annotated_sorted.vcf
     tabix medaka_annotated_sorted.vcf.gz
   
-    qual=13
+    qual=12
     min_cov=20
   
-    bcftools filter -O z -o medaka_annotated_filtered.vcf.gz -i "GQ > \${qual} && DP >= \${min_cov}" medaka_annotated_sorted.vcf.gz
+    bcftools filter -O z -o medaka_annotated_filtered.vcf.gz -i "GQ >= \${qual} && DP >= \${min_cov}" medaka_annotated_sorted.vcf.gz
     tabix medaka_annotated_filtered.vcf.gz
 
 
