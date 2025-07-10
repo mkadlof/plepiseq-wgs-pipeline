@@ -11,6 +11,9 @@ import os
 import subprocess
 from multiprocessing import Pool
 import glob
+import shutil
+import requests
+import time
 
 def execute_command(polecenie: str):
     """
@@ -28,8 +31,37 @@ def execute_command(polecenie: str):
 def run_blast(lista_plikow, start, end):
     # index the file
     for plik in lista_plikow[start:end]:
+        #print(f'Running blast for file {plik}')
         execute_command(f"makeblastdb -in {plik} -dbtype nucl")
     return True
+
+def download_file_with_retry(url, output_path, auth_user='anonymous', auth_pass='anonymous', max_retries=3, wait_seconds=300):
+    """
+    Downloads a file from a provided url, 3 attempts are made separated by a 5 minutes window.
+    """
+    attempt = 1
+    while attempt <= max_retries:
+        try:
+            response = requests.get(url, auth=(auth_user, auth_pass), stream=True, timeout=60)
+            if response.status_code == 200:
+                print(f"Download {url}")
+                with open(output_path, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            f.write(chunk)
+                return True
+
+        except Exception as e:
+            print(f"[ERROR] Download attempt {attempt} failed: {e}")
+
+        if attempt < max_retries:
+            print(f"[LOG] Waiting {wait_seconds} seconds before retry...")
+            time.sleep(wait_seconds)
+        attempt += 1
+
+    print(f"[ERROR] Failed to download {url} after {max_retries} attempts.")
+    return False
+
 
 # najpierw pobieramy naglowki
 def read_fasta(fasta):
@@ -74,7 +106,7 @@ def extract_info_from_header(naglowek, bis = 0):
     # 'Mycobacterium '
     # testowano tez na
     # >VFG021469(gb|WP_000062035) (stbA) type 1 fimbrial protein [Stb (VF0954) - Adherence (VFC0001)] [Salmonella enterica subsp. enterica serovar Heidelberg str. SL476]
-    pattern = '^>\w+\((\w+\|\w+)\)\s\((\w+)\)\s.+\s\[(.+)\s\((.+)\)\s-\s(.+)\s\((.+)\)\]\s\[(\w+)\s.*\]'
+    # pattern = '^>\w+\((\w+\|\w+)\)\s\((\w+)\)\s.+\s\[(.+)\s\((.+)\)\s-\s(.+)\s\((.+)\)\]\s\[(\w+)\s.*\]'
 
     # update patterny gdy naglowek ma gen ww trybie (sycN/vcr2) lub (vgrG-2)
     # pattern = '^>\w+\((\w+\|\w+|\w+\|\w+\.\w+)\)\s\((\w+|\w+\/\w+|\w+-.+)\)\s.+\s\[(.+)\s\((.+)\)\s-\s(.+)\s\((.+)\)\]\s\[(\w+)\s.*\]'
@@ -89,19 +121,37 @@ def extract_info_from_header(naglowek, bis = 0):
 if __name__ == '__main__':
 
     cpus = int(sys.argv[1])
-    if os.path.exists('VFDB_setB_nt.fa'):
+    if os.path.exists('VFDB_setB_nt.fas') or os.path.exists('VFDB_setB_nt.fas.gz'):
         # found some previous data remove everything before we do main script
-        _ = [shutil.rmtree(dir_path) for dir_path in os.listdir('.') if dir_path not in ['prep_VFDB.py', 'README'] and os.path.isdir(dir_path)]
+        _ = [shutil.rmtree(dir_path) for dir_path in os.listdir('.') if os.path.isdir(dir_path)]
         
         if os.path.exists('VFs.xls'):
             os.remove('VFs.xls')
-    
-        os.remove('VFDB_setB_nt.fa')
+        if os.path.exists('VFs.xls.gz'):
+            os.remove('VFs.xls.gz')
+
+        if os.path.exists('log_old'):
+            os.remove('log_old')
+        
+        if os.path.exists('VFDB_setB_nt.fas.gz'):
+            os.remove('VFDB_setB_nt.fas.gz')
+        if os.path.exists('VFDB_setB_nt.fas'):
+            os.remove('VFDB_setB_nt.fas')
         
     # download the new data 
-    execute_command('curl -u anonymous:anonymous https://www.mgc.ac.cn/VFs/Down/VFDB_setB_nt.fas.gz -O')
-    execute_command('curl -u anonymous:anonymous https://www.mgc.ac.cn/VFs/Down/VFs.xls.gz -O')
-    
+    #execute_command('curl -u anonymous:anonymous https://www.mgc.ac.cn/VFs/Down/VFDB_setB_nt.fas.gz -O')
+    #execute_command('curl -u anonymous:anonymous https://www.mgc.ac.cn/VFs/Down/VFs.xls.gz -O')
+   
+    download_file_with_retry(
+    url='https://www.mgc.ac.cn/VFs/Down/VFDB_setB_nt.fas.gz',
+    output_path='VFDB_setB_nt.fas.gz'
+    )
+
+    download_file_with_retry(
+    url='https://www.mgc.ac.cn/VFs/Down/VFs.xls.gz',
+    output_path='VFs.xls.gz'
+    )
+
     #unzip
     execute_command('gunzip VFDB_setB_nt.fas.gz')
     execute_command('gunzip VFs.xls.gz')
@@ -145,13 +195,14 @@ if __name__ == '__main__':
         if '(' in gene:
             gene=gene.split('(')[0]
         #usuwamy dziwne znaki w nazwach genow
-        gene=gene.replace('*', '').replace("'", "").replace(" ","")
+        gene=gene.replace('*', '-').replace("'", "-").replace(" ","-").replace('<','-').replace('>','-')
         if gene not in slownik_VFDB[pattern]:
             slownik_VFDB[pattern][gene] = {}
 
         slownik_VFDB[pattern][gene][id] = seq
 
     for dir in slownik_VFDB.keys():
+        print(f'Create dir for {dir}')
         os.makedirs(dir)
         for geny in slownik_VFDB[dir]:
             with open(f'{dir}/{geny}.fa', 'w') as f:
@@ -160,7 +211,6 @@ if __name__ == '__main__':
 
     # running makeblastdb on all fasta files
     lista_plikow = glob.glob('**/*.fa', recursive=True)
-    
     pool = Pool(cpus)
 
     lista_indeksow = []
@@ -181,4 +231,6 @@ if __name__ == '__main__':
     pool.close()
     pool.join()
 
+    if os.path.exists('log'):
+        os.rename("log", "log_old")
     #execute_command('find . -name "*fa" | xargs -I {} --max-procs=96  bash -c "makeblastdb -in {} -dbtype nucl"')
