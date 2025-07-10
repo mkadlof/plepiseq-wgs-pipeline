@@ -5,7 +5,7 @@ PlEpiSeq is a production‑grade collection of Nextflow workflows that turn raw 
 * **Viruses:** SARS‑CoV‑2, Influenza A/B, human RSV (types A & B)
 * **Bacteria:** *Salmonella*, *Escherichia*, and *Campylobacter* genera
 
-It supports both **Illumina (paired‑end)** and **Oxford Nanopore (single‑end)** reads and can run on a single workstation, an HPC cluster (SLURM profile provided), or in the cloud.
+It supports both **Illumina (paired‑end)** and **Oxford Nanopore (single‑end)** reads and can run on aHPC cluster (SLURM profile provided), or in the cloud.
 
 ---
 
@@ -152,14 +152,14 @@ Run weekly (cron/SLURM job example is shown in §5.2 of the docs):
 ./update_external_databases.sh --database all --output /mnt/raid/external_databases
 ```
 
-Individual DBs can be refreshed with `--database pangolin`, `--database kraken2`, etc. (Kraken2 download uses checksum‑based skip logic).
+Individual DBs can be refreshed with `--database pangolin`, `--database kraken2`, etc. .
 
 ---
 
 ## Hardware guidelines
 
 * **CPU** – pipeline scales horizontally; more cores shorten multi‑sample runs.
-* **GPU** – AlphaFold2 is the only GPU step; eight A100/80 GB cards remove most bottlenecks.
+* **GPU** – AlphaFold2 is the only GPU step; a GPU with 80 GB RAM is required.
 * **RAM** – Kraken2 standard DB needs ≈ 80 GB RAM per concurrent sample.
 * **Disk I/O** – fast NVMe or tmpfs for `work/` and DB path strongly advised.
 
@@ -169,9 +169,9 @@ Individual DBs can be refreshed with `--database pangolin`, `--database kraken2`
 
 Pull requests and issue reports are welcome. Please open an issue first if you plan large changes to modules or Dockerfiles.
 
-## Additional Documentation (Polish)
+## Documentation (English)
 
-Polish-language documentation is available in the [`doc/`](doc/) directory:
+Documentation is available in the [`doc/`](doc/) directory:
 
 ```
 doc/dokumentacja.docx
