@@ -182,3 +182,7 @@ This file contains detailed instructions and descriptions of the pipeline compon
 ## License
 
 This repository is released under the **MIT License** (see `LICENSE` file).
+
+## VERSION
+
+The current version of this pipeline is stored in the `VERSION` file at the root of this repository.
