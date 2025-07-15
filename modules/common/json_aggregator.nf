@@ -26,13 +26,13 @@ process json_aggregator_sars_illumina {
     script:
     ExecutionDir = ExecutionDir.replace(".", "")
     """
-    if [ -e "/tmp/git_master_ref" ];then
-      version=`cat /tmp/git_master_ref | cut -b-8`
+    if [ -e "/VERSION" ];then
+      PIPELINE_VERSION=`cat /VERSION`
     else
-      version="unknown"
+      PIPELINE_VERSION="unknown"
     fi
 
-    json_aggregator.py  --version \${version} \
+    json_aggregator.py  --version \${PIPELINE_VERSION} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \
                         --fastqc_pre "${fastqc_pre_json_forward}" "${fastqc_pre_json_reverse}" \
@@ -82,13 +82,13 @@ process json_aggregator_rsv_illumina {
     script:
     ExecutionDir = ExecutionDir.replace(".", "")
     """
-    if [ -e "/tmp/git_master_ref" ];then
-      version=`cat /tmp/git_master_ref | cut -b-8`
+    if [ -e "/VERSION" ];then
+      PIPELINE_VERSION=`cat /VERSION`
     else
-      version="unknown"
+      PIPELINE_VERSION="unknown"
     fi
 
-    json_aggregator.py  --version \${version} \
+    json_aggregator.py  --version \${PIPELINE_VERSION} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \
                         --fastqc_pre "${fastqc_pre_json_forward}" "${fastqc_pre_json_reverse}" \
@@ -140,13 +140,13 @@ process json_aggregator_influenza_illumina {
     script:
     ExecutionDir = ExecutionDir.replace(".", "")
     """
-    if [ -e "/tmp/git_master_ref" ];then
-      version=`cat /tmp/git_master_ref | cut -b-8`
+    if [ -e "/VERSION" ];then
+      PIPELINE_VERSION=`cat /VERSION`
     else
-      version="unknown"
+      PIPELINE_VERSION="unknown"
     fi
 
-    json_aggregator.py  --version \${version} \
+    json_aggregator.py  --version \${PIPELINE_VERSION} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \
                         --fastqc_pre "${fastqc_pre_json_forward}" "${fastqc_pre_json_reverse}" \
@@ -199,14 +199,14 @@ process json_aggregator_sars_nanopore {
     script:
     ExecutionDir = ExecutionDir.replace(".", "")
     """
-    if [ -e "/tmp/git_master_ref" ];then
-      version=`cat /tmp/git_master_ref | cut -b-8`
+    if [ -e "/VERSION" ];then
+      PIPELINE_VERSION=`cat /VERSION`
     else
-      version="unknown"
+      PIPELINE_VERSION="unknown"
     fi
 
 
-    json_aggregator.py  --version \${version} \
+    json_aggregator.py  --version \${PIPELINE_VERSION} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \
                         --fastqc_pre "${fastqc_pre_json_forward}" \
@@ -254,13 +254,14 @@ process json_aggregator_rsv_nanopore {
     script:
     ExecutionDir = ExecutionDir.replace(".", "")
     """
-    if [ -e "/tmp/git_master_ref" ];then
-      version=`cat /tmp/git_master_ref | cut -b-8`
+    
+    if [ -e "/VERSION" ];then
+      PIPELINE_VERSION=`cat /VERSION`
     else
-      version="unknown"
+      PIPELINE_VERSION="unknown"
     fi
 
-    json_aggregator.py  --version \${version} \
+    json_aggregator.py  --version \${PIPELINE_VERSION} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \
                         --fastqc_pre "${fastqc_pre_json_forward}" \
@@ -309,13 +310,14 @@ process json_aggregator_influenza_nanopore {
     script:
     ExecutionDir = ExecutionDir.replace(".", "")
     """
-    if [ -e "/tmp/git_master_ref" ];then
-      version=`cat /tmp/git_master_ref | cut -b-8`
+    
+    if [ -e "/VERSION" ];then
+      PIPELINE_VERSION=`cat /VERSION`
     else
-      version="unknown"
+      PIPELINE_VERSION="unknown"
     fi
 
-    json_aggregator.py  --version \${version} \
+    json_aggregator.py  --version \${PIPELINE_VERSION} \
                         --pathogen "${params.species}" \
                         --sampleId "${sampleId}" \
                         --fastqc_pre "${fastqc_pre_json_forward}" \

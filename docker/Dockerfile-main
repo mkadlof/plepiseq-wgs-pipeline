@@ -501,6 +501,8 @@ ENV PATH="/home/bin/common:"\
 
 # snpeff new files
 COPY data/common/snpeff /opt/snpEff
+# add version info to the image
+COPY VERSION /VERSION
 #COPY .git/refs/heads/master /tmp/git_master_ref
 
 WORKDIR /home

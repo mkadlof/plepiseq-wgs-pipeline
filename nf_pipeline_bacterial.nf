@@ -2818,7 +2818,13 @@ process merge_all_subjsons_illumina {
   script:
   ExecutionDir = ExecutionDir.replace(".", "")
   """
-  VERSION="SOME_VERSION"
+
+  if [ -e "/VERSION" ];then
+    PIPELINE_VERSION=`cat /VERSION`
+  else
+    PIPELINE_VERSION="unknown"
+  fi
+
   python /opt/docker/EToKi/externals/prepare_full_json.py --sistr_file sistr.json \
                                                           --seqsero_file seqsero.json \
                                                           --spifinder_file spifinder.json \
@@ -2838,7 +2844,7 @@ process merge_all_subjsons_illumina {
                                                           --genome_statistics_file bacterial_genome.json \
                                                           --genome_file genome_file.json \
                                                           --genus_species_file Genus_species.json \
-                                                          --repo_version "\${VERSION}" \
+                                                          --repo_version "\${PIPELINE_VERSION}" \
                                                           --output ${x}.json \
                                                           --executiondir ${ExecutionDir} \
                                                           --alphafold_file alphafold.json \
@@ -3305,7 +3311,12 @@ process merge_all_subjsons_nanopore {
   script:
   ExecutionDir = ExecutionDir.replace(".", "")
   """
-  VERSION="SOME_VERSION"
+  if [ -e "/VERSION" ];then
+    PIPELINE_VERSION=`cat /VERSION`
+  else
+    PIPELINE_VERSION="unknown"
+  fi
+
   python /opt/docker/EToKi/externals/prepare_full_json.py --sistr_file sistr.json \
                                                           --seqsero_file seqsero.json \
                                                           --spifinder_file spifinder.json \
@@ -3325,7 +3336,7 @@ process merge_all_subjsons_nanopore {
                                                           --genus_species_file Genus_species.json \
                                                           --genome_statistics_file bacterial_genome.json \
                                                           --genome_file genome_file.json \
-                                                          --repo_version "\${VERSION}" \
+                                                          --repo_version "\${PIPELINE_VERSION}" \
                                                           --output ${x}.json \
                                                           --executiondir ${ExecutionDir} \
                                                           --alphafold_file alphafold.json \
