@@ -39,7 +39,11 @@ process introduce_SV_with_manta {
       touch consensus_masked_SV.fa
       touch output_dummy.fasta
       QC_status_exit="nie"
-      ERR_MSG="Failed QC"
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+      fi
       python3 /home/parse_make_consensus.py --status "nie" --error "\${ERR_MSG}" -o consensus.json
 
     elif [[ ${QC_status_picard} == "nie" &&  ${QC_status_consensus} == "tak" ]]; then
@@ -144,7 +148,11 @@ process introduce_SV_with_manta {
           python3 /home/parse_make_consensus.py --status "\${QC_status_exit}" -o consensus.json --input_fastas list_of_fasta.txt --output_path "${params.results_dir}/${sampleId}"
         else
           QC_status_exit="nie"
-          ERR_MSG="The sequence contains more than 90% of Ns. Will not execute downstream modules"
+          if [ "${params.lan}" == "pl" ]; then
+            ERR_MSG="Sekwencja genomowa dla tej próbki zawiera ponad 90% znaków N. Kolejne moduły nie będą wykonywane."
+          else
+            ERR_MSG="The genomic sequence for this sample contains more than 90% of Ns. Downstream modules witll not execute."
+          fi
           python3 /home/parse_make_consensus.py --status "nie" --error "\${ERR_MSG}" -o consensus.json 
         fi
       fi

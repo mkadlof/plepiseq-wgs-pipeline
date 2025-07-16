@@ -24,8 +24,12 @@ process nextclade {
     if [ ${QC_status} == "nie" ]; then
       mkdir nextclade_lineages
       touch nextclade_lineages/nextclade.cds_translation.S.fasta
-      QC_status_exit="nie"   
-      ERR_MSG="QC failed: an error occurred in a prior processing step"
+      QC_status_exit="nie"
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+      fi 
       STATUS="nie"
       DATABASE_NAME="Nextclade"
       SEQ_SOURCE="full_genome"

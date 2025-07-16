@@ -21,7 +21,11 @@ process coinfection_analysis {
     if [ ${QC_status} == "nie" ]; then
       touch ${sampleId}_allele_usage_histogram.txt
       coinfection_status="nie"
-      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+      fi
       echo -e "{\\"coinfection_status\\":\\"\${coinfection_status}\\", \
                 \\"coinfetion_error_message\\":\\"\${ERR_MSG}\\"}" >> custom_coinfection_analysis.json
     else

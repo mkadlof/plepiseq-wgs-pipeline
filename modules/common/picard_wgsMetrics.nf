@@ -17,7 +17,11 @@ process picard_wgsMetrics {
     if [ ${QC_status} == "nie" ]; then
       touch ${sampleId}_coverage_barplot_dummy.csv
       touch ${sampleId}_coverage_histogram.csv
-      ERR_MSG="QC failed: an error occurred in a prior processing step"
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+      fi
       picard_parser.py --status "nie" \
                        --output viral_genome_data.json \
                        --error "\${ERR_MSG}"

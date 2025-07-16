@@ -17,9 +17,17 @@ process pangolin {
 
     if [[ ${QC_status} == "nie" || ${params.species} != "SARS-CoV-2" ]]; then
         if [[ ${params.species} == "SARS-CoV-2" ]]; then
-            ERR_MSG="QC failed: an error occurred in a prior processing step."
+            if [ "${params.lan}" == "pl" ]; then
+                ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+            else
+                ERR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+            fi
         elif [[ ${params.species} != "SARS-CoV-2" ]]; then
-            ERR_MSG="For organisms other than SARS-CoV-2, the Pangolin database is not queried."
+            if [ "${params.lan}" == "pl" ]; then
+                ERR_MSG="Ten moduł jest przeznaczony wylacznie do analizy wirusa SARS-CoV-2."
+            else
+                ERR_MSG="For organisms other than SARS-CoV-2, the Pangolin database is not queried."
+            fi
         fi
         touch pangolin_lineage.csv
 

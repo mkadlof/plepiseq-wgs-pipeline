@@ -13,7 +13,11 @@ process resistance {
     """
     if [ ${QC_status} == "nie" ]; then
       STATUS="nie"
-      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+      fi
       analyze_infl_mutations.py --status \${STATUS} \
                                 --error "\${ERR_MSG}" \
                                 --output_json drug_resistance.json
@@ -31,7 +35,11 @@ process resistance {
                                     --output_json drug_resistance.json
       else
          STATUS="nie"
-         ERR_MSG="This module works only for following subtypes: H1N1 H3N2 H5N1 H7N9 Yamagata Victoria. Sample, however is: ${SAMPLE_SUBTYPE}"
+         if [ "${params.lan}" == "pl" ]; then
+           ERR_MSG="Ten moduł działa tylko dla następujących podtypów wirusa grypy: H1N1, H3N2, H5N1, H7N9, Yamagata, Victoria. Natomiast podtyp próbki to: ${SAMPLE_SUBTYPE}"
+         else
+           ERR_MSG="This module works only for following subtypes: H1N1 H3N2 H5N1 H7N9 Yamagata Victoria. Sample, however is: ${SAMPLE_SUBTYPE}"
+         fi
          analyze_infl_mutations.py --status \${STATUS} \
                                     --error "\${ERR_MSG}" \
                                     --output_json drug_resistance.json

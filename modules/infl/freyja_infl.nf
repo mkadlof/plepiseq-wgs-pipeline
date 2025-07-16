@@ -20,7 +20,11 @@ process freyja_infl {
     if [ ${QC_status} == "nie" ]; then
       touch coinfections.tsv
       freyja_status="nie"
-      ERR_MSG="This module recieved a failed QC status and was not executed"
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+      fi
       echo -e "{\\"status\\":\\"\${freyja_status}\\",
                 \\"error_message\\":\\"\${ERR_MSG}\\"}" >> coinfections_freyja.json
     else
@@ -80,19 +84,25 @@ process freyja_infl {
                      \\"freyja_lineage1_abundance\\":\${freyja_lineage_1_abundance},
                      \\"freyja_lineage2_abundance\\":\${freyja_lineage_2_abundance}}" >> coinfections_freyja.json
          else
-           ERR_MSG="Mean depth is below 20 threshold"
+           if [ "${params.lan}" == "pl" ]; then
+             ERR_MSG="Średnie pokrycie dla tej próbki: \${MEAN_DEPTHS}, jest poniżej zalecanego progu przez Freya"
+           else
+             ERR_MSG="Mean depth for this sample: \${MEAN_DEPTHS}, which is below Freyja recommended threshold"
+           fi
            touch coinfections.tsv
            freyja_status="nie"
-           ERR_MSG="This module recieved a failed QC status and was not executed"
            echo -e "{\\"status\\":\\"\${freyja_status}\\",
                      \\"error_message\\":\\"\${ERR_MSG}\\"}" >> coinfections_freyja.json
 
          fi       
        else
-         ERR_MSG="Freyja module works only with following influenza subtypes H1N1, H3N2, H5Nx and Victoria"
+         if [ "${params.lan}" == "pl" ]; then
+           ERR_MSG="Ten moduł działa tylko dla następujących podtypów wirusa grypy: H1N1, H3N2, H5Nx i Victoria. Natomiast podtyp próbki to: ${SAMPLE_SUBTYPE}"
+         else
+           ERR_MSG="This module works only for following subtypes: H1N1 H3N2 H5Nx and Victoria. Sample, however is: ${SAMPLE_SUBTYPE}"
+         fi
          touch coinfections.tsv
-         freyja_status="nie"
-         ERR_MSG="This module recieved a failed QC status and was not executed"
+         freyja_status="blad"
          echo -e "{\\"status\\":\\"\${freyja_status}\\",
                    \\"error_message\\":\\"\${ERR_MSG}\\"}" >> coinfections_freyja.json
        fi

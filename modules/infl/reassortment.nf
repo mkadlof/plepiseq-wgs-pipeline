@@ -43,8 +43,12 @@ process reassortment {
       REF_GENOME_ID="unk"
       QC_exit="nie"
       touch genes.gtf
-      # json section 
-      ERR_MSG="This module recieved failed QC status"
+      # json section
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+      fi 
       STATUS="nie"
       influenza_reassortment_parser.py --status "\${STATUS}" \
                                         --error "\${ERR_MSG}" \

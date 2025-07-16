@@ -45,7 +45,11 @@ process consensus_nanopore {
       touch output_dummy.fasta
       touch ref_genome.fasta
       touch ref_genome.fasta.fai
-      ERR_MSG="Failed QC"
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+      fi
       parse_make_consensus.py --status "nie" --error "\${ERR_MSG}" -o consensus.json
     else
       if [ ${params.species} == "Influenza" ]; then

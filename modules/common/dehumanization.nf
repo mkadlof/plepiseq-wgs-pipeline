@@ -15,7 +15,11 @@ process dehumanization_illumina  {
     """
     if [ ${QC_status} == "nie" ]; then
       touch nohuman.fastq.gz
-      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+      fi
       parse_dehumanization.py --status "nie" --error "\${ERR_MSG}" -o dehumanized.json
     else
       samtools view mapped_reads.bam | cut -f1 | sort | uniq > lista_id_nohuman.txt
@@ -67,7 +71,11 @@ process dehumanization_nanopore {
     """
     if [ ${QC_status} == "nie" ]; then
       touch nohuman.fastq.gz
-      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+      fi
       parse_dehumanization.py --status "nie" --error "\${ERR_MSG}" -o dehumanized.json
     else
       
