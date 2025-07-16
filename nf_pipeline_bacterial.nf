@@ -3131,7 +3131,7 @@ process run_flye {
     fi
     # For R10 recommedned flag is --nano-hq
     # --nano-raw was used for R7-R9
-    /opt/docker/Flye/bin/flye --nano-raw ${fastq_gz} -g \${GENOME_SIZE} -o output -t ${task.cpus} -i 3 --no-alt-contig --deterministic
+    /opt/docker/Flye/bin/flye --nano-hq ${fastq_gz} -g \${GENOME_SIZE} -o output -t ${task.cpus} -i 3 --no-alt-contig --deterministic
   fi
   """
  
