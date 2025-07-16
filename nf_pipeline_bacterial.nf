@@ -86,11 +86,11 @@ process run_fastqc_illumina {
   
   # If QC_STATUS is 'nie' then the script below will produce a json with ERROR_MSG
  
-  DANE_FORWARD=(`python /opt/docker/EToKi/externals/run_fastqc_and_generate_json.py -i ${reads[0]} -m 8096 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e pre-filtering -p "${params.results_dir}/${x}/QC" -o forward.json`)
+  DANE_FORWARD=(`python /opt/docker/EToKi/externals/run_fastqc_and_generate_json.py -i ${reads[0]} -m 8096 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e pre-filtering -p "${params.results_dir}/${x}/QC" -o forward.json --lan ${params.lan} `)
   STATUS_FORWARD_ALL="\${DANE_FORWARD[0]}"
   BASES_FORWARD="\${DANE_FORWARD[1]}"
 
-  DANE_REVERSE=(`python /opt/docker/EToKi/externals/run_fastqc_and_generate_json.py -i ${reads[1]} -m 8096 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e pre-filtering -p "${params.results_dir}/${x}/QC" -o reverse.json`)
+  DANE_REVERSE=(`python /opt/docker/EToKi/externals/run_fastqc_and_generate_json.py -i ${reads[1]} -m 8096 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e pre-filtering -p "${params.results_dir}/${x}/QC" -o reverse.json --lan ${params.lan}`)
   STATUS_REVERSE_ALL="\${DANE_REVERSE[0]}"
   BASES_REVERSE="\${DANE_REVERSE[1]}"
  
@@ -136,7 +136,7 @@ process run_fastqc_nanopore {
     ERROR_MSG=""
   fi
  
-  DANE_FORWARD=(`python /opt/docker/EToKi/externals/run_fastqc_and_generate_json.py -i ${reads} -m 10000 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e pre-filtering -p "${params.results_dir}/${x}/QC" -o forward.json`)
+  DANE_FORWARD=(`python /opt/docker/EToKi/externals/run_fastqc_and_generate_json.py -i ${reads} -m 10000 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e pre-filtering -p "${params.results_dir}/${x}/QC" -o forward.json --lan ${params.lan}`)
   STATUS_FORWARD="\${DANE_FORWARD[0]}"
   TOTAL_BASES="\${DANE_FORWARD[1]}"
 
@@ -226,7 +226,7 @@ process run_initial_mlst_illumina {
       ERROR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
     fi
     
-    QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -s ${QC_status} -r "\${ERR_MSG}" -o initial_mlst.json`
+    QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -s ${QC_status} -r "\${ERR_MSG}" -o initial_mlst.json --lan ${params.lan}`
   else
     if [[ "${GENUS}" == *"Salmo"* ]]; then
       python /opt/docker/mlst/mlst.py -i ${read_1} ${read_2} -s senterica -p /db/mlst_db/ -mp kma -t tmp/
@@ -244,7 +244,7 @@ process run_initial_mlst_illumina {
         ERR_MSG=`echo This program works with the following genera: Salmonella, Escherichia, or Campylobacter. Following genus was identified in this sample is: ${GENUS}`
       fi
 
-      QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -s blad -r "\${ERR_MSG}" -o initial_mlst.json`
+      QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -s blad -r "\${ERR_MSG}" -o initial_mlst.json --lan ${params.lan}`
     fi
 
     # Parsowanie wyniku i zwracanie json i statusu QC
@@ -253,7 +253,7 @@ process run_initial_mlst_illumina {
       # QC moze zienic sie na "nie" jesli nie spelania parametru QC
       # RESEULT=`ls *res` # plik ma zwykle nazwe kma_{nazwa_gatunkut}_{nazwapliku_fastq do momentu spotkania R{1,2}, przy czym numer jest opusczany}.res
       OUT_FILE=`ls *res`
-      QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -i "\${OUT_FILE}" -x ${params.unique_loci}  -s tak -o initial_mlst.json`
+      QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -i "\${OUT_FILE}" -x ${params.unique_loci}  -s tak -o initial_mlst.json --lan ${params.lan}`
     fi
   fi
   """
@@ -469,12 +469,12 @@ process extract_final_stats {
        ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
      fi
 
-     QC_status_exit=`python /opt/docker/EToKi/externals/extract_final_stats_parser.py -l ${params.L50} -n ${params.contig_number} -g \${GENOME_SIZE} -c ${params.min_genome_length} -p ${params.final_coverage} -s ${QC_status} -r "\${ERR_MSG}" -o bacterial_genome_data.json`
+     QC_status_exit=`python /opt/docker/EToKi/externals/extract_final_stats_parser.py -l ${params.L50} -n ${params.contig_number} -g \${GENOME_SIZE} -c ${params.min_genome_length} -p ${params.final_coverage} -s ${QC_status} -r "\${ERR_MSG}" -o bacterial_genome_data.json --lan ${params.lan}`
   else
     cat $fasta $fasta_reject >> all_contigs.fasta
     python  /opt/docker/EToKi/externals/calculate_stats.py $fasta all_contigs.fasta
     
-    QC_status_exit=`python /opt/docker/EToKi/externals/extract_final_stats_parser.py -i Summary_statistics.txt -j Summary_statistics_with_reject.txt -l ${params.L50} -n ${params.contig_number} -g \${GENOME_SIZE} -c ${params.min_genome_length} -p ${params.final_coverage} -s tak -o bacterial_genome_data.json`
+    QC_status_exit=`python /opt/docker/EToKi/externals/extract_final_stats_parser.py -i Summary_statistics.txt -j Summary_statistics_with_reject.txt -l ${params.L50} -n ${params.contig_number} -g \${GENOME_SIZE} -c ${params.min_genome_length} -p ${params.final_coverage} -s tak -o bacterial_genome_data.json --lan ${params.lan}`
 
   fi
   """
@@ -3057,7 +3057,7 @@ process run_initial_mlst_nanopore {
       ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
     fi
 
-    QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -s ${QC_status} -r "\${ERR_MSG}" -o initial_mlst.json`  
+    QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -s ${QC_status} -r "\${ERR_MSG}" -o initial_mlst.json --lan ${params.lan} `  
   else
     if [[ "${GENUS}" == *"Salmo"* ]]; then
     python /opt/docker/mlst/mlst.py -i ${reads} -s senterica -p /db/mlst_db/ -mp kma -t tmp/
@@ -3073,7 +3073,7 @@ process run_initial_mlst_nanopore {
         ERR_MSG=`echo This module works with the following genera: Salmonella, Escherichia, or Campylobacter. Following genus was identified in this sample is: ${GENUS}`
       fi
 
-      QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -s blad -r "\${ERR_MSG}" -o initial_mlst.json`
+      QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -s blad -r "\${ERR_MSG}" -o initial_mlst.json --lan ${params.lan}`
     fi
 
     if [ \${QC_status_exit} == "tak" ] ;then
@@ -3081,7 +3081,7 @@ process run_initial_mlst_nanopore {
       # QC moze zienic sie na "nie" jesli nie spelania parametru QC
       # RESEULT=`ls *res` # plik ma zwykle nazwe kma_{nazwa_gatunkut}_{nazwapliku_fastq do momentu spotkania R{1,2}, przy czym numer jest opusczany}.res
       OUT_FILE=`ls *res`
-      QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -i "\${OUT_FILE}" -x ${params.unique_loci}  -s tak -o initial_mlst.json`
+      QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -i "\${OUT_FILE}" -x ${params.unique_loci}  -s tak -o initial_mlst.json --lan ${params.lan}`
     fi
 
   fi

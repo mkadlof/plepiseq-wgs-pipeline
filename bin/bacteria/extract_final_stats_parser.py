@@ -33,8 +33,10 @@ import json
               type=str,  required=False, default="")
 @click.option('-o', '--output', help='[Output] Name of a file with json output',
               type=str,  required=False)
+@click.option('--lan', type=click.Choice(['en', 'pl'], case_sensitive=False),
+              default='en', help='Language for automatic error messages (en/pl)')
 def main_program(input_file_filtered, input_file_unfiltered, max_contigs, nvalue, genome_length,
-                 completness, coverage, status, output="", error=""):
+                 completness, coverage, status, lan, output="", error=""):
     if status != "tak":
         json_output = [{"step_name": "pre-filtering",
                         "status": status,
@@ -97,10 +99,17 @@ def main_program(input_file_filtered, input_file_unfiltered, max_contigs, nvalue
                            filtered_number_of_contigs_value > max_contigs,
                            filtered_average_covereage_value < coverage,
                            filtered_total_length_value < (float(completness) * int(genome_length))]
-            error = f"Predicted genome does not meet criteria for following parameters:\t"
+            if lan == "pl":
+                error = f"Zaproponowany genom nie spełnia kryteriów dla następujących parametrów:\t"
+            else:
+                error = f"Predicted genome does not meet criteria for following parameters:\t"
             for qc_status, qc_name, qc_value in zip(QC_statuses, QC_names ,QC_values):
                 if qc_status:
-                    error += f"{qc_name} is {qc_value}\t"
+                    if lan == "pl":
+                        error += f"{qc_name} ma wartość {qc_value}\t"
+                    else:
+                        error += f"{qc_name} is {qc_value}\t"
+                        
             filtered_json = {"step_name": "post-filtering",
                              "status": status,
                              "error_message": error}
@@ -143,7 +152,7 @@ def main_program(input_file_filtered, input_file_unfiltered, max_contigs, nvalue
         json_output.append(unfiltered_json)
 
     with open(output, 'w') as f1:
-        f1.write(json.dumps(json_output, indent = 4))
+        f1.write(json.dumps(json_output, ensure_ascii=False, indent = 4))
     print(status)
     return status
 

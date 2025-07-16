@@ -113,7 +113,7 @@ def main_program(sistr_file, seqsero_file, spifinder_file,  ectyper_file,  virul
                                      json.load(open(cgmlst_file))]
 
     with open(output, 'w') as f1:
-        f1.write(json.dumps(json_output, indent = 4))
+        f1.write(json.dumps(json_output, ensure_ascii=False, indent = 4))
 
     return True
 

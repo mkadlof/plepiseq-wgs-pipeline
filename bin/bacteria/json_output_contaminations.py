@@ -167,7 +167,7 @@ def main_program(input_kraken, input_metaphlan_genera, input_metaphlan_species, 
 
     # patch
     with open(output, 'w') as f:
-        f.write(json.dumps(full_output, indent = 4))
+        f.write(json.dumps(full_output, ensure_ascii=False, indent = 4))
 
     return True
 

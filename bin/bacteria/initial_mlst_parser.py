@@ -21,7 +21,9 @@ import json
               type=str,  required=False, default="")
 @click.option('-o', '--output', help='[Output] Name of a file with json output',
               type=str,  required=False)
-def main_program(input_file, min_number, status, output="", error=""):
+@click.option('--lan', type=click.Choice(['en', 'pl'], case_sensitive=False),
+              default='en', help='Language for automatic error messages (en/pl)')
+def main_program(input_file, min_number, status, lan, output="", error=""):
     slownik_loci = {}  # slownik zawiera jako klucz naze loci, a jako wartosc ilosc alleli
     # ze 100% seq identity i 100% pokryciem
     if status != "tak":
@@ -60,14 +62,18 @@ def main_program(input_file, min_number, status, output="", error=""):
 
         else:
             status = "blad" # status do jsona
-            error = f"The number of unique loci in sample is {unikalne_loci}, which is below designed threshold"
+            if lan == "pl":
+                error = f"Liczba unikalnych loci w próbce wynosi {unikalne_loci}, co jest poniżej ustalonego progu"
+            else:
+                error = f"The number of unique loci in sample is {unikalne_loci}, which is below designed threshold"
+
             json_dict = {"scheme_name": "MLST_cge",
                          "status": status,
                          "error_message": error}
             status = "nie"# status przekazywany modulow nizej
 
     with open(output, 'w') as f1:
-        f1.write(json.dumps(json_dict, indent = 4))
+        f1.write(json.dumps(json_dict, ensure_ascii=False, indent = 4))
     print(status)
     return status
 

@@ -76,7 +76,7 @@ def main_program(status, input_file, output, error=""):
             json_output["program_data"].append(tmp_dict)
 
     with open(output, 'w') as f1:
-        f1.write(json.dumps(json_output, indent = 4))
+        f1.write(json.dumps(json_output, ensure_ascii=False, indent = 4))
 
     return True
 
