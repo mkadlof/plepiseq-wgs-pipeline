@@ -46,6 +46,10 @@ if ( !workflow.profile || ( workflow.profile != "slurm" && workflow.profile != "
    System.exit(1)
 }
 
+// Select language used in error msg allowed values 'en' or 'pl'
+params.lan = "pl"
+
+
 // Processes 
 process run_fastqc_illumina {
   tag "fastqc for sample ${x}"
@@ -69,12 +73,19 @@ process run_fastqc_illumina {
   # does not meet predeifned criteria. The script returns to values status (tak, nie, blad) and total numberof bases in fastqfile (0 if status is not tak)
 
   if [ ${QC_STATUS} == "nie" ]; then
-    ERROR_MSG="Initial QC received by this module was nie"
+    if [ "${params.lan}" == "pl" ]; then
+      ERROR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+    else
+      ERROR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+    fi
     touch dummy.csv
+    TOTAL_BASES=0
   else
     ERROR_MSG=""
   fi
-   
+  
+  # If QC_STATUS is 'nie' then the script below will produce a json with ERROR_MSG
+ 
   DANE_FORWARD=(`python /opt/docker/EToKi/externals/run_fastqc_and_generate_json.py -i ${reads[0]} -m 8096 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e pre-filtering -p "${params.results_dir}/${x}/QC" -o forward.json`)
   STATUS_FORWARD_ALL="\${DANE_FORWARD[0]}"
   BASES_FORWARD="\${DANE_FORWARD[1]}"
@@ -111,10 +122,14 @@ process run_fastqc_nanopore {
   tuple val(x), env(QC_STATUS_EXIT), env(TOTAL_BASES), emit: qcstatus_and_values
 
   script:
-  if (QC_STATUS == null) { QC_STATUS="tak" } //
+  if (QC_STATUS == null) { QC_STATUS="tak" } // if this value was not set assume it is "tak"
   """
   if [ ${QC_STATUS} == "nie" ]; then
-    ERROR_MSG="Initial QC received by this module was nie"
+    if [ "${params.lan}" == "pl" ]; then
+      ERROR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+    else
+      ERROR_MSG="This sample failed a QC analysis during an earlier step of the analysis."
+    fi
     touch dummy.csv
     TOTAL_BASES=0
   else
@@ -204,7 +219,13 @@ process run_initial_mlst_illumina {
   QC_status_exit="${QC_status}"
   mkdir tmp
   if [ ${QC_status} == "nie" ]; then
-    ERR_MSG="This module was eneterd with failed QC and poduced no valid output" 
+    
+    if [ "${params.lan}" == "pl" ]; then
+      ERROR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+    else
+      ERROR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+    fi
+    
     QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -s ${QC_status} -r "\${ERR_MSG}" -o initial_mlst.json`
   else
     if [[ "${GENUS}" == *"Salmo"* ]]; then
@@ -216,7 +237,13 @@ process run_initial_mlst_illumina {
       python /opt/docker/mlst/mlst.py -i ${read_1} ${read_2} -s c${SPECIES} -p /db/mlst_db/ -mp kma -t tmp/
     else
       # We encountered wrong genus
-      ERR_MSG=`echo This program is intended to work with following genera: Salmonella, Escherichia, and Campylobacter. Genus identified in this sample is: ${GENUS}`
+      
+     if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG=`echo Ten program jest przeznaczony do analizy bakterii z rodzajów: Salmonella, Escherichia oraz Campylobacter. W tej próbce wykryto: ${GENUS}`
+      else
+        ERR_MSG=`echo This program works with the following genera: Salmonella, Escherichia, or Campylobacter. Following genus was identified in this sample is: ${GENUS}`
+      fi
+
       QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -s blad -r "\${ERR_MSG}" -o initial_mlst.json`
     fi
 
@@ -435,7 +462,13 @@ process extract_final_stats {
   if [ ${QC_status} == "nie" ]; then
      touch Summary_statistics.txt
      touch Summary_statistics_with_reject.txt
-     ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+     
+     if [ "${params.lan}" == "pl" ]; then
+       ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+     else
+       ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+     fi
+
      QC_status_exit=`python /opt/docker/EToKi/externals/extract_final_stats_parser.py -l ${params.L50} -n ${params.contig_number} -g \${GENOME_SIZE} -c ${params.min_genome_length} -p ${params.final_coverage} -s ${QC_status} -r "\${ERR_MSG}" -o bacterial_genome_data.json`
   else
     cat $fasta $fasta_reject >> all_contigs.fasta
@@ -693,7 +726,13 @@ process run_Seqsero {
     mkdir seqsero
     touch seqsero/SeqSero_result.txt
     touch SeqSero_result.tsv
-    ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    
+    if [ "${params.lan}" == "pl" ]; then
+      ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+    else
+      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    fi
+
     python /opt/docker/EToKi/externals/seqsero_parser.py  -i SeqSero_result.tsv -s "nie" -r "\${ERR_MSG}" -o seqsero.json    
     #json na zle QC
   else
@@ -703,7 +742,13 @@ process run_Seqsero {
     else
       mkdir seqsero
       touch seqsero/SeqSero_result.txt
-      ERR_MSG="This module works only with Salmonella"
+      
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł jest przeznaczony wyłącznie dla bakterii z rodzaju Salmonella"
+      else
+        ERR_MSG="This module works only with bacteria from Salmonella genus"
+      fi
+
       touch SeqSero_result.tsv
       python /opt/docker/EToKi/externals/seqsero_parser.py  -i SeqSero_result.tsv -s "nie" -r "\${ERR_MSG}" -o seqsero.json    
       #json na zly gatunek
@@ -744,7 +789,13 @@ process run_sistr {
   if [[ ${QC_status} == "nie"  || ${QC_status_contaminations} == "nie" ]]; then
     # json na zle QC
     touch sistr-output.tab
-    ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    
+    if [ "${params.lan}" == "pl" ]; then
+      ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+    else
+      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    fi
+
     python /opt/docker/EToKi/externals/sistr_parser.py  -i sistr-output.tab -s "nie" -r "\${ERR_MSG}" -o sistr.json
   else
     if [ ${GENUS} == "Salmonella" ]; then
@@ -752,7 +803,12 @@ process run_sistr {
       python /opt/docker/EToKi/externals/sistr_parser.py  -i sistr-output.tab -s "tak" -o sistr.json
     else
       # json na zly gatunek
-      ERR_MSG="This module works only with Salmonella"
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł jest przeznaczony wyłącznie dla bakterii z rodzaju Salmonella"
+      else
+        ERR_MSG="This module works only with bacteria from Salmonella genus"
+      fi
+
       touch sistr-output.tab
       python /opt/docker/EToKi/externals/sistr_parser.py  -i sistr-output.tab -s "nie" -r "\${ERR_MSG}" -o sistr.json
     fi # koniec if-a na zly gatunek
@@ -787,7 +843,12 @@ process run_ectyper {
   if [[ ${QC_status} == "nie"  || ${QC_status_contaminations} == "nie" ]]; then
     # json na zle QC
     touch output.tsv
-    ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    if [ "${params.lan}" == "pl" ]; then
+      ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+    else
+      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    fi 
+
     python /opt/docker/EToKi/externals/ectyper_parser.py  -i output.tsv -s "nie" -r "\${ERR_MSG}" -o ectyper.json
   else
     if [ ${GENUS} == "Escherichia" ]; then
@@ -797,7 +858,12 @@ process run_ectyper {
     else
        #json na zly gatunek
        touch output.tsv
-       ERR_MSG="This module works only with Escherichia"
+       if [ "${params.lan}" == "pl" ]; then
+         ERR_MSG="Ten moduł jest przeznaczony wyłącznie dla bakterii z rodzaju Escherichia"
+       else
+         ERR_MSG="This module works only with bacteria from Escherichia genus"
+       fi
+       
        python /opt/docker/EToKi/externals/ectyper_parser.py  -i output.tsv -s "nie" -r "\${ERR_MSG}" -o ectyper.json
     fi # koniec if-a na zly gatunek
   fi # koniec if-a na zle QC
@@ -850,7 +916,13 @@ process run_resfinder {
     touch ResFinder_results_tab.txt 
     touch ResFinder_results_table.txt
     touch PointFinder_results.txt 
-    ERR_MSG="This module was eneterd with failed QC and poduced no valid output" 
+
+    if [ "${params.lan}" == "pl" ]; then 
+      ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości." 
+    else
+      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    fi 
+
     python /opt/docker/EToKi/externals/resfinder_parser.py  -i  ResFinder_results_tab.txt -j PointFinder_results.txt -s "nie" -r "\${ERR_MSG}" -o resfinder.json
     cp resfinder.json ../
   else
@@ -873,7 +945,13 @@ process run_resfinder {
       touch ResFinder_results_tab.txt
       touch ResFinder_results_table.txt
       touch PointFinder_results.txt
-      ERR_MSG="This module was eneterd with wrong genus: ${GENUS} and poduced no valid output"
+
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG=`echo Ten program jest przeznaczony do analizy bakterii z rodzajów: Salmonella, Escherichia oraz Campylobacter. W tej próbce wykryto: ${GENUS}`
+      else
+        ERR_MSG=`echo This program works with the following genera: Salmonella, Escherichia, or Campylobacter. Following genus was identified in this sample is: ${GENUS}`
+      fi
+
       python /opt/docker/EToKi/externals/resfinder_parser.py  -i  ResFinder_results_tab.txt -j PointFinder_results.txt -s "nie" -r "\${ERR_MSG}" -o resfinder.json
       cp resfinder.json ../
     else 
@@ -913,7 +991,7 @@ process run_cgMLST {
     elif [ "${SPECIES}" == "jejuni" ]; then
          /data/run_blastn_ver11.sh $fasta ${task.cpus} /db/${GENUS}/jejuni/
     else
-         # This should never happen
+         # This should never happen as earlier modules should always switch QC_status to "nie" 
          echo "Provided species $SPECIES is not part of any cgMLST databases" >> log.log
     fi # koniec if-a na zly gatunek
     cat log.log | cut -f1,2 > cgMLST.txt
@@ -951,6 +1029,7 @@ species="$SPECIES"
 genus="$GENUS"
 qc_status="$QC_status"
 qc_status_contaminations="$QC_status_contaminations"
+
 
 if qc_status == "nie" or qc_status_contaminations == "nie":
     with open('cgMLST_parsed_output.txt', 'w') as f1, open('cgMLST_sample_full_list_of_allels.txt', 'w') as f2, open('cgMLST_closest_ST_full_list_of_allels.txt', 'w') as f3:
@@ -1142,7 +1221,13 @@ process run_prokka {
   """
   if [[ ${QC_status} == "nie"  || ${QC_status_contaminations} == "nie" ]]; then
     mkdir prokka_out; touch prokka_out/prokka_out_dummy.gff; touch prokka_out/prokka_out_dummy.faa; touch prokka_out/prokka_out_dummy.ffn; touch prokka_out/prokka_out_dummy.tsv
-    ERROR_MSG="Initial QC received by this module was nie"
+
+    if [ "${params.lan}" == "pl" ]; then
+      ERROR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+    else
+      ERROR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    fi
+
     echo -e "{\\"status\\": \\"nie\\", \
               \\"error_message\\": \\"\${ERROR_MSG}\\"}"  >> prokka.json
     # json z informacja o bledzie jakosci
@@ -1159,7 +1244,13 @@ process run_prokka {
     else
       mkdir prokka_out; touch prokka_out/prokka_out_dummy.gff; prokka_out/prokka_out_dummy.ffa; prokka_out/prokka_out_dummy.ffn; prokka_out/prokka_out_dummy.tsv
       # json z informacja o zlym gatunku
-      ERROR_MSG="Pipeline is intended to work only with preselcted bacterial species"
+      
+      if [ "${params.lan}" == "pl" ]; then
+        ERROR_MSG=`echo Ten program jest przeznaczony do analizy bakterii z rodzajów: Salmonella, Escherichia oraz Campylobacter. W tej próbce wykryto: ${GENUS}`
+      else
+        ERROR_MSG=`echo This program works with the following genera: Salmonella, Escherichia, or Campylobacter. Following genus was identified in this sample is: ${GENUS}`
+      fi
+      
       echo -e "{\\"status\\": \\"nie\\", \
                 \\"error_message\\": \\"\${ERROR_MSG}\\"}"  >> prokka.json
 
@@ -1195,7 +1286,12 @@ process run_VFDB {
   if [[ ${QC_status} == "nie"  || ${QC_status_contaminations} == "nie" ]]; then
     touch VFDB_summary_dummy.txt; touch VFDB_summary_Escherichia.txt  ; touch VFDB_summary_Shigella.txt
     # json na blad QC
-    ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    if [ "${params.lan}" == "pl" ]; then
+      ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+    else
+      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    fi
+    
     python /opt/docker/EToKi/externals/vfdb_parser.py  -i VFDB_summary_Escherichia.txt -s "nie" -r "\${ERR_MSG}" -o vfdb.json
   else
     if [[ ${GENUS} == "Salmonella" || ${GENUS} == "Escherichia" || ${GENUS} == "Campylobacter" ]]; then
@@ -1226,7 +1322,13 @@ process run_VFDB {
     else
       touch VFDB_summary_dummy.txt; touch VFDB_summary_Escherichia.txt  ; touch VFDB_summary_Shigella.txt
       # json na bledny rodzaj
-      ERR_MSG="This module was eneterd with wrong genus: ${GENUS} and poduced no valid output"
+      
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG=`echo Ten modul jest przeznaczony do analizy bakterii z rodzajów: Salmonella, Escherichia oraz Campylobacter. W tej próbce wykryto: ${GENUS}`
+      else
+        ERR_MSG=`echo This module works with the following genera: Salmonella, Escherichia, or Campylobacter. Following genus was identified in this sample is: ${GENUS}`
+      fi
+
       python /opt/docker/EToKi/externals/vfdb_parser.py  -i VFDB_summary_Escherichia.txt -s "nie" -r "\${ERR_MSG}" -o vfdb.json
     fi # koniec if-a na rodzja
   
@@ -1379,7 +1481,13 @@ process run_spifinder {
 
   if [[ ${QC_status} == "nie"  || ${QC_status_contaminations} == "nie" ]]; then  
     touch spifinder_results/results_tab.tsv
-    ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+
+    if [ "${params.lan}" == "pl" ]; then
+      ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+    else
+      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    fi
+
     python /opt/docker/EToKi/externals/spifinder_parser.py  -i spifinder_results/dummy_file.txt  -s "nie" -r "\${ERR_MSG}" -o spifinder.json
     # json na zle QC
   else
@@ -1389,7 +1497,13 @@ process run_spifinder {
     else
       touch spifinder_results/results_tab.tsv
       # json na zly gatunek
-      ERR_MSG="This module works only with Salmonella"
+      
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG=`echo Ten modul jest przeznaczony do analizy bakterii z rodzajów: Salmonella. W tej próbce wykryto: ${GENUS}`
+      else
+        ERR_MSG=`echo This module works with the following genera: Salmonella. Following genus was identified in this sample is: ${GENUS}`
+      fi
+      
       python /opt/docker/EToKi/externals/spifinder_parser.py  -i spifinder_results/dummy_file.txt  -s "nie" -r "\${ERR_MSG}" -o spifinder.json
     fi # koniec if-a na zly gatunek
   fi # koniec if-a na zle QC
@@ -2249,7 +2363,12 @@ process run_amrfinder {
     touch AMRfinder_resistance.txt
     touch AMRfinder_virulence.txt
     # json z wynikami
-    ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    if [ "${params.lan}" == "pl" ]; then
+      ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+    else
+      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    fi
+
     python /opt/docker/EToKi/externals/amrfinder_parser.py -i AMRfinder_resistance.txt -s "nie" -r "\${ERR_MSG}" -o amrfinder.json
     # Komentarz NIE uzywac exit 0 wewnatrz script
   else
@@ -2262,7 +2381,12 @@ process run_amrfinder {
     else
       touch AMRfinder_resistance.txt
       touch AMRfinder_virulence.txt
-      ERR_MSG="This module was eneterd with wrong species and poduced no valid output"
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG=`echo Ten modul jest przeznaczony do analizy bakterii z rodzajów: Salmonella, Escherichia oraz Campylobacter. W tej próbce wykryto: ${GENUS}`
+      else
+        ERR_MSG=`echo This module works with the following genera: Salmonella, Escherichia, or Campylobacter. Following genus was identified in this sample is: ${GENUS}`
+      fi
+
       python /opt/docker/EToKi/externals/amrfinder_parser.py -i AMRfinder_resistance.txt -s "nie" -r "\${ERR_MSG}" -o amrfinder.json
       # json z wynikami
     fi
@@ -2355,7 +2479,12 @@ process run_alphafold {
     if [[ ${QC_status} == "nie"  || ${QC_status_contaminations} == "nie" ]]; then
       # failed QC
       touch ${x}.pdb
-      ERR_MSG="This modue was entered with bad QC"
+      
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+      fi
       echo -e "{\\"status\\":\\"nie\\",
                 \\"error_message\\": \\"\${ERR_MSG}\\"}" >> alphafold.json
 
@@ -2377,7 +2506,13 @@ process run_alphafold {
 
       else
         touch ${x}.pdb
-        ERR_MSG="Wrong species"
+        
+        if [ "${params.lan}" == "pl" ]; then
+          ERR_MSG=`echo Ten modul jest przeznaczony do analizy bakterii z rodzajów: Salmonella, Escherichia oraz Campylobacter. W tej próbce wykryto: ${GENUS}`
+        else
+          ERR_MSG=`echo This module works with the following genera: Salmonella, Escherichia, or Campylobacter. Following genus was identified in this sample is: ${GENUS}`
+        fi
+
         echo -e "{\\"status\\":\\"nie\\",
                   \\"error_message\\": \\"\${ERR_MSG}\\"}" >> alphafold.json
 
@@ -2450,7 +2585,12 @@ process run_alphafold_slurm {
     if [[ ${QC_status} == "nie"  || ${QC_status_contaminations} == "nie" ]]; then
       # failed QC
       touch ${x}.pdb
-      ERR_MSG="This modue was entered with bad QC"
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+      fi
+      
       echo -e "{\\"status\\":\\"nie\\",
                 \\"error_message\\": \\"\${ERR_MSG}\\"}" >> alphafold.json
 
@@ -2472,7 +2612,12 @@ process run_alphafold_slurm {
 
       else
         touch ${x}.pdb
-        ERR_MSG="Wrong species"
+        if [ "${params.lan}" == "pl" ]; then
+          ERR_MSG=`echo Ten modul jest przeznaczony do analizy bakterii z rodzajów: Salmonella, Escherichia oraz Campylobacter. W tej próbce wykryto: ${GENUS}`
+        else
+          ERR_MSG=`echo This module works with the following genera: Salmonella, Escherichia, or Campylobacter. Following genus was identified in this sample is: ${GENUS}`
+        fi
+
         echo -e "{\\"status\\":\\"nie\\",
                   \\"error_message\\": \\"\${ERR_MSG}\\"}" >> alphafold.json
 
@@ -2508,7 +2653,12 @@ process run_plasmidfinder {
   
   if [[ ${QC_status} == "nie"  || ${QC_status_contaminations} == "nie" ]]; then
     mkdir plasmidfinder; touch plasmidfinder/results_tab.tsv
-    ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    if [ "${params.lan}" == "pl" ]; then
+      ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+    else
+      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    fi
+    
     python /opt/docker/EToKi/externals/plasmidfinder_parser.py  -i plasmidfinder/results_tab.tsv -s "nie" -r "\${ERR_MSG}" -o plasmidfinder.json
     # json zle QC
   else  
@@ -2518,7 +2668,12 @@ process run_plasmidfinder {
       python /opt/docker/EToKi/externals/plasmidfinder_parser.py  -i plasmidfinder/results_tab.tsv -s "tak" -o plasmidfinder.json
     else
       mkdir plasmidfinder; touch plasmidfinder/results_tab.tsv
-      ERR_MSG="This module was eneterd with wrong species and poduced no valid output"
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG=`echo Ten modul jest przeznaczony do analizy bakterii z rodzajów: Salmonella, Escherichia oraz Campylobacter. W tej próbce wykryto: ${GENUS}`
+      else
+        ERR_MSG=`echo This module works with the following genera: Salmonella, Escherichia, or Campylobacter. Following genus was identified in this sample is: ${GENUS}`
+      fi
+      
       python /opt/docker/EToKi/externals/plasmidfinder_parser.py  -i plasmidfinder/results_tab.tsv -s "nie" -r "\${ERR_MSG}" -o plasmidfinder.json
       # json zly gatunek
     fi
@@ -2556,7 +2711,12 @@ process run_virulencefinder {
 
   if [[ ${QC_status} == "nie"  || ${QC_status_contaminations} == "nie" ]]; then
     touch results_tab.tsv
-    ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    if [ "${params.lan}" == "pl" ]; then
+      ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+    else
+      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    fi
+
     python /opt/docker/EToKi/externals/virulencefinder_parser.py  -i  results_tab.tsv -s "nie" -r "\${ERR_MSG}" -o virulencefinder.json
     # json na zle QC
   else
@@ -2566,7 +2726,12 @@ process run_virulencefinder {
       python /opt/docker/EToKi/externals/virulencefinder_parser.py  -i results_tab.tsv -s "tak" -o virulencefinder.json
     else
       touch results_tab.tsv
-      ERR_MSG="This module was eneterd with wrong species and poduced no valid output"
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG=`echo Ten modul jest przeznaczony do analizy bakterii z rodzajów: Escherichia. W tej próbce wykryto: ${GENUS}`
+      else
+        ERR_MSG=`echo This module works with the following genera: Escherichia. Following genus was identified in this sample is: ${GENUS}`
+      fi
+
       python /opt/docker/EToKi/externals/virulencefinder_parser.py  -i  results_tab.tsv -s "nie" -r "\${ERR_MSG}" -o virulencefinder.json
       #json na zly gatunek
     fi # koniec if-a na zly gatunek
@@ -2630,7 +2795,14 @@ else
     FINALE_SPECIES="unknown"
     FINAL_GENUS="unknown"
     echo -e "The sample is contaminated or lacks sufficient number of reads" >> predicted_genus_and_species.txt
-    ERROR_MSG=`echo This sample fails basic QC for this module reads associated with dominant genus is \${KRAKEN_GENUS_LEVEL} according to kraken2, and \${METAPHLAN_GENUS_LEVEL} according to metaphlan. Predicted coverage for main species is \${KMERFINDER_COVERAGE}`
+
+    if [ "${params.lan}" == "pl" ]; then
+      ERROR_MSG=`echo Ta próbka nie przeszła podstawowej kontroli jakości w tym module; ilosc odczytow dla dominujacego rodzaju to "\${KRAKEN_GENUS_LEVEL}" wedlug programu kraken2, a "\${METAPHLAN_GENUS_LEVEL}" wedlug programu metaphlan. Przewidywane pokrycie głównego gatunku wedlug programu kmerfinder wynosi "\${KMERFINDER_COVERAGE}"`
+    else
+      ERROR_MSG=`echo This sample fails basic QC for this module. Number of reads associated with a dominant genus is "\${KRAKEN_GENUS_LEVEL}" according to kraken2, and "\${METAPHLAN_GENUS_LEVEL}" according to metaphlan. Predicted coverage for the main species according to kmerfinder is "\${KMERFINDER_COVERAGE}"`
+    fi
+
+
     python /opt/docker/EToKi/externals/json_output_contaminations.py -k report_kraken2.txt -g report_metaphlan_genera.txt -x report_metaphlan_species.txt -y results.txt -s blad -m "\${ERROR_MSG}" -o contaminations.json
     echo -e "{\\"pathogen_predicted_genus\\":\\"\${FINAL_GENUS}\\",
             \\"pathogen_predicted_species\\":\\"\${FINALE_SPECIES}\\"}" >> Genus_species.json
@@ -2703,7 +2875,13 @@ else
       QC_status_contaminations="tak"
       python /opt/docker/EToKi/externals/json_output_contaminations.py -k report_kraken2.txt -g report_metaphlan_genera.txt -x report_metaphlan_species.txt -y results.txt -s tak -o contaminations.json
     else
-      ERROR_MSG=`echo This sample fails basic QC for this module. Predicted theoretical coverage is below ${params.main_species_coverage}`
+
+        if [ "${params.lan}" == "pl" ]; then
+          ERROR_MSG="Ta próbka nie przeszła podstawowej kontroli jakości w tym module. Przewidywane teoretyczne pokrycie \${TEORETICAL_COVERAGE} jest poniżej progu ${params.main_species_coverage}"
+        else   
+          ERROR_MSG="This sample fails basic QC for this module. Predicted theoretical coverage \${TEORETICAL_COVERAGE} is below threshold ${params.main_species_coverage}"
+        fi
+
       python /opt/docker/EToKi/externals/json_output_contaminations.py -k report_kraken2.txt -g report_metaphlan_genera.txt -x report_metaphlan_species.txt -y results.txt -s blad -m "\${ERROR_MSG}" -o contaminations.json
       QC_status_contaminations="nie"
     fi
@@ -2872,7 +3050,13 @@ process run_initial_mlst_nanopore {
   mkdir tmp
   QC_status_exit="${QC_status}"
   if [ ${QC_status} == "nie" ]; then
-    ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    
+    if [ "${params.lan}" == "pl" ]; then
+      ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+    else
+      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+    fi
+
     QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -s ${QC_status} -r "\${ERR_MSG}" -o initial_mlst.json`  
   else
     if [[ "${GENUS}" == *"Salmo"* ]]; then
@@ -2883,7 +3067,12 @@ process run_initial_mlst_nanopore {
     # w tej bazie podgatunki campylo okreslane sa typowo z cjejuni, clari itd ..
     python /opt/docker/mlst/mlst.py -i ${reads} -s c${SPECIES} -p /db/mlst_db/ -mp kma -t tmp/
     else
-      ERR_MSG=`echo This program is intended to work with following genera: Salmonella, Escherichia, and Campylobacter. Genus identified in this sample is: ${GENUS}`
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG=`echo Ten modul jest przeznaczony do analizy bakterii z rodzajów: Salmonella, Escherichia oraz Campylobacter. W tej próbce wykryto: ${GENUS}`
+      else
+        ERR_MSG=`echo This module works with the following genera: Salmonella, Escherichia, or Campylobacter. Following genus was identified in this sample is: ${GENUS}`
+      fi
+
       QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -s blad -r "\${ERR_MSG}" -o initial_mlst.json`
     fi
 
@@ -2940,6 +3129,8 @@ process run_flye {
     else
         GENOME_SIZE="5m" # trafilem na zly organizm wiec wpisuje 5m ten genom i tak nie bedzie wykorzystany
     fi
+    # For R10 recommedned flag is --nano-hq
+    # --nano-raw was used for R7-R9
     /opt/docker/Flye/bin/flye --nano-raw ${fastq_gz} -g \${GENOME_SIZE} -o output -t ${task.cpus} -i 3 --no-alt-contig --deterministic
   fi
   """
@@ -3216,7 +3407,13 @@ else
     FINALE_SPECIES="unknown"
     FINAL_GENUS="unknown"
     echo -e "The sample is contaminated or lacks sufficient number of reads" >> predicted_genus_and_species.txt
-    ERROR_MSG=`echo This sample fails basic QC for this module reads associated with dominant genus is \${KRAKEN_GENUS_LEVEL} according to kraken2. Predicted coverage for main species is \${KMERFINDER_COVERAGE}`
+
+    if [ "${params.lan}" == "pl" ]; then
+      ERROR_MSG='Ta próbka nie przeszła podstawowej kontroli jakości w tym module. Liczba odczytów przypisana do dominującego rodzaju to \${KRAKEN_GENUS_LEVEL} według programu kraken2, a przewidywane pokrycie głównego gatunku według programu kmerfinder wynosi \${KMERFINDER_COVERAGE}'
+    else
+      ERROR_MSG=`echo This sample fails basic QC for this module. Number of reads associated with a dominant genus is \${KRAKEN_GENUS_LEVEL} according to kraken2 and predicted coverage for the main species according to kmerfinder is \${KMERFINDER_COVERAGE}`
+    fi    
+
     python /opt/docker/EToKi/externals/json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y results.txt -s blad -m "\${ERROR_MSG}" -o contaminations.json
     echo -e "{\\"pathogen_predicted_genus\\":\\"\${FINAL_GENUS}\\",
             \\"pathogen_predicted_species\\":\\"\${FINALE_SPECIES}\\"}" >> Genus_species.json
@@ -3286,7 +3483,13 @@ else
       python /opt/docker/EToKi/externals/json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y results.txt -s tak -o contaminations.json
     else
       QC_status_contaminations="nie"
-      ERROR_MSG=`echo This sample fails basic QC for this module. Predicted theoretical coverage is below ${params.main_species_coverage}`
+      
+      if [ "${params.lan}" == "pl" ]; then
+        ERROR_MSG="Ta próbka nie przeszła podstawowej kontroli jakości w tym module. Przewidywane teoretyczne pokrycie \${TEORETICAL_COVERAGE} jest poniżej progu ${params.main_species_coverage}"
+      else
+        ERROR_MSG="This sample fails basic QC for this module. Predicted theoretical coverage \${TEORETICAL_COVERAGE} is below threshold ${params.main_species_coverage}"
+      fi
+
       python /opt/docker/EToKi/externals/json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y results.txt -s blad -m "\${ERROR_MSG}" -o contaminations.json
     fi
   fi
