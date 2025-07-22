@@ -34,10 +34,10 @@ process fastqc {
       ERROR_MSG=""
     fi
 
-    DANE_FORWARD=(`run_fastqc_and_generate_json.py -i ${reads[0]} -m 4048 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e ${prefix} -p "${params.results_dir}/${sampleId}/QC" -o forward_${prefix}.json`)
+    DANE_FORWARD=(`run_fastqc_and_generate_json.py -i ${reads[0]} -m 4048 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e ${prefix} -p "${params.results_dir}/${sampleId}/QC" -o forward_${prefix}.json --lan ${params.lan}`)
     STATUS_FORWARD_ALL="\${DANE_FORWARD[0]}"
     BASES_FORWARD="\${DANE_FORWARD[1]}"
-    DANE_REVERSE=(`run_fastqc_and_generate_json.py -i ${reads[1]} -m 4048 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e ${prefix} -p "${params.results_dir}/${sampleId}/QC" -o reverse_${prefix}.json`)
+    DANE_REVERSE=(`run_fastqc_and_generate_json.py -i ${reads[1]} -m 4048 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e ${prefix} -p "${params.results_dir}/${sampleId}/QC" -o reverse_${prefix}.json --lan ${params.lan}`)
     STATUS_REVERSE_ALL="\${DANE_REVERSE[0]}"
     BASES_REVERSE="\${DANE_REVERSE[1]}"
     TOTAL_BASES=`echo "\${BASES_FORWARD} + \${BASES_REVERSE}" | bc -l`
@@ -86,7 +86,7 @@ process run_fastqc_nanopore {
     ERROR_MSG=""
   fi
  
-  DANE_FORWARD=(`run_fastqc_and_generate_json.py -i ${reads} -m 4048 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e ${prefix} -p "${params.results_dir}/${sampleId}/QC" -o forward.json`)
+  DANE_FORWARD=(`run_fastqc_and_generate_json.py -i ${reads} -m 4048 -c ${task.cpus} -x ${params.min_number_of_reads} -y ${params.min_median_quality} -s ${QC_STATUS} -r "\${ERROR_MSG}" -e ${prefix} -p "${params.results_dir}/${sampleId}/QC" -o forward.json --lan ${params.lan}`)
   STATUS_FORWARD="\${DANE_FORWARD[0]}"
   TOTAL_BASES="\${DANE_FORWARD[1]}"
 

@@ -204,7 +204,7 @@ def json_aggregator(args):
         output["output"]["viral_mapping_data"] = json.load(open(args.mapping))
 
     with open("output.json", "w") as f:
-        json.dump(output, f, indent=4)
+        f.write(json.dump(output, ensure_ascii=False,  indent=4))
 
 
 def main():

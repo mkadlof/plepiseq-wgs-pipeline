@@ -34,17 +34,19 @@ process pangolin {
         STATUS="nie"
         DATABASE_NAME="Pangolin"
         SEQUENCE_SOURCE="full_genome"
-         echo -e "[{\\"status\\":\\"\${STATUS}\\",
-                  \\"sequence_source\\":\\"\${SEQUENCE_SOURCE}\\",
-                  \\"database_name\\":\\"\${DATABASE_NAME}\\",
-                  \\"error_message\\":\\"\${ERR_MSG}\\"}]" >> pangolin.json
+        echo -e "[{\\"status\\":\\"\${STATUS}\\",
+                   \\"sequence_source\\":\\"\${SEQUENCE_SOURCE}\\",
+                   \\"database_name\\":\\"\${DATABASE_NAME}\\",
+                   \\"error_message\\":\\"\${ERR_MSG}\\"}]" >> pangolin.json
 
     else
         pangolin --outfile pangolin_lineage.csv \
-               --threads ${task.cpus} \
-               output_consensus_masked_SV.fa
-        parse_pangolin_output_csv2json.py pangolin_lineage.csv pangolin_sars.json
-        jq -s "." pangolin_sars.json > pangolin.json
+                  --threads ${task.cpus} \
+                  output_consensus_masked_SV.fa
+
+        parse_pangolin_output_csv2json.py --input pangolin_lineage.csv \
+                                          --output pangolin.json \
+                                          --lan ${params.lan}
     fi
     """
 }

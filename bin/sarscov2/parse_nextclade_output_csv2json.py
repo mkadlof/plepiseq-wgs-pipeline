@@ -17,12 +17,12 @@ def get_nextclade_db_version(input: str):
     return data['meta']['updated']
 
 
-def parse_nextclade_output_csv2json(input: str, input2: str, output: str, sequence_source: str):
+def parse_nextclade_output_csv2json(input: str, input2: str, output: str, sequence_source: str, lan: str):
     if not os.path.exists(input):
-        warn(f"File {input} does not exist.")
+        msg = f"File {input} does not exist." if lan == 'en' else f"Plik {input} nie istnieje."
         output_json = {"status": "nie",
                        "database_name": "Nextclade",
-                       "error_message": f"File {input} does not exist."}
+                       "error_message": msg}
         with open(output, 'w') as f:
             json.dump(output_json, f)
     else:
@@ -46,9 +46,7 @@ def parse_nextclade_output_csv2json(input: str, input2: str, output: str, sequen
                        "variant_qc_status": qc_status,
                        "sequence_source": sequence_source}
         with open(output, 'w') as f:
-            json.dump(output_json, f, indent=4)
-
-    print(f"File {output} saved.")
+            f.write(json.dump(output_json, ensure_ascii=False, indent=4))
 
 
 def main():
@@ -57,9 +55,10 @@ def main():
     parser.add_argument('input2', type=str, help='Input file nextclade.auspice.json')
     parser.add_argument('output', type=str, help='Output JSON file')
     parser.add_argument('sequence_source', type=str, help='Segment id or string "full_genome"')
+    parser.add_argument('--lan', choices=['pl', 'en'], default='en', help='Language of error messages')
     args = parser.parse_args()
 
-    parse_nextclade_output_csv2json(args.input, args.input2, args.output, args.sequence_source)
+    parse_nextclade_output_csv2json(args.input, args.input2, args.output, args.sequence_source, args.lan)
 
 
 if __name__ == '__main__':

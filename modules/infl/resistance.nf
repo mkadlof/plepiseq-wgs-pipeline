@@ -20,7 +20,8 @@ process resistance {
       fi
       analyze_infl_mutations.py --status \${STATUS} \
                                 --error "\${ERR_MSG}" \
-                                --output_json drug_resistance.json
+                                --output_json drug_resistance.json \
+                                --lan ${params.lan}
 
     else
   
@@ -32,7 +33,8 @@ process resistance {
                                     --data_path /home/data/infl \
                                     --output_path . \
                                     --status "tak" \
-                                    --output_json drug_resistance.json
+                                    --output_json drug_resistance.json \
+                                    --lan ${params.lan}
       else
          STATUS="nie"
          if [ "${params.lan}" == "pl" ]; then
@@ -42,7 +44,8 @@ process resistance {
          fi
          analyze_infl_mutations.py --status \${STATUS} \
                                     --error "\${ERR_MSG}" \
-                                    --output_json drug_resistance.json
+                                    --output_json drug_resistance.json \
+                                    --lan ${params.lan}
       fi
     fi
     """

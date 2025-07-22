@@ -110,27 +110,34 @@ def _get_protein_sequence(segment_fasta, referene_fasta, gff_file, what, out_dir
     return True
 
 
-def check_quality_protein_sequence(plik):
-    """'
-    Sprawdzamy obecnosc X i N w sekwencji. Jesli sumarycznie jest wiecej niz threshold, definioany
-    jako ich frakcja sekwencja dostaje flage ze jest zla. Uwaga sekwencja jest alignowana wzgledem refencji
-    wiec usuawamy '-' do liczenia tego stosunku
-    :param plik:
-    :return:
+def check_quality_protein_sequence(plik, lan):
     """
-    tekst = 'Brak sekwencji'
-    stosunek = 1
+    Check presence of 'X' and 'N' in protein sequence. If the combined proportion
+    of these characters is above a threshold, the sequence is flagged as low quality.
+    The sequence is aligned to reference and may include '-' characters which are excluded.
+
+    :param plik: FASTA file path
+    :param lan: Language code ('en' or 'pl') for message
+    :return: (message_text, fraction_of_X_and_N)
+    """
+    tekst = "Podany plik jest pusty" if lan == 'pl' else "Provided file does not contain any valid sequence"
+    stosunek = 1.0 # if no file is provided return this calue
+
     record = SeqIO.parse(plik, 'fasta')
     for r in record:
-        ilosc = int(r.seq.count('X'))
-        ilosc += int(r.seq.count('N'))
+        ilosc = int(r.seq.count('X')) + int(r.seq.count('N'))
         dlugosc = float(len(r.seq.replace('-', '')))
         stosunek = float("%.4f" % (ilosc / dlugosc))
-        tekst = (f'Sekwencja {r.id} ma dlugosc:\t{dlugosc}\tIlosc X i N:\t{ilosc}\t'
-                 f'Procentowa zawartosc X i N:\t{stosunek * 100}%\n')
-        return tekst, stosunek
-    return tekst, stosunek
 
+        if lan == 'pl':
+            tekst = (f'Sekwencja {r.id} ma długość:\t{dlugosc}\tIlosc X i N:\t{ilosc}\t'
+                     f'Procentowa zawartosc X i N:\t{stosunek * 100}%\n')
+        else:
+            tekst = (f'Sequence {r.id} has length:\t{dlugosc}\tCount of X and N:\t{ilosc}\t'
+                     f'Percentage of X and N:\t{stosunek * 100}%\n')
+        return tekst, stosunek
+
+    return tekst, stosunek
 
 
 def get_fasta_header(input_fasta):
@@ -139,38 +146,46 @@ def get_fasta_header(input_fasta):
         return f'>{r.description}'
 
 
-def get_fasta(input_fasta, sample, what):
+def get_fasta(input_fasta, sample, what, lan):
     """
-    :param input_fasta: Plik fasta z wieloma sekwencjami
-    :param sample: Nazwa sample'a uzywane tylko do nazywannia plikow tymczasowych
-    :param what: Nazwa segmentu, musi byc zawarta w naglowku sekwencji jak chcemy wyciagnac
-    W przypadku gdy wiecej segmentow ma taka nazwe program zwraca blad
-    :return: Nazwe tymczasowego pliku z sekwencja zwierajaca tylko poszukiwany segment
+    :param input_fasta: Fasta file with multiple sequences
+    :param sample: Sample name used only to name temporary files
+    :param what: Segment name to extract; must appear in FASTA header
+    :param lan: Language for error messages ('en' or 'pl')
+    :return: Tuple of temporary file handle and error message (empty string if no error)
     """
     record = SeqIO.parse(input_fasta, 'fasta')
     error = ""
     two_HA = 0
+
     for r in record:
         if what in r.id:
             if two_HA > 0:
-                # Czy to moze sie stac w normalnym setup ?
-                with NamedTemporaryFile(dir='.', prefix=f'{sample}_', suffix=f'_{what}.fasta', mode='w',
-                                        delete=False) as file:
+                # More than one matching segment found
+                with NamedTemporaryFile(dir='.', prefix=f'{sample}_', suffix=f'_{what}.fasta', mode='w', delete=False) as file:
                     file.write(f'>{what}\n')
                     file.write(f'XXX\n')
-                error += f'File {input_fasta} contains more than one sequence named {what}'
+                if lan == 'pl':
+                    error += f'Plik {input_fasta} zawiera wiecej niż jedną sekwencje {what}. '
+                else:
+                    error += f'File {input_fasta} contains more than one sequence named {what}. '
             with NamedTemporaryFile(dir='.', prefix=f'{sample}_', suffix=f'_{what}.fasta', mode='w', delete=False) as file:
                 file.write(f'>{r.id}\n')
                 file.write(f'{str(r.seq)}\n')
             two_HA += 1
-    # gdyby nie bylo danego bialka w wynikach z jakiegos powodu tworzymy dummy file
-    # ktory nie bedzie analizowany
+
+    # If no sequence matched, write dummy file
     if two_HA == 0:
         with NamedTemporaryFile(dir='.', prefix=f'{sample}_', suffix=f'_{what}.fasta', mode='w', delete=False) as file:
             file.write(f'>{what}\n')
             file.write(f'XXX\n')
-        error += f'File {input_fasta} contains no sequence named {what}'
+        if lan == 'pl':
+            error += f'Plik {input_fasta} nie zawiera sekwencji {what}.'
+        else:
+            error += f'File {input_fasta} contains no sequence named {what}.'
+
     return file, error
+
 
 
 def align_fasta(fasta1_file: str, *args, **kwargs) -> Dict:
@@ -477,12 +492,14 @@ def prepare_json_for_drug(drug_name, drug_status, mutation_slownik_mutacji_ref,
               type=str,  required=False, default="")
 @click.option('-o', '--output_json', help='[Output] Name of a file with json output',
               type=str,  required=True)
-def main_program(status, output_json, input_fasta, subtype, sample_name, data_path, output_path, error=""):
+@click.option('--lan', help='Language for error messages (en/pl)',
+              type=click.Choice(['pl', 'en']), default='en', show_default=True)
+def main_program(status, output_json, input_fasta, subtype, sample_name, data_path, output_path, lan, error=""):
     if status != "tak":
         json_output = {"resistance_status": status,
                        "resistance_error_message": error}
         with open(output_json, 'w') as f1:
-            f1.write(json.dumps(json_output, indent=4))
+            f1.write(json.dumps(json_output,  ensure_ascii=False,  indent=4))
         return True
     else:
 
@@ -523,16 +540,18 @@ def main_program(status, output_json, input_fasta, subtype, sample_name, data_pa
 
         plik_fasta_NA, error_NA_file = get_fasta(input_fasta=plik_fasta,
                                                  what='NA',
-                                                 sample=sample_name)
+                                                 sample=sample_name,
+                                                 lan=lan)
 
+        # error_NA_file is already in the specified language
         if error_NA_file != "":
             error_msg_NA += error_NA_file
             # Na tym eapie nie ma sekwencji bialka NA w input
         else:
             # mam sekwencje bialka NA sprawdzam jego jakosc
-            tekst_NA_protein, stosunek_NA_protein = check_quality_protein_sequence(plik=plik_fasta_NA.name)
+            tekst_NA_protein, stosunek_NA_protein = check_quality_protein_sequence(plik=plik_fasta_NA.name,
+                                                                                   lan=lan)
             if stosunek_NA_protein > 0.2:
-                # sekwencja bialka NA zawiera zbyd duzo N i X
                 error_msg_NA += tekst_NA_protein
             else:
                 # Na tym etapie mam sekwncje bialka NA o dobrej jakosc moge przystapic do analizy
@@ -627,12 +646,14 @@ def main_program(status, output_json, input_fasta, subtype, sample_name, data_pa
 
             plik_fasta_PA, error_PA_file = get_fasta(input_fasta=plik_fasta,
                                                      what='PA',
-                                                     sample=sample_name)
+                                                     sample=sample_name,
+                                                     lan=lan)
             if error_PA_file != "":
                 error_msg_PA += error_PA_file
                 # Na tym eapie nie ma sekwencji bialka NA w input
             else:
-                tekst_PA_protein, stosunek_PA_protein = check_quality_protein_sequence(plik=plik_fasta_PA.name)
+                tekst_PA_protein, stosunek_PA_protein = check_quality_protein_sequence(plik=plik_fasta_PA.name,
+                                                                                       lan=lan)
                 if stosunek_PA_protein > 0.2:
                     # sekwencja bialka NA zawiera zbyd duzo N i X
                     error_msg_PA += tekst_PA_protein
@@ -664,7 +685,7 @@ def main_program(status, output_json, input_fasta, subtype, sample_name, data_pa
                                                            mutation_slownik_mutacji_ref=lista_mutacji_PA_opornosc_balo,
                                                            ref_target_lookup_local=ref_target_lookup)
         else:
-            error_msg_PA = "Available only for H1N1, H3N2, Yamagata, and Victoria subtype"
+            error_msg_PA = "Available only for H1N1, H3N2, Yamagata, and Victoria subtype" if lan == "en" else "Ta analiza wykonywana jest tylko dla podtypow  H1N1, H3N2, Yamagata, oraz Victoria"
 
         resistance_data_to_json = []
         if len(error_msg_NA) > 0 and  len(error_msg_PA) > 0:
@@ -676,8 +697,9 @@ def main_program(status, output_json, input_fasta, subtype, sample_name, data_pa
                 json_output = {"resistance_status": "tak",
                                "resistance_data": resistance_data_to_json}
             else:
+                msg = 'TBD' if lan == "en" else 'TBD'
                 json_output = {"resistance_status": "blad",
-                               "resistance_error_message": f'TBD'}
+                               "resistance_error_message": msg}
         elif len(error_msg_PA) > 0 and len(error_msg_NA) == 0:
 
             resistance_data_to_json.append(oseltamivir_json)
@@ -699,7 +721,7 @@ def main_program(status, output_json, input_fasta, subtype, sample_name, data_pa
                            "resistance_data": resistance_data_to_json}
 
         with open(output_json, 'w') as f1:
-            f1.write(json.dumps(json_output, indent=4))
+            f1.write(json.dumps(json_output,  ensure_ascii=False, indent=4))
         return True
 
 

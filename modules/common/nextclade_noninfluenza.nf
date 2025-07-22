@@ -70,7 +70,11 @@ process nextclade {
       
       if [ -e nextclade_lineages/nextclade.auspice.json ]; then
         QC_status_exit="tak"
-        parse_nextclade_output_csv2json.py nextstrain_lineage.csv nextclade_lineages/nextclade.auspice.json nextstrain_lineage_initial.json full_genome
+        parse_nextclade_output_csv2json.py --input nextstrain_lineage.csv \
+                                           --input2 nextclade_lineages/nextclade.auspice.json \
+                                           --output nextstrain_lineage_initial.json \
+                                           --sequence_source full_genome \
+                                           --lan ${params.lan}
       
        # RSV and SARS have slightly different json output 
         if [ ${params.species} == SARS-CoV-2 ]; then

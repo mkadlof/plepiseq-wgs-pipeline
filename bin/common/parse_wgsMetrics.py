@@ -25,8 +25,8 @@ def parse_file(input: str, output: str):
     with open("coverage_histogram_data.tsv", 'w') as file:
         file.write('\n'.join(lines))
 
-    with open(output, 'w') as file:
-        json.dump({'average_coverage_value': mean_coverage}, file, indent=4)
+    with open(output, 'w') as f:
+        f.write(json.dump({'average_coverage_value': mean_coverage}, ensure_ascii=False, indent=4))
 
 
 def main():

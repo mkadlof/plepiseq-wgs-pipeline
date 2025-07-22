@@ -105,7 +105,7 @@ def main_program(status, output, input_file_picard, input_file_primers, input_fi
             "primer_usage_data": primer_usage_data
         }
     with open(output, 'w') as f1:
-        f1.write(json.dumps(json_output, indent=4))
+        f1.write(json.dumps(json_output, indent=4, ensure_ascii=False))
 
     return True
 
