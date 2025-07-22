@@ -7,6 +7,8 @@ PlEpiSeq is a production‑grade collection of Nextflow workflows that turn raw 
 
 It supports both **Illumina (paired‑end)** and **Oxford Nanopore (single‑end)** reads and can run on aHPC cluster (SLURM profile provided), or in the cloud.
 
+This project is part of [PleEpiSeq](https://www.pzh.gov.pl/projekty-i-programy/plepiseq/) project, co-funded by the European Union.
+
 ---
 
 ## Table of contents
@@ -186,3 +188,4 @@ This repository is released under the **MIT License** (see `LICENSE` file).
 ## VERSION
 
 The current version of this pipeline is stored in the `VERSION` file at the root of this repository.
+
