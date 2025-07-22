@@ -120,7 +120,13 @@ process alphafold {
     if [ ${QC_status} == "nie" ]; then
       # failed QC 
       touch ${sampleId}.pdb
-      ERR_MSG="This modue was entered with bad QC"
+      
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+      fi
+      
       echo -e "{\\"status\\":\\"nie\\", 
                 \\"error_message\\": \\"\${ERR_MSG}\\"}" >> alphafold.json
     elif [ ${params.species} == "RSV" ]; then
@@ -152,7 +158,13 @@ process alphafold {
       if [[ -z "\${pdb_path_1}" && -z "\${pdb_path_2}" ]]; then
           # neither protein was analyzed dummy output 
           touch ${sampleId}.pdb
-          ERR_MSG="Sequence of protein F or G was too short to produce a valid PDB file"
+          
+          if [ "${params.lan}" == "pl" ]; then
+            ERR_MSG="Sekwencje bialek F i G byly zbyt aby zaproponowac ich modele"
+          else
+            ERR_MSG="Sequence of protein F or G was too short to produce a valid PDB file"
+          fi
+
           echo -e "{\\"status\\":\\"blad\\",
                      \\"error_message\\": \\"\${ERR_MSG}\\"}" > alphafold.json       
 
@@ -193,7 +205,13 @@ process alphafold {
       if [[ -z "\${pdb_path_1}" && -z "\${pdb_path_2}" ]]; then
           # neither protein was analyzed dummy output
           touch ${sampleId}.pdb
-          ERR_MSG="Sequence of protein NA or HA was too short to produce a valid PDB file"
+
+          if [ "${params.lan}" == "pl" ]; then
+            ERR_MSG="Sekwencje bialek NA i HA byly zbyt aby zaproponowac ich modele"
+          else
+            ERR_MSG="Sequence of protein NA or HA was too short to produce a valid PDB file"
+          fi
+
           echo -e "{\\"status\\":\\"blad\\",
                      \\"error_message\\": \\"\${ERR_MSG}\\"}" > alphafold.json
       else
@@ -226,7 +244,13 @@ process alphafold {
 
          if [ -z "\${pdb_path_1}" ]; then
              touch ${sampleId}.pdb
-             ERR_MSG="Sequence of the Spike protein was too short"
+
+             if [ "${params.lan}" == "pl" ]; then
+               ERR_MSG="Sekwencja bialka Spike byla zbyt aby zaproponowac jego modele"
+             else
+               ERR_MSG="Sequence of the Spike protein was too short to produce a valid PDB file"
+             fi
+
              echo -e "{\\"status\\":\\"blad\\",
                        \\"error_message\\": \\"\${ERR_MSG}\\"}" >> alphafold.json
          else
@@ -237,9 +261,15 @@ process alphafold {
          fi
        else
          touch ${sampleId}.pdb
-         ERR_MSG="No fasta for Spike protein"
+
+         if [ "${params.lan}" == "pl" ]; then
+               ERR_MSG="Brak pliku fasta z sekwencja bialka Spike"
+             else
+               ERR_MSG="No fasta file with sequence of the Spike protein was provided"
+         fi
+
          echo -e "{\\"status\\":\\"nie\\",
-                    \\"error_message\\": \\"\${ERR_MSG}\\"}" >> alphafold.json
+                   \\"error_message\\": \\"\${ERR_MSG}\\"}" >> alphafold.json
 
       fi
     fi

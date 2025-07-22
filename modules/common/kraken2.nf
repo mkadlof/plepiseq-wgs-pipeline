@@ -28,7 +28,13 @@ process kraken2_illumina {
         QC_status_contaminations="nie"
         FINAL_GENUS="unknown"
         touch  report_kraken2.txt
-        ERR_MSG="This module recieved wrong QC status and did not produce any valid output"
+        
+        if [ "${params.lan}" == "pl" ]; then
+          ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+        else
+          ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+        fi
+        
         json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s nie -m "\${ERR_MSG}" -o contaminations.json
     else
         kraken2 --db /home/external_databases/kraken2 \
@@ -86,7 +92,13 @@ process kraken2_illumina {
         if [ \${GENUS_EXPECTED_ILE} -lt ${params.expected_genus_value} ]; then
             QC_status_contaminations="nie"
             FINAL_GENUS="unk"
-            ERR_MSG="Number of reads associated with the expected genus is below threshold set to: ${params.expected_genus_value} %"
+            
+            if [ "${params.lan}" == "pl" ]; then
+              ERR_MSG="Procent odczytow powiazanych z oczekiwanym rodzajem jest mniejszy niz zalozone minimum:  ${params.expected_genus_value}%"
+            else
+              ERR_MSG="Number of reads associated with the expected genus is below threshold set to: ${params.expected_genus_value}%"
+            fi
+
             json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s blad -m "\${ERR_MSG}" -o contaminations.json
         else
             FINAL_GENUS="\${EXPECTED_GENUS}"
@@ -122,7 +134,13 @@ process kraken2_nanopore {
         QC_status_contaminations="nie"
         FINAL_GENUS="unknown"
         touch  report_kraken2.txt
-        ERR_MSG="This module recieved wrong QC status and did not produce any valid output"
+
+        if [ "${params.lan}" == "pl" ]; then
+          ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+        else
+          ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+        fi
+
         json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s nie -m "\${ERR_MSG}" -o contaminations.json
 
     else
@@ -181,7 +199,13 @@ process kraken2_nanopore {
         if [ \${GENUS_EXPECTED_ILE} -lt ${params.expected_genus_value} ]; then
             QC_status_contaminations="nie"
             FINAL_GENUS="unk"
-            ERR_MSG="Number of reads associated with the expected genus is below threshold set to: ${params.expected_genus_value} %"
+
+            if [ "${params.lan}" == "pl" ]; then
+              ERR_MSG="Procent odczytow powiazanych z oczekiwanym rodzajem jest mniejszy niz zalozone minimum:  ${params.expected_genus_value}%"
+            else
+              ERR_MSG="Number of reads associated with the expected genus is below threshold set to: ${params.expected_genus_value}%"
+            fi
+
             json_output_contaminations.py -k report_kraken2.txt -g skip -x skip -y skip -s blad -m "\${ERR_MSG}" -o contaminations.json
 
         else

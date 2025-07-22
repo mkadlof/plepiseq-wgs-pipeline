@@ -119,6 +119,9 @@ params.quality_for_coverage = 1 // Parametr uzywany w modul lowCov, again we are
   System.exit(0)
 }
 
+// Select language used in error msg allowed values 'en' or 'pl'
+params.lan = "pl"
+
 // // Modules section 
 
 // // Initial QC modules // //

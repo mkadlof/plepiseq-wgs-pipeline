@@ -20,7 +20,13 @@ process minimap2 {
       touch mapped_reads.bam
       touch mapped_reads.bam.bai
       QC_exit="nie"
-      ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+      
+      if [ "${params.lan}" == "pl" ]; then
+        ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERR_MSG="This module was eneterd with failed QC and poduced no valid output"
+      fi
+      
       echo -e "{\\"status\\":\\"\${QC_exit}\\", \
                 \\"error_message\\": \\"\${ERR_MSG}\\"}" >> mapping.json
      
@@ -33,7 +39,13 @@ process minimap2 {
       NO_READS=`samtools view mapped_reads.bam | wc -l`
       if [ \${NO_READS} -lt ${params.min_number_of_reads} ]; then
         QC_exit="nie"
-        ERR_MSG="There are less than ${params.min_number_of_reads} mapping to reference genome"
+
+        if [ "${params.lan}" == "pl" ]; then
+          ERR_MSG="Liczba odczytow mapujacych sie na genome referencyjny jest mniejsza niz zalozone minimum: ${params.min_number_of_reads}"
+        else
+          ERR_MSG="There are less than ${params.min_number_of_reads} mapping to reference genome"
+        fi
+
         echo -e "{\\"status\\":\\"blad\\", \
                   \\"error_message\\": \\"\${ERR_MSG}\\"}" >> mapping.json
       else

@@ -24,7 +24,11 @@ process fastqc {
     # run_fastqc_and_generate_json.py will always produce output required by these module, even if no valid fastq file is provided, or fastq file
     # does not meet predeifned criteria. The script returns to values status (tak, nie, blad) and total numberof bases in fastqfile (0 if status is not tak)
     if [ ${QC_STATUS} == "nie" ]; then
-      ERROR_MSG="Initial QC received by this module was nie"
+      if [ "${params.lan}" == "pl" ]; then
+        ERROR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERROR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+      fi
       touch dummy.csv
     else
       ERROR_MSG=""
@@ -73,7 +77,11 @@ process run_fastqc_nanopore {
   if (QC_STATUS == null) { QC_STATUS="tak" } //
   """
   if [ ${QC_STATUS} == "nie" ]; then
-    ERROR_MSG="Initial QC received by this module was nie"
+    if [ "${params.lan}" == "pl" ]; then
+        ERROR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      else
+        ERROR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+    fi
   else
     ERROR_MSG=""
   fi
