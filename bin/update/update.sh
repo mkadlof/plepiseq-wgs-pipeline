@@ -335,7 +335,7 @@ update_cgmlst() {
 		scheme_dir="Escherichia.cgMLSTv1"
 		python3 -u /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}" ${cpus} >> log 2>&1
         elif [ ${genus} == "all" ]; then
-		echo i"Downloading data for Escherichia at: $(date +"%H:%M %d-%m-%Y")" >> log
+		echo "Downloading data for Escherichia at: $(date +"%H:%M %d-%m-%Y")" >> log
 		if [ -d "/home/external_databases/cgmlst/Escherichia" ]; then
                         rm -f /home/external_databases/cgmlst/Escherichia/*
                 else
