@@ -13,7 +13,7 @@ import numpy as np
 
 
 def run_fastqc(plik, memory, cpu):
-    polecenie = (f'fastqc --format fastq --threads ${cpu} --memory {memory} --extract --outdir . {plik}')
+    polecenie = (f'fastqc --format fastq --threads {cpu} --memory {memory} --extract --outdir . {plik}')
     proces = subprocess.Popen(polecenie, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     proces.wait()
     outs, errs = proces.communicate()
@@ -63,14 +63,15 @@ def main_program(input_file, memory, cpu, min_number, min_qual, status, stage, p
         print(f"{status} 0 ")
         return status, 0
     else:
-        # upewnijmy sie ze podany plik wogole istnieje
+        # upewnijmy sie ze podany plik istnieje
         try:
             with open(input_file) as dummy:
                 pass
         except FileNotFoundError:
             status = 'blad'
+            msg = "Provided file does not exist" if lan == "en" else "Podany plik nie istnieje"
             json_dict = [{"status": {status}, "file_name": input_file, "step_name": stage,
-                         "error_message": "Provided file does not exists"}]
+                         "error_message": msg}]
             with open(output, 'w') as f1:
                 f1.write(json.dumps(json_dict, ensure_ascii=False, indent=4))
             print(f"{status} 0")

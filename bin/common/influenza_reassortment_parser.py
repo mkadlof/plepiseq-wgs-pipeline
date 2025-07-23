@@ -162,13 +162,13 @@ def parse_intermediate(plik:str,
                                     'Only used when status was set to nie or blad',
               type=str,  required=False, default="")
 @click.option('-o', '--output', help='[Output] Name of a file with json output',
-              type=str,  required=True)
+              type=str,  required=False)
 @click.option('--alignment_ratio', help='[Input]',
-              type=float,  required=True)
+              type=float,  required=False)
 @click.option('--mapping_ratio', help='[Input]',
-              type=float,  required=True)
+              type=float,  required=False)
 @click.option('--min_coverage', help='[Input] Minimum coverage expected to propose alternative references ',
-              type=float,  required=True)
+              type=float,  required=False)
 
 
 def main_program(status, alignment_ratio, mapping_ratio, min_coverage, output, input_file, mapping, subtype, error=""):

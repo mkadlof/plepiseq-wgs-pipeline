@@ -29,7 +29,6 @@ process fastqc {
       else
         ERROR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
       fi
-      touch dummy.csv
     else
       ERROR_MSG=""
     fi
@@ -43,6 +42,9 @@ process fastqc {
     TOTAL_BASES=`echo "\${BASES_FORWARD} + \${BASES_REVERSE}" | bc -l`
     if [[ \${STATUS_FORWARD_ALL} == "nie"  || \${STATUS_REVERSE_ALL} == "nie"  || \${STATUS_FORWARD_ALL} == "blad"  || \${STATUS_REVERSE_ALL} == "blad" ]]; then
       QC_STATUS_EXIT="nie" # moduly "nizej" dostaja status nie
+      touch dummy_reads_quality_histogram.csv
+      touch dummy_reads_length_histogram.csv
+      touch dummy_position_quality_plot.csv
     else
       QC_STATUS_EXIT="tak"
     fi

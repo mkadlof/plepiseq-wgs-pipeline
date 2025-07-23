@@ -46,15 +46,15 @@ def parse_nextclade_output_csv2json(input: str, input2: str, output: str, sequen
                        "variant_qc_status": qc_status,
                        "sequence_source": sequence_source}
         with open(output, 'w') as f:
-            f.write(json.dump(output_json, ensure_ascii=False, indent=4))
+            f.write(json.dumps(output_json, ensure_ascii=False, indent=4))
 
 
 def main():
     parser = argparse.ArgumentParser(description='Convert Nextstrain output CSV to JSON')
-    parser.add_argument('input', type=str, help='Input CSV file')
-    parser.add_argument('input2', type=str, help='Input file nextclade.auspice.json')
-    parser.add_argument('output', type=str, help='Output JSON file')
-    parser.add_argument('sequence_source', type=str, help='Segment id or string "full_genome"')
+    parser.add_argument('--input', required=True, type=str, help='Input CSV file')
+    parser.add_argument('--input2', required=True, type=str, help='Input file nextclade.auspice.json')
+    parser.add_argument('--output', required=True, type=str, help='Output JSON file')
+    parser.add_argument('--sequence_source', required=True, type=str, help='Segment id or string "full_genome"')
     parser.add_argument('--lan', choices=['pl', 'en'], default='en', help='Language of error messages')
     args = parser.parse_args()
 

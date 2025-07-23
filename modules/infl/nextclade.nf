@@ -19,21 +19,21 @@ process nextclade {
     
  # Default json file
     generate_empty_json() {
-    local segment="$1"
-    local lang="$2"  # 'pl' or 'en'
+    local segment="\$1"
+    local lang="\$2"  # 'pl' or 'en'
 
-    if [[ "$lang" == "pl" ]]; then
-        err_msg="Nextclade został pominięty dla podtypu ${SAMPLE_SUBTYPE} w próbce ${sampleId} dla segmentu ${segment}"
+    if [[ "\$lang" == "pl" ]]; then
+        err_msg="Nextclade został pominięty dla podtypu ${SAMPLE_SUBTYPE} w próbce ${sampleId} dla segmentu \${segment}"
     else
-        err_msg="Nextclade was skipped for ${SAMPLE_SUBTYPE} in sample ${sampleId} for segment ${segment}"
+        err_msg="Nextclade was skipped for ${SAMPLE_SUBTYPE} in sample ${sampleId} for segment \${segment}"
     fi
 
-    cat <<EOF > "nextclade_lineage_${segment}.json"
+    cat <<EOF > "nextclade_lineage_\${segment}.json"
 {
     "status": "nie",
     "database_name": "Nextclade",
-    "error_message": "${err_msg}",
-    "sequence_source": "${segment}"
+    "error_message": "\${err_msg}",
+    "sequence_source": "\${segment}"
 }
 EOF
 }

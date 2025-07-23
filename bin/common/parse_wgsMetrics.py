@@ -26,7 +26,7 @@ def parse_file(input: str, output: str):
         file.write('\n'.join(lines))
 
     with open(output, 'w') as f:
-        f.write(json.dump({'average_coverage_value': mean_coverage}, ensure_ascii=False, indent=4))
+        f.write(json.dumps({'average_coverage_value': mean_coverage}, ensure_ascii=False, indent=4))
 
 
 def main():
