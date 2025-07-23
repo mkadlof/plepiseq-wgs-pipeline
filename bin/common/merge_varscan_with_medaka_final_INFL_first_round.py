@@ -7,10 +7,13 @@ ten program po prostu formatuje plik .txt varscana do postaci vcf-a jak medaka
 
 import sys
 import vcf
+import pprint
 
 artic_vcf = sys.argv[1] # output medaki .vcf.gz
 varscan_vcf = sys.argv[2] # output varscana .txt
 out = sys.argv[3] # output programu .vcf
+
+log_file = open("log.log", 'w')
 
 # nie mam pola record z vcf-a i program nie wprowadza pozycji ambigous 
 # dlatego biore nie pofiltroany plik ambigous, gorzej co jesli i ten jest pusty ... 
@@ -41,6 +44,8 @@ with open(varscan_vcf) as f:
                 lines_from_varscan[CHROM][POS] = line
 
 
+
+
 # na tym etapie w slowniku mamy mutacje ktore sa wedlug varscana ambigous
 # jako wartosc slownik ma po prostu linijke z pliku txt
 
@@ -59,14 +64,21 @@ for record in artic_vcf_reader:
         lines_from_varscan[record.CHROM] = {}
 
     if record.POS not in lines_from_varscan[record.CHROM].keys():
-        print(f'{record.CHROM}\t{record.POS} is not present in varscan')
+        pprint.pprint(f'{record.CHROM}\t{record.POS} is not present in varscan', stream=log_file)
         vcf_writer.write_record(record)
     else:
         wiersz=lines_from_varscan[record.CHROM][record.POS]
-        print(f'{record.CHROM}\t{record.POS} is present in varscan')
+        pprint.pprint(f'{record.CHROM}\t{record.POS} is present in varscan', stream=log_file)
         vcf_writer.write_record(record)
         del(lines_from_varscan[record.CHROM][record.POS])
 
+# In case no records where found in medaka output we asume something is wrong and terminate this script printing 0
+try:
+    record.samples
+    print('1')
+except NameError:
+    print('0')
+    sys.exit(0)
 
 # Tworzymy pusty record ktorego bedziemy uzywali aby moc skonwertowac wyniki z pliku .txt varscana na format .vcf z medaki /wartosci jak GQ, DP itd beda mialy wartosc 100/
 artic_vcf_reader = vcf.Reader(filename=artic_vcf)
@@ -78,8 +90,8 @@ for record in artic_vcf_reader:
     break
 
 
-print('Medaka nie znalazla nastepujacych pozycji laczam je do analizy')
-print(lines_from_varscan)
+log_file.write('Medaka nie znalazla nastepujacych pozycji laczam je do analizy')
+pprint.pprint(lines_from_varscan, stream=log_file)
 for CHROM in lines_from_varscan:
     for pozycja, wiersz in lines_from_varscan[CHROM].items():
         QUAL = 100 # za quality bedzie p-value
@@ -92,3 +104,5 @@ for CHROM in lines_from_varscan:
                 FILTER = [], \
                 INFO = record.INFO, FORMAT = record.FORMAT, samples = record.samples, sample_indexes = record._sample_indexes)
         vcf_writer.write_record(a)
+
+
