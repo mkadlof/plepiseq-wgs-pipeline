@@ -51,6 +51,7 @@ threads=40
 
 ## For all species
 max_number_for_SV=""
+min_number_for_SV=""
 ## Only for influenza
 variant="" 
 
@@ -170,6 +171,9 @@ show_all_parameters() {
     echo "All of them have predefined values, modify at your own peril"
     echo "  --max_number_for_SV VALUE       Maximum number of reads used to predict SVs with manta (depends on species)"
     echo ""
+    echo "  --min_number_for_SV VALUE       Minimum number of mapped reads required to predict SVs with manta (depends on species, not used"
+    echo "                                  for Influenza)."
+    echo ""
     echo "  --variant VALUE                 Name of the expected influenza subtpye (e.g. H5N1). If unkown set up this value to UNK to auto-detect the subtype"
     echo ""
     echo "  --min_number_of_reads VALUE     Minimum number of reads present if fastq file for program to execute (depends on machine)"
@@ -225,7 +229,7 @@ show_all_parameters() {
 
 
 # Parse arguments
-OPTIONS=$(getopt -o h --long machine:,profile:,reads:,primers_id:,species:,adapters_id:,threads:,projectDir:,external_databases_path:,main_image:,manta_image:,medaka_image:,alphafold_image:,max_number_for_SV:,variant:,min_number_of_reads:,expected_genus_value:,min_median_quality:,quality_initial:,length:,max_depth:,min_cov:,mask:,quality_snp:,pval:,lower_ambig:,upper_ambig:,window_size:,min_mapq:,quality_for_coverage:,freyja_minq:,bed_offset:,extra_bed_offset:,medaka_model:,medaka_chunk_len:,medaka_chunk_overlap:,first_round_pval:,second_round_pval:,results_dir:,all,help -- "$@")
+OPTIONS=$(getopt -o h --long machine:,profile:,reads:,primers_id:,species:,adapters_id:,threads:,projectDir:,external_databases_path:,main_image:,manta_image:,medaka_image:,alphafold_image:,max_number_for_SV:,variant:,min_number_of_reads:,expected_genus_value:,min_median_quality:,quality_initial:,length:,max_depth:,min_cov:,mask:,quality_snp:,pval:,lower_ambig:,upper_ambig:,window_size:,min_mapq:,quality_for_coverage:,freyja_minq:,bed_offset:,extra_bed_offset:,medaka_model:,medaka_chunk_len:,medaka_chunk_overlap:,first_round_pval:,second_round_pval:,results_dir:,min_number_for_SV:,all,help -- "$@")
 
 eval set -- "$OPTIONS"
 
@@ -294,6 +298,10 @@ while true; do
             max_number_for_SV="$2"
             shift 2
             ;;
+	--min_number_for_SV)
+	    max_number_for_SV="$2"
+	    shift 2
+	    ;;
         --variant)
             variant="$2"
             shift 2
@@ -432,11 +440,14 @@ fi
 # Check if user provided correct species and if so set defaults
 if [[ "$species" == "SARS-CoV-2" ]]; then
 	[[ -z "${max_number_for_SV}" ]] && max_number_for_SV=200000
+	[[ -z "${min_number_for_SV}" ]] && min_number_for_SV=10000
 elif [[ "$species" == "Influenza" ]]; then 
 	[[ -z "${variant}" ]] && variant="UNK"
 	[[ -z "${max_number_for_SV}" ]] && max_number_for_SV=10000
+	[[ -z "${min_number_for_SV}" ]] && min_number_for_SV=10000
 elif [[ "$species" == "RSV" ]]; then
 	[[ -z "${max_number_for_SV}" ]] && max_number_for_SV=100000
+	[[ -z "${min_number_for_SV}" ]] && min_number_for_SV=10000
 else
     echo "Error: Unsupported species $species. Supported values are: SARS-CoV-2, Influenza, RSV."
     exit 1
@@ -566,6 +577,7 @@ nextflow run ${projectDir}/nf_pipeline_viral.nf \
     --medaka_chunk_overlap ${medaka_chunk_overlap} \
     --first_round_pval ${first_round_pval} \
     --second_round_pval ${second_round_pval} \
+    --min_number_for_SV ${min_number_for_SV} \
     -profile ${profile} \
     -with-trace
 

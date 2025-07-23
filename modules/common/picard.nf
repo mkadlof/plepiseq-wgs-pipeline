@@ -31,7 +31,7 @@ process picard_downsample {
                                       --OUTPUT downsample.bam -F \${NORM}
       samtools index downsample.bam
       NO_READS=`samtools view downsample.bam | wc -l`
-      if [ "\${NO_READS}" -lt 10000 ]; then
+      if [ "\${NO_READS}" -lt "${params.min_number_for_SV} ]; then
         QC_exit="nie"
       else
         QC_exit="tak"
