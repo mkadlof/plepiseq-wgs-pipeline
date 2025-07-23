@@ -1,4 +1,5 @@
 process picard_downsample {
+    // This process is obsolete and was replaced by picard_downsample_multisegment 
     tag "picard:${sampleId}"
     container  = params.main_image
     cpus 1
@@ -98,7 +99,7 @@ process picard_downsample_multisegment {
       QC_exit="nie"
       for val in \${MEDIAN_ALL[@]}; do
         # UWAGA MEDIANA W SEGMENCIE JEST POWYZEJ 50 WIEC PROBUJEMY CALOWAC SV !!!
-        if [ \${val} -ge 50 ]; then
+        if [ \${val} -ge "${params.min_median_for_SV}" ]; then
           QC_exit="tak"
         fi
       done

@@ -46,15 +46,15 @@ params.results_dir = ""
 
 if ( params.species  == 'SARS-CoV-2' ) {
 params.max_number_for_SV = ""
-params.min_number_for_SV = "" 
+params.min_median_for_SV = "" 
 } else if (params.species  == 'Influenza') {
 params.variant = "UNK"
 params.max_number_for_SV = ""
-params.min_number_for_SV = "" // for Influenza this parameter is redundant
+params.min_median_for_SV = "" // for Influenza this parameter is redundant
 // Betainfluenzavirus for B/ kraken2 for now only undestands one genus
 } else if (params.species  == 'RSV') {
 params.max_number_for_SV = ""
-params.min_number_for_SV = ""
+params.min_median_for_SV = ""
 } else {
   println("Incorrect species, avalable options are : SARS-CoV-2, RSV or Influenza")
   System.exit(0)

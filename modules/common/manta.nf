@@ -81,7 +81,7 @@ process introduce_SV_with_manta {
       for bam in `ls *bam`; do
         segment_clean=`basename \${bam}  ".bam" | cut -d "_" -f2- `
         segment_median_coverage=`cat mediana_per_segment.txt | grep -w \${segment_clean} | cut -f2`
-        if [ \${segment_median_coverage} -lt 50 ]; then
+        if [ \${segment_median_coverage} -lt "${params.min_median_for_SV}" ]; then
           # After downsampling segment has poor coverage    
           HEADER=`head -1 consensus_\${segment_clean}.fasta`
           cat consensus_\${segment_clean}.fasta | sed s"|\${HEADER}|\${HEADER}\\|${sampleId}|"g > output_\${segment_clean}.fasta
