@@ -1518,7 +1518,7 @@ process run_kraken2_illumina {
   container  = params.main_image
   containerOptions "--volume ${params.db_absolute_path_on_host}:/db"
   cpus { params.threads > 10 ? 10 : params.threads }
-  memory '90 GB'
+  memory '100 GB'
   time "10m"
   input:
   tuple val(x), path(reads), val(QC_STATUS), val(TOTAL_BASES)
@@ -3289,7 +3289,7 @@ process run_kraken2_nanopore {
   container  = params.main_image
   containerOptions "--volume ${params.db_absolute_path_on_host}:/db"
   cpus { params.threads > 10 ? 10 : params.threads }
-  memory '90 GB'
+  memory '100 GB'
   time "10m"
   input:
   tuple val(x), path(reads), val(QC_STATUS), val(TOTAL_BASES)
