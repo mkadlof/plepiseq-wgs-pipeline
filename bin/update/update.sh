@@ -310,30 +310,41 @@ update_cgmlst() {
                 else
                         mkdir -p /home/external_databases/cgmlst/Campylobacter/jejuni/
                 fi
-		cd /home/external_databases/cgmlst/Campylobacter/jejuni/
-		python3 -u /home/update/download_cgmlst_pubmlst.py ${cpus} >> log 2>&1
+		DATABASE="pubmlst_campylobacter_seqdef"
+		schema_name="C. jejuni / C. coli cgMLST v2"
+		python3 download_cgmlst_pubmlst_tmp.py --database "${DATABASE}" \
+			                               --scheme_name "${schema_name}" \
+						       --cpus ${cpus} \
+						       --output_dir /home/external_databases/cgmlst/Campylobacter/jejuni/
+
 	elif [ ${genus} == "Salmonella" ]; then
                 if [ -d "/home/external_databases/cgmlst/Salmonella" ]; then
                         rm -f /home/external_databases/cgmlst/Salmonella/*
                 else
                         mkdir -p /home/external_databases/cgmlst/Salmonella
                 fi
-		cd /home/external_databases/cgmlst/Salmonella
 		DATABASE="senterica"
 		scheme_name="cgMLST_v2"
 		scheme_dir="Salmonella.cgMLSTv2"
-		python3 -u /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}" ${cpus} >> log 2>&1
+		python3 -u /home/update/download_cgmlst_enterobase.py --database ${DATABASE} \
+			                                              --scheme_name "${scheme_name}" \
+								      --scheme_dir "${scheme_dir}" \
+								      --cpus ${cpus} \
+								      --output_dir /home/external_databases/cgmlst/Salmonella
         elif [ ${genus} == "Escherichia" ]; then
                 if [ -d "/home/external_databases/cgmlst/Escherichia" ]; then
                         rm -f /home/external_databases/cgmlst/Escherichia/*
                 else
                         mkdir -p /home/external_databases/cgmlst/Escherichia
                 fi
-		cd /home/external_databases/cgmlst/Escherichia
 		DATABASE="ecoli"
 		scheme_name="cgMLST" 
 		scheme_dir="Escherichia.cgMLSTv1"
-		python3 -u /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}" ${cpus} >> log 2>&1
+		python3 -u /home/update/download_cgmlst_enterobase.py --database ${DATABASE} \
+                                                                      --scheme_name "${scheme_name}" \
+                                                                      --scheme_dir "${scheme_dir}" \
+                                                                      --cpus ${cpus} \
+								      --output_dir /home/external_databases/cgmlst/Escherichia
         elif [ ${genus} == "all" ]; then
 		echo "Downloading data for Escherichia at: $(date +"%H:%M %d-%m-%Y")" >> log
 		if [ -d "/home/external_databases/cgmlst/Escherichia" ]; then
@@ -341,12 +352,14 @@ update_cgmlst() {
                 else
                         mkdir -p /home/external_databases/cgmlst/Escherichia
                 fi
-                cd /home/external_databases/cgmlst/Escherichia
                 DATABASE="ecoli"
                 scheme_name="cgMLST"
                 scheme_dir="Escherichia.cgMLSTv1"
-                python3 -u /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}" ${cpus} >> log 2>&1
-		
+	        python3 -u /home/update/download_cgmlst_enterobase.py --database ${DATABASE} \
+                                                                      --scheme_name "${scheme_name}" \
+                                                                      --scheme_dir "${scheme_dir}" \
+                                                                      --cpus ${cpus} \
+                                                                      --output_dir /home/external_databases/cgmlst/Escherichia	
 		echo "Downloading data for Salmonella at: $(date +"%H:%M %d-%m-%Y")" >> log
 		if [ -d "/home/external_databases/cgmlst/Salmonella" ]; then
                         rm -f /home/external_databases/cgmlst/Salmonella/*
@@ -357,7 +370,7 @@ update_cgmlst() {
                 DATABASE="senterica"
                 scheme_name="cgMLST_v2"
                 scheme_dir="Salmonella.cgMLSTv2"
-                python3 -u /home/update/download_cgmlst_enterobase.py "$DATABASE" "${scheme_name}" "${scheme_dir}" ${cpus} >> log 2>&1
+		python3 -u /home/update/download_cgmlst_enterobase.py --database ${DATABASE} \                                                                                                    --scheme_name "${scheme_name}" \                                                                                            --scheme_dir "${scheme_dir}" \                                                                                              --cpus ${cpus} \                                                                                                            --output_dir /home/external_databases/cgmlst/Salmonella
 
 		echo "Downloading data for Campylobacter at: $(date +"%H:%M %d-%m-%Y")" >> log
 		if [ -d "/home/external_databases/cgmlst/Campylobacter/jejuni" ]; then
@@ -365,8 +378,12 @@ update_cgmlst() {
                 else
                         mkdir -p /home/external_databases/cgmlst/Campylobacter/jejuni/
                 fi
-                cd /home/external_databases/cgmlst/Campylobacter/jejuni/
-                python3 -u /home/update/download_cgmlst_pubmlst.py ${cpus} >> log 2>&1
+		DATABASE="pubmlst_campylobacter_seqdef"
+                schema_name="C. jejuni / C. coli cgMLST v2"
+                python3 download_cgmlst_pubmlst_tmp.py --database "${DATABASE}" \
+                                                       --scheme_name "${schema_name}" \
+                                                       --cpus ${cpus} \
+                                                       --output_dir /home/external_databases/cgmlst/Campylobacter/jejuni/
 	fi
 }
 

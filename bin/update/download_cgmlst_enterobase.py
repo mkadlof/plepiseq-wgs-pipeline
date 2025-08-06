@@ -10,22 +10,25 @@ import sys
 from multiprocessing import Pool
 import logging
 from datetime import datetime
+import click
 
-# ---- Logging setup ----
-logging.basicConfig(
-    format='[%(asctime)s] %(levelname)s: %(message)s',
-    level=logging.INFO,
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
+# ---- Constants ----
+MAX_RETRIES = 3
+REQUIRED_FILES = {
+    "senterica": ["STMMW_17971.fasta.gz", "t1733.fasta.gz"],
+    "ecoli": ["b0784.fasta.gz", "NCTC12130_00627.fasta.gz"]
+}
 
-def __create_request(request_str):
-    base64string = base64.b64encode(f'{API_TOKEN}: '.encode('utf-8'))
+# ---- Helper Functions ----
+def __create_request(request_str, api_token):
+    base64string = base64.b64encode(f'{api_token}: '.encode('utf-8'))
     headers = {"Authorization": f"Basic {base64string.decode()}"}
-    request = urllib.request.Request(request_str, None, headers)
-    return request
+    return urllib.request.Request(request_str, None, headers)
 
 def execute_command(command: str):
-    """Run a shell command and wait for it to finish."""
+    """
+    generic function to execute a bash command
+    """
     logging.info(f"Executing command: {command}")
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
@@ -35,88 +38,138 @@ def execute_command(command: str):
         logging.debug(stderr.decode())
     return process.returncode == 0
 
-def run_blast(lista_loci, start, end):
+def run_blast(lista_loci, start, end, output_dir):
+    """
+    run blast
+    """
     for locus in lista_loci[start:end]:
-        execute_command(f"gunzip {locus}.fasta.gz")
-        execute_command(f"makeblastdb -in {locus}.fasta -dbtype nucl")
+        execute_command(f"gunzip {os.path.join(output_dir, locus)}.fasta.gz")
+        execute_command(f"makeblastdb -in {os.path.join(output_dir, locus)}.fasta -dbtype nucl")
     return True
 
-# ---- Start of script ----
-start_time = datetime.now()
-logging.info(f"Script started at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+def is_data_complete(database: str, output_dir: str):
+    """
+    Check if output directory contains relevant files
+    """
+    if not os.path.exists(os.path.join(output_dir, "profiles.list")):
+        return False
+    required = REQUIRED_FILES.get(database, [])
+    for file in required:
+        if not os.path.exists(os.path.join(output_dir, file)):
+            return False
+    return True
 
-API_TOKEN = open('/home/update/enterobase_api.txt').readlines()[0].rstrip()
-DATABASE = sys.argv[1]        # ecoli, yersinia, etc.
-scheme_name = sys.argv[2]     # e.g., Achtman7
-scheme_dir = sys.argv[3]      # e.g., Achtman7
-cpus = int(sys.argv[4])       # number of CPUs
+# ---- Main Execution ----
+@click.command()
+@click.option('-d', '--database', help='[REQUIRED] Genus-specific name of the database in Enterobase ',
+              type=click.Choice(['senterica', 'ecoli']), required=True)
+@click.option('-s', '--scheme_name', help='[REQUIRED] Name of the cgMLST scheme in Enterobase',
+              type=click.Choice(['cgMLST_v2', 'cgMLST']), required=True)
+@click.option('-r', '--scheme_dir', help='[REQUIRED] Schema directory in EnteroBase',
+              type=click.Choice(['Salmonella.cgMLSTv2', 'Escherichia.cgMLSTv1']), required=True)
+@click.option('-c', '--cpus', default=4, show_default=True, help='Number of CPUs to use for BLAST indexing')
+@click.option('-t', '--api_token_file',
+              default='/home/update/enterobase_api.txt', show_default=True,
+              type=click.Path(), help='Path to EnteroBase API token file')
+@click.option('-o', '--output_dir', help='[REQUIRED] output directory', required=True, type=click.Path())
+def main(database, scheme_name, scheme_dir, cpus, api_token_file, output_dir):
+    os.makedirs(output_dir, exist_ok=True)
 
-address = f'https://enterobase.warwick.ac.uk/api/v2.0/{DATABASE}/{scheme_name}/loci?limit=10000&scheme={scheme_name}&offset=0'
-lista_loci = []
+    # Setup logging to file in output directory
+    log_file_path = os.path.join(output_dir, "log.log")
+    logging.basicConfig(
+        level=logging.INFO,
+        format='[%(asctime)s] %(levelname)s: %(message)s',
+        handlers=[
+            logging.FileHandler(log_file_path),
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
 
-try:
-    logging.info(f"Requesting loci list from EnteroBase database: {DATABASE} ...")
-    response = urllib.request.urlopen(__create_request(address))
-    data = json.load(response)
+    start_time = datetime.now()
+    logging.info(f"Script started at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    i = 0
-    for locus in data['loci']:
-        if i % 100 == 0:
-            time.sleep(1)
-        i += 1
+    with open(api_token_file) as f:
+        api_token = f.readline().strip()
 
-        locus_link = f"https://enterobase.warwick.ac.uk//schemes/{scheme_dir}/{locus['locus']}.fasta.gz"
-        response_locus = urllib.request.urlopen(locus_link)
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            logging.info(f"Download attempt {attempt}...")
+            lista_loci = []
 
-        # Remove existing files matching the locus
-        _ = [os.remove(x) for x in os.listdir('.') if locus['locus'] in x]
+            address = f'https://enterobase.warwick.ac.uk/api/v2.0/{database}/{scheme_name}/loci?limit=10000&scheme={scheme_name}&offset=0'
 
-        with open(f"{locus['locus']}.fasta.gz", 'wb') as f_out:
-            f_out.write(response_locus.read())
-        lista_loci.append(f"{locus['locus']}")
+            response = urllib.request.urlopen(__create_request(address, api_token))
+            data = json.load(response)
 
-    # Download profile file
-    logging.info("Downloading profile file...")
-    _ = [os.remove(x) for x in os.listdir('.') if 'profiles.list' in x]
-    profile_link = f"https://enterobase.warwick.ac.uk//schemes/{scheme_dir}/profiles.list.gz"
-    response_profile = urllib.request.urlopen(profile_link)
-    with open("profiles.list.gz", 'wb') as f_out:
-        f_out.write(response_profile.read())
-    execute_command("gunzip profiles.list.gz")
+            logging.info("Downloading loci files...")
+            for i, locus in enumerate(data['loci']):
+                if i % 100 == 0:
+                    # In some cases API doesn't like to be queried to many times
+                    time.sleep(2)
+                locus_link = f"https://enterobase.warwick.ac.uk//schemes/{scheme_dir}/{locus['locus']}.fasta.gz"
+                response_locus = urllib.request.urlopen(locus_link)
 
-except HTTPError as e:
-    logging.error(f"{e.code} {e.reason}. URL: {e.geturl()} Reason: {e.read()}")
-    sys.exit(1)
+                for f in os.listdir(output_dir):
+                    if locus['locus'] in f:
+                        os.remove(os.path.join(output_dir, f))
+                with open(os.path.join(output_dir, f"{locus['locus']}.fasta.gz"), 'wb') as f_out:
+                    f_out.write(response_locus.read())
+                lista_loci.append(f"{locus['locus']}")
 
-# ---- Indexing for BLAST ----
-logging.info("Starting indexing loci for BLAST...")
-pool = Pool(cpus)
-lista_indeksow = []
-start = 0
-step = len(lista_loci) // cpus
+            logging.info("Downloading profile file...")
+            for f in os.listdir(output_dir):
+                if 'profiles.list' in f:
+                    os.remove(os.path.join(output_dir, f))
 
-for i in range(cpus):
-    end = start + step
-    if i == (cpus - 1) or end > len(lista_loci):
-        end = len(lista_loci)
-    lista_indeksow.append([start, end])
-    start = end
+            profile_link = f"https://enterobase.warwick.ac.uk//schemes/{scheme_dir}/profiles.list.gz"
+            response_profile = urllib.request.urlopen(profile_link)
+            with open(os.path.join(output_dir, "profiles.list.gz"), 'wb') as f_out:
+                f_out.write(response_profile.read())
+            execute_command(f"gunzip {os.path.join(output_dir, 'profiles.list.gz')}")
 
-jobs = []
-for start, end in lista_indeksow:
-    jobs.append(pool.apply_async(run_blast, (lista_loci, start, end)))
+            if is_data_complete(database, output_dir):
+                logging.info("All required files downloaded successfully.")
+                break
+            else:
+                raise FileNotFoundError("Some required files are missing after download attempt.")
 
-pool.close()
-pool.join()
+        except Exception as e:
+            logging.warning(f"Attempt {attempt} failed: {str(e)}")
+            if attempt < MAX_RETRIES:
+                time.sleep(30)
+            else:
+                logging.error("Failed to download all required files after 3 attempts.")
+                sys.exit(1)
 
-# ---- Final steps ----
-if not os.path.exists('local'):
-    os.mkdir('local')
+    logging.info("Starting indexing loci for BLAST...")
+    pool = Pool(cpus)
+    lista_indeksow = []
+    step = len(lista_loci) // cpus
+    start = 0
 
-if not os.path.exists('local/profiles_local.list'):
-    execute_command("head -1 profiles.list >> local/profiles_local.list")
+    for i in range(cpus):
+        end = start + step
+        if i == (cpus - 1) or end > len(lista_loci):
+            end = len(lista_loci)
+        lista_indeksow.append((start, end))
+        start = end
 
-end_time = datetime.now()
-logging.info(f"Script finished at {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
-logging.info(f"Total runtime: {str(end_time - start_time).split('.')[0]}")
+    jobs = [pool.apply_async(run_blast, (lista_loci, s, e, output_dir)) for s, e in lista_indeksow]
+    pool.close()
+    pool.join()
 
+    # ---- Final steps ----
+    # In case we run our script on an empty directory we must set up files with a local 'database'
+    local_dir = os.path.join(output_dir, 'local')
+    os.makedirs(local_dir, exist_ok=True)
+
+    if not os.path.exists(os.path.join(local_dir, 'profiles_local.list')):
+        execute_command(f"head -1 {os.path.join(output_dir, 'profiles.list')} >> {os.path.join(local_dir, 'profiles_local.list')}")
+
+    end_time = datetime.now()
+    logging.info(f"Script finished at {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    logging.info(f"Total runtime: {str(end_time - start_time).split('.')[0]}" )
+
+if __name__ == '__main__':
+    main()
