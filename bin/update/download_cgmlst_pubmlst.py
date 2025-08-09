@@ -44,7 +44,7 @@ def is_data_complete(output_dir):
 @click.option('-d', '--database', help='[REQUIRED] Genus-specific name of the database in Pubmlst ',
               type=click.Choice(["pubmlst_campylobacter_seqdef"]), required=True)
 @click.option('-s', '--scheme_name', help='[REQUIRED] Name of the cgMLST scheme in Enterobase',
-              type=click.Choice(["C. jejuni / C. coli cgMLST v2"]), required=True)
+               type=click.Choice(["C. jejuni / C. coli cgMLST v2"]), required=True)
 def main(cpus, output_dir, database, scheme_name):
     os.makedirs(output_dir, exist_ok=True)
 

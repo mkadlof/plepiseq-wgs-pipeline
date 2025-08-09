@@ -312,10 +312,10 @@ update_cgmlst() {
                 fi
 		DATABASE="pubmlst_campylobacter_seqdef"
 		schema_name="C. jejuni / C. coli cgMLST v2"
-		python3 download_cgmlst_pubmlst.py --database "${DATABASE}" \
-			                           --scheme_name "${schema_name}" \
-						   --cpus ${cpus} \
-						   --output_dir /home/external_databases/cgmlst/Campylobacter/jejuni/
+		python3 /home/update/download_cgmlst_pubmlst.py --database "${DATABASE}" \
+			                                        --scheme_name "${schema_name}" \
+						                --cpus ${cpus} \
+						                --output_dir /home/external_databases/cgmlst/Campylobacter/jejuni/
 
 	elif [ ${genus} == "Salmonella" ]; then
                 if [ -d "/home/external_databases/cgmlst/Salmonella" ]; then
@@ -383,10 +383,10 @@ update_cgmlst() {
                 fi
 		DATABASE="pubmlst_campylobacter_seqdef"
                 schema_name="C. jejuni / C. coli cgMLST v2"
-                python3 download_cgmlst_pubmlst.py --database "${DATABASE}" \
-                                                   --scheme_name "${schema_name}" \
-                                                   --cpus ${cpus} \
-                                                    --output_dir /home/external_databases/cgmlst/Campylobacter/jejuni/
+                python3 /home/update/download_cgmlst_pubmlst.py --database "${DATABASE}" \
+                                                                --scheme_name "${schema_name}" \
+                                                                --cpus ${cpus} \
+                                                                --output_dir /home/external_databases/cgmlst/Campylobacter/jejuni/
 	fi
 }
 
