@@ -312,10 +312,10 @@ update_cgmlst() {
                 fi
 		DATABASE="pubmlst_campylobacter_seqdef"
 		schema_name="C. jejuni / C. coli cgMLST v2"
-		python3 download_cgmlst_pubmlst_tmp.py --database "${DATABASE}" \
-			                               --scheme_name "${schema_name}" \
-						       --cpus ${cpus} \
-						       --output_dir /home/external_databases/cgmlst/Campylobacter/jejuni/
+		python3 download_cgmlst_pubmlst.py --database "${DATABASE}" \
+			                           --scheme_name "${schema_name}" \
+						   --cpus ${cpus} \
+						   --output_dir /home/external_databases/cgmlst/Campylobacter/jejuni/
 
 	elif [ ${genus} == "Salmonella" ]; then
                 if [ -d "/home/external_databases/cgmlst/Salmonella" ]; then
@@ -366,11 +366,14 @@ update_cgmlst() {
                 else
                         mkdir -p /home/external_databases/cgmlst/Salmonella
                 fi
-                cd /home/external_databases/cgmlst/Salmonella
                 DATABASE="senterica"
                 scheme_name="cgMLST_v2"
                 scheme_dir="Salmonella.cgMLSTv2"
-		python3 -u /home/update/download_cgmlst_enterobase.py --database ${DATABASE} \                                                                                                    --scheme_name "${scheme_name}" \                                                                                            --scheme_dir "${scheme_dir}" \                                                                                              --cpus ${cpus} \                                                                                                            --output_dir /home/external_databases/cgmlst/Salmonella
+		python3 -u /home/update/download_cgmlst_enterobase.py --database ${DATABASE} \
+			                                              --scheme_name "${scheme_name}" \
+								      --scheme_dir "${scheme_dir}" \
+								      --cpus ${cpus} \
+								      --output_dir /home/external_databases/cgmlst/Salmonella
 
 		echo "Downloading data for Campylobacter at: $(date +"%H:%M %d-%m-%Y")" >> log
 		if [ -d "/home/external_databases/cgmlst/Campylobacter/jejuni" ]; then
@@ -380,10 +383,10 @@ update_cgmlst() {
                 fi
 		DATABASE="pubmlst_campylobacter_seqdef"
                 schema_name="C. jejuni / C. coli cgMLST v2"
-                python3 download_cgmlst_pubmlst_tmp.py --database "${DATABASE}" \
-                                                       --scheme_name "${schema_name}" \
-                                                       --cpus ${cpus} \
-                                                       --output_dir /home/external_databases/cgmlst/Campylobacter/jejuni/
+                python3 download_cgmlst_pubmlst.py --database "${DATABASE}" \
+                                                   --scheme_name "${schema_name}" \
+                                                   --cpus ${cpus} \
+                                                    --output_dir /home/external_databases/cgmlst/Campylobacter/jejuni/
 	fi
 }
 
