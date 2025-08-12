@@ -11,12 +11,19 @@ from multiprocessing import Pool
 import logging
 from datetime import datetime
 import click
+from Bio import SeqIO
 
-# ---- Constants ----
+
+# Here we define numbr of retries and expected files
 MAX_RETRIES = 3
-REQUIRED_FILES = {
+REQUIRED_FILES_CGMLST = {
     "senterica": ["STMMW_17971.fasta.gz", "t1733.fasta.gz"],
     "ecoli": ["b0784.fasta.gz", "NCTC12130_00627.fasta.gz"]
+}
+
+REQUIRED_FILES_MLST = {
+    "senterica": ["aroC.fasta.gz", "dnaN.fasta.gz", "purE.fasta.gz"],
+    "ecoli": ["adk.fasta.gz", "fumC.fasta.gz", "recA.fasta.gz"]
 }
 
 # ---- Helper Functions ----
@@ -29,7 +36,7 @@ def execute_command(command: str):
     """
     generic function to execute a bash command
     """
-    logging.info(f"Executing command: {command}")
+    # logging.info(f"Executing command: {command}")
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if stdout:
@@ -47,26 +54,45 @@ def run_blast(lista_loci, start, end, output_dir):
         execute_command(f"makeblastdb -in {os.path.join(output_dir, locus)}.fasta -dbtype nucl")
     return True
 
-def is_data_complete(database: str, output_dir: str):
+def is_data_complete(database: str, output_dir: str, scheme_name:str):
     """
     Check if output directory contains relevant files
     """
     if not os.path.exists(os.path.join(output_dir, "profiles.list")):
         return False
-    required = REQUIRED_FILES.get(database, [])
+
+    # Check expected files given organism and schema type
+    if scheme_name in ["cgMLST_v2", "cgMLST"]:
+        required = REQUIRED_FILES_CGMLST.get(database, [])
+    elif scheme_name == "MLST_Achtman":
+        required = REQUIRED_FILES_MLST.get(database, [])
+
     for file in required:
         if not os.path.exists(os.path.join(output_dir, file)):
             return False
     return True
+
+def get_feader(file_path):
+    """
+    Simple function to extract allele number from headears int the fasta file.
+    :return: dict, only one key - allele name, value list of ints (allel versions)
+    """
+    dictionary = {}
+    allele_name=os.path.basename(file_path).replace('.fasta','')
+    dictionary[allele_name] = []
+    for seq_record in SeqIO.parse(file_path, "fasta"):
+        dictionary[allele_name].append(seq_record.id.rsplit('_')[1])
+
+    return dictionary
 
 # ---- Main Execution ----
 @click.command()
 @click.option('-d', '--database', help='[REQUIRED] Genus-specific name of the database in Enterobase ',
               type=click.Choice(['senterica', 'ecoli']), required=True)
 @click.option('-s', '--scheme_name', help='[REQUIRED] Name of the cgMLST scheme in Enterobase',
-              type=click.Choice(['cgMLST_v2', 'cgMLST']), required=True)
+              type=click.Choice(['cgMLST_v2', 'cgMLST', 'MLST_Achtman']), required=True)
 @click.option('-r', '--scheme_dir', help='[REQUIRED] Schema directory in EnteroBase',
-              type=click.Choice(['Salmonella.cgMLSTv2', 'Escherichia.cgMLSTv1']), required=True)
+              type=click.Choice(['Salmonella.cgMLSTv2', 'Escherichia.cgMLSTv1', 'Escherichia.Achtman7GeneMLST', 'Salmonella.Achtman7GeneMLST']), required=True)
 @click.option('-c', '--cpus', default=4, show_default=True, help='Number of CPUs to use for BLAST indexing')
 @click.option('-t', '--api_token_file',
               default='/home/update/enterobase_api.txt', show_default=True,
@@ -81,10 +107,15 @@ def main(database, scheme_name, scheme_dir, cpus, api_token_file, output_dir):
         level=logging.INFO,
         format='[%(asctime)s] %(levelname)s: %(message)s',
         handlers=[
-            logging.FileHandler(log_file_path),
+            logging.FileHandler(log_file_path, mode = 'w'),
             logging.StreamHandler(sys.stdout)
         ]
     )
+
+    if scheme_name == "MLST_Achtman":
+        execute_command('rm all_allels.fasta || true')
+        execute_command('rm MLST_Achtman_ref.fasta || true')
+
 
     start_time = datetime.now()
     logging.info(f"Script started at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -128,7 +159,7 @@ def main(database, scheme_name, scheme_dir, cpus, api_token_file, output_dir):
                 f_out.write(response_profile.read())
             execute_command(f"gunzip {os.path.join(output_dir, 'profiles.list.gz')}")
 
-            if is_data_complete(database, output_dir):
+            if is_data_complete(database, output_dir, scheme_name):
                 logging.info("All required files downloaded successfully.")
                 break
             else:
@@ -143,6 +174,11 @@ def main(database, scheme_name, scheme_dir, cpus, api_token_file, output_dir):
                 sys.exit(1)
 
     logging.info("Starting indexing loci for BLAST...")
+
+    # Turn off multiprocessing for 7-gene MLST
+    if scheme_name == "MLST_Achtman":
+        cpus = 1
+
     pool = Pool(cpus)
     lista_indeksow = []
     step = len(lista_loci) // cpus
@@ -158,6 +194,9 @@ def main(database, scheme_name, scheme_dir, cpus, api_token_file, output_dir):
     jobs = [pool.apply_async(run_blast, (lista_loci, s, e, output_dir)) for s, e in lista_indeksow]
     pool.close()
     pool.join()
+
+    if scheme_name == "MLST_Achtman":
+        execute_command(f"cat *fasta > all_allels.fasta")
 
     # ---- Final steps ----
     # In case we run our script on an empty directory we must set up files with a local 'database'
