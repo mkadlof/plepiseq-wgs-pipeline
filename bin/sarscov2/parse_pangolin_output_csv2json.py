@@ -16,7 +16,7 @@ def parse_pangolin_output_csv2json(input: str, output: str, lan: str = 'en'):
             "error_message": msg
         }
         with open(output, 'w') as f:
-            f.write(json.dumps(output_json, ensure_ascii=False, indent=4))
+            f.write(json.dumps([output_json], ensure_ascii=False, indent=4))
     else:
         with open(input, 'r') as f:
             reader = csv.DictReader(f)
@@ -32,7 +32,7 @@ def parse_pangolin_output_csv2json(input: str, output: str, lan: str = 'en'):
             "sequence_source": "full_genome"
         }
         with open(output, 'w') as f:
-            f.write(json.dumps(output_json, ensure_ascii=False, indent=4))
+            f.write(json.dumps([output_json], ensure_ascii=False, indent=4))
 
 def main():
     parser = argparse.ArgumentParser(description='Convert Pangolin output CSV to JSON')
