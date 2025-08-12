@@ -46,27 +46,28 @@ process freyja_rsv {
         samtools index mapped_reads.bam
       fi
 
-      MEAN_DEPTHS=`samtools depth -aa mapped_reads.bam | awk '{sum+=\$3} END { print int(sum/NR)}'`                                                                                               # We call variants with freyja                                                                                                                                                              if [ \${MEAN_DEPTHS} -gt 20 ]; then
-        # We call variants with freyja
+      MEAN_DEPTHS=`samtools depth -aa mapped_reads.bam | awk '{sum+=\$3} END { print int(sum/NR)}'` # We call variants with freyja if avarage depth is above 20
+
+      if [ \${MEAN_DEPTHS} -gt 20 ]; then
  
-        freyja variants mapped_reads.bam --minq ${params.freyja_minq} --variants variants_files/test.variants.tsv --depths depth_files/test.depth --ref reference.fasta
-        freyja demix variants_files/test.variants.tsv depth_files/test.depth --output demix_files/test.output --confirmedonly --barcodes  /home/external_databases/freyja/RSV_${TYPE}/barcode.csv
+        freyja variants mapped_reads.bam --minq ${params.freyja_minq} \
+                                         --variants variants_files/test.variants.tsv \
+                                         --depths depth_files/test.depth \
+                                         --ref reference.fasta
+        freyja demix variants_files/test.variants.tsv depth_files/test.depth --output demix_files/test.output \
+                                                                             --confirmedonly \
+                                                                             --barcodes  /home/external_databases/freyja/RSV_${TYPE}/barcode.csv
 
         freyja aggregate demix_files/ --output coinfections.tsv
+        
         freyja_status="tak"
         freyja_lineage_1_name=`cat coinfections.tsv  | cut -f3 | tail -1 | cut -d " " -f1 | sed s"|RSVa-||"g | sed s"|RSVb-||"g`
         freyja_lineage_2_name=`cat coinfections.tsv  | cut -f3 | tail -1 | cut -d " " -f2 | sed s"|RSVa-||"g | sed s"|RSVb-||"g` 
         freyja_lineage_1_abundance=`cat coinfections.tsv  | cut -f4 | tail -1 | cut -d " " -f1 | awk '{printf "%.2f", \$0}'`
         freyja_lineage_2_abundance=`cat coinfections.tsv  | cut -f4 | tail -1 | cut -d " " -f2 | awk '{printf "%.2f", \$0}'`
 
-        # In case freyja found a single linage
-        if [ -z \${freyja_lineage_2_name} ]; then
-          freyja_lineage_2_name="unk"
-          freyja_lineage_2_abundance=0
-        fi
-
-        # In case both linages have the same name
-        if [ \${freyja_lineage_1_name} == \${freyja_lineage_2_name} ]; then
+        # Single-lineage or duplicate-lineage guards
+        if [[ -z "\${freyja_lineage_2_name}" || "\${freyja_lineage_1_name}" == "\${freyja_lineage_2_name}" ]]; then
           freyja_lineage_2_name="unk"
           freyja_lineage_2_abundance=0
         fi
@@ -77,17 +78,17 @@ process freyja_rsv {
                   \\"freyja_lineage1_abundance\\":\${freyja_lineage_1_abundance},
                   \\"freyja_lineage2_abundance\\":\${freyja_lineage_2_abundance}}" >> coinfections_freyja.json
       else
-           if [ "${params.lan}" == "pl" ]; then
-             ERR_MSG="Średnie pokrycie dla tej próbki: \${MEAN_DEPTHS}, jest poniżej zalecanego progu przez Freya"
-           else
-             ERR_MSG="Mean depth for this sample: \${MEAN_DEPTHS}, which is below Freyja recommended threshold"
-           fi
-           freyja_status="blad"
-           echo -e "{\\"status\\":\\"\${freyja_status}\\",
-                     \\"error_message\\":\\"\${ERR_MSG}\\"}" >> coinfections_freyja.json
+        if [ "${params.lan}" == "pl" ]; then
+          ERR_MSG="Średnie pokrycie dla tej próbki: \${MEAN_DEPTHS}, jest poniżej zalecanego progu przez Freya"
+        else
+          ERR_MSG="Mean depth for this sample: \${MEAN_DEPTHS}, which is below Freyja recommended threshold"
+        fi
+        
+        freyja_status="blad"
+        echo -e "{\\"status\\":\\"\${freyja_status}\\",
+                  \\"error_message\\":\\"\${ERR_MSG}\\"}" >> coinfections_freyja.json
 
-         fi
+      fi
     fi
-
     """
 }
