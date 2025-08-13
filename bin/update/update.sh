@@ -1,22 +1,24 @@
 #!/usr/bin/env bash
 
-# Script is intended to run with a docker container 
-# hence all paths are HARDCODED
+# Script is intended to run within a docker container, hence all paths are HARDCODED
 # all subsripts intended to download/update a specific database are located in /home/update
-# the "top-level" directory where we place subdirectories ar in /home/external_databases
+# the "top-level" directory where is /home/external_databases
+# data from each database will be put is a specific subdirectory e.g. //home/external_databases/cgmlst
 
-
-# If updating/downloading database requires 2-3 lines of code the function is inside this file
+# If updating/downloading a database requires few lines of code the function is inside this file
 # more complex downloads/updates are kept in separate files in /home/updates
 
 # We TRY to distinguish updating vs. downloading functionalities
-# This is usually based on the presence or absence of specific files in a given database subdirectory
+# This is usually based on the presence or absence of specific version file in a given database subdirectory
+# If updataing is not feasable the defult behaviour is to rmemove content of a specific subdirecroty and download
+#  all the files from scratch
 
-# This script is intended as a updater for both "viral" and "bacterial" pipelines
+# This script is intended as an updater for both "viral" and "bacterial" pipelines
 
-
-# This script understands 3 positional arguments (database name, type of kraken database, bacterial genus)
+# This script understands 4 positional arguments (database name, type of kraken database, bacterial genus, number of cpus)
+# This script should never be run directly but using a wrapper script update_external_databases.sh
 # All values passed to this script are evaluated by update_external_databases.sh
+
 
 #############################################
 # Function to update the nextclade database #
@@ -67,8 +69,9 @@ update_pangolin() {
     return $?
 }
 
-## Kraken2
-## For kraken2 there has an update procedure so we do not remove all the files from /home/external_databases/kraken2
+# Kraken2
+## For kraken2 there has an update procedure so we do not remove iby default 
+## all the files from /home/external_databases/kraken2
 
 update_kraken2() {
     local kraken2_type=$1
@@ -76,8 +79,9 @@ update_kraken2() {
 	    mkdir /home/external_databases/kraken2
     fi
 
-    # The script accepts two positional arguments path where database will be placed and type of kraken2 database
-    python /home/update/kraken_updater.py /home/external_databases/kraken2 "${kraken2_type}"
+    # Scirpt requires two arguments path where data are stored and type of krake database
+    python3 /home/update/kraken_updater.py --local_path /home/external_databases/kraken2 \
+	                                   --db_name "${kraken2_type}"
 
     return $?
 }
