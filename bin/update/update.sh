@@ -123,13 +123,14 @@ update_freyja() {
 
 
 # AMRfinder_plus
-## Database has an update mechanism
+## Database has an update mechanism based on the version.txt on ftp server
+## if local and remote versions of the database are different the script will remove content of output_dir and download 
+## all the files 
 update_amrfinder() {
 	if [ ! -d "/home/external_databases/amrfinder_plus" ]; then
 		 mkdir /home/external_databases/amrfinder_plus
 	fi
-	
-	/home/update/download_amrfinder.sh 
+        python3 /home/update/download_amrfinder.py --output_dir /home/external_databases/amrfinder_plus
 
 }
 

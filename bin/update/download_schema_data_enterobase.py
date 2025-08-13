@@ -113,8 +113,11 @@ def main(database, scheme_name, scheme_dir, cpus, api_token_file, output_dir):
     )
 
     if scheme_name == "MLST_Achtman":
-        execute_command('rm all_allels.fasta || true')
-        execute_command('rm MLST_Achtman_ref.fasta || true')
+        all_allels_path = os.path.join(output_dir, "all_allels.fasta")
+        achman_ref_path = os.path.join(output_dir, "MLST_Achtman_ref.fasta")
+
+        execute_command(f'rm {all_allels_path} || true')
+        execute_command(f'rm {achman_ref_path} || true')
 
 
     start_time = datetime.now()
@@ -196,7 +199,8 @@ def main(database, scheme_name, scheme_dir, cpus, api_token_file, output_dir):
     pool.join()
 
     if scheme_name == "MLST_Achtman":
-        execute_command(f"cat *fasta > all_allels.fasta")
+        all_allels_path = os.path.join(output_dir, "all_allels.fasta")
+        execute_command(f"cat *fasta > {all_allels_path}")
 
     # ---- Final steps ----
     # In case we run our script on an empty directory we must set up files with a local 'database'
