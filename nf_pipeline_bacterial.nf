@@ -221,9 +221,9 @@ process run_initial_mlst_illumina {
   if [ ${QC_status} == "nie" ]; then
     
     if [ "${params.lan}" == "pl" ]; then
-      ERROR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
+      ERR_MSG="Ten moduł został uruchomiony na próbce, która nie przeszła kontroli jakości."
     else
-      ERROR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
+      ERR_MSG="This sample failed a QC analysis during an earlier phase of the analysis."
     fi
     
     QC_status_exit=`python /opt/docker/EToKi/externals/initial_mlst_parser.py -s ${QC_status} -r "\${ERR_MSG}" -o initial_mlst.json --lan ${params.lan}`
