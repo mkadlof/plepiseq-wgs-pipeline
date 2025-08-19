@@ -12,7 +12,7 @@ import logging
 from datetime import datetime
 import click
 from Bio import SeqIO
-
+from glob import glob
 
 # Here we define numbr of retries and expected files
 MAX_RETRIES = 3
@@ -27,6 +27,14 @@ REQUIRED_FILES_MLST = {
 }
 
 # ---- Helper Functions ----
+
+def concat_fastas(src_dir: str, out_path: str) -> None:
+    """Concatenate all FASTA files in src_dir into out_path."""
+    with open(out_path, "wb") as outfile:
+        for fasta_file in sorted(glob(os.path.join(src_dir, "*.fasta"))):
+            with open(fasta_file, "rb") as infile:
+                outfile.write(infile.read())
+
 def __create_request(request_str, api_token):
     base64string = base64.b64encode(f'{api_token}: '.encode('utf-8'))
     headers = {"Authorization": f"Basic {base64string.decode()}"}
@@ -199,8 +207,9 @@ def main(database, scheme_name, scheme_dir, cpus, api_token_file, output_dir):
     pool.join()
 
     if scheme_name == "MLST_Achtman":
-        all_allels_path = os.path.join(output_dir, "all_allels.fasta")
-        execute_command(f"cat *fasta > {all_allels_path}")
+        logging.info(f"Merging fastas to all_allels.fasta in {output_dir}...")
+        all_allels_path = os.path.join(output_dir, "all_allels.fasta") 
+        concat_fastas(output_dir, all_allels_path)
 
     # ---- Final steps ----
     # In case we run our script on an empty directory we must set up files with a local 'database'
